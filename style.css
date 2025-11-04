@@ -428,3 +428,23 @@ select {
 .scamper-tag:hover {
   opacity: 0.9;
 }
+
+/* SCAMPERタグコンテナ */
+.scamper-tag-container {
+  display: flex;
+  flex-direction: row; /* タグと修正ボックスを横並びに */
+  gap: 8px;            /* タグと修正ボックスの間隔 */
+  align-items: center; /* 垂直方向で中央揃え */
+  width: 100%;         /* コンテナ全体を幅いっぱいに */
+}
+
+/* 修正用仮説入力ボックス */
+.scamper-edit-box {
+  flex: 1; /* 修正ボックスを残り幅いっぱいに広げる */
+  min-height: 40px;
+  padding: 6px;
+  font-size: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
