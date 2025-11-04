@@ -29,35 +29,53 @@ var selectedNodes = []; // 選択されたノードIDを保存
 
 // ノードの選択イベント
 network.on("selectNode", function (event) {
-  var nodeId = event.nodes[0]; // 選択されたノードのID
-
-  // 2つのノードを選択するロジック
-  if (selectedNodes.length < 2) {
-    selectedNodes.push(nodeId); // ノードIDを選択リストに追加
-  } else {
-    // 3つ目以降を選択した場合、最初に戻して新たに選び直す
-    selectedNodes = [nodeId]; // 最後のノードで上書き
+  if (event.nodes.length > 0) {
+    // Shiftキーが押されている場合は選択を追加
+    if (event.event.srcEvent.shiftKey) {
+      selectedNodes = [...new Set([...selectedNodes, ...event.nodes])]; // 重複を防ぐ
+    } else {
+      // Shiftキーが押されていない場合は選択をリセット
+      selectedNodes = event.nodes;
+    }
   }
 
   // ノードの情報を表示
-  updateCopiedContent(nodeId);
+  updateCopiedContent(selectedNodes);
 
-  // 2つ目のノードが選ばれた場合、アラートを表示
-  if (selectedNodes.length === 2) {
-    alert("2つのノードが選択されました。エッジを作成できます。");
-  }
+  // 選択されたノードをハイライト
+  highlightNodes(selectedNodes);
+
+  console.log("Selected Nodes:", selectedNodes);
 });
 
 // ノードの選択解除イベント
 network.on("deselectNode", function (event) {
-  var nodeId = event.previousSelection.nodes[0]; // 解除されたノードのID
-  selectedNodes = selectedNodes.filter(function (id) {
-    return id !== nodeId; // 選択リストから解除されたノードを削除
+  if (event.previousSelection.nodes.length > 0) {
+    // 選択解除されたノードをリストから削除
+    selectedNodes = selectedNodes.filter(function (id) {
+      return !event.previousSelection.nodes.includes(id);
+    });
+  }
+
+  // 表示内容を更新
+  updateCopiedContent(selectedNodes);
+
+  // 選択されたノードをハイライト
+  highlightNodes(selectedNodes);
+});
+
+// ノードをハイライトする関数
+function highlightNodes(nodeIds) {
+  // すべてのノードをデフォルトスタイルに戻す
+  nodes.forEach(function (node) {
+    nodes.update({ id: node.id, color: { background: "#97C2FC" } }); // デフォルトの色
   });
 
-  // 表示内容をリセット
-  document.getElementById("copiedContent").innerText = '';
-});
+  // 選択されたノードをハイライト
+  nodeIds.forEach(function (id) {
+    nodes.update({ id: id, color: { background: "#FF5733" } }); // ハイライト色
+  });
+}
 
 // ノードまたはエッジをダブルクリックで編集
 network.on("doubleClick", function (event) {
@@ -107,19 +125,24 @@ document.getElementById("addEdgeBtn").addEventListener("click", function () {
   if (selectedNodes.length === 2) {
     var arrowEnabled = document.getElementById("arrowToggle").checked; // チェックボックスの状態を取得
 
+    // 選択された2つのノード間にエッジを追加
     var newEdge = {
       from: selectedNodes[0],
       to: selectedNodes[1],
       label: "New Edge",
       arrows: arrowEnabled ? "to" : "", // 矢印の有無をチェックボックスで決定
     };
-    edges.add(newEdge); // エッジを追加
-    selectedNodes = []; // 選択リセット
+
+    try {
+      edges.add(newEdge); // エッジを追加
+      alert("エッジを追加しました。");
+    } catch (error) {
+      console.error("エッジの追加に失敗しました:", error);
+    }
   } else {
     alert("2つのノードを選択してください。");
   }
 });
-
 
 // エッジ削除ボタン
 document.getElementById("deleteEdgeBtn").addEventListener("click", function () {
@@ -128,30 +151,56 @@ document.getElementById("deleteEdgeBtn").addEventListener("click", function () {
     var toNode = selectedNodes[1];
 
     // 選択された2つのノード間のエッジを取得
-    var edgeToDelete = edges.get({
+    var edgesToDelete = edges.get({
       filter: function (edge) {
-        return (edge.from === fromNode && edge.to === toNode) || (edge.from === toNode && edge.to === fromNode);
+        return (
+          (edge.from === fromNode && edge.to === toNode) ||
+          (edge.from === toNode && edge.to === fromNode)
+        );
       },
     });
 
-    if (edgeToDelete.length > 0) {
-      edges.remove(edgeToDelete[0]); // エッジを削除
-      selectedNodes = []; // 選択リセット
+    // エッジを削除
+    if (edgesToDelete.length > 0) {
+      edgesToDelete.forEach(function (edge) {
+        edges.remove(edge.id);
+      });
       alert("エッジを削除しました。");
     } else {
-      alert("選択したノード間にエッジは存在しません。");
+      alert("選択されたノード間にエッジが存在しません。");
     }
   } else {
-    alert("エッジを削除するために2つのノードを選択してください。");
+    alert("2つのノードを選択してください。");
   }
 });
 
-// ノードタイトルを表示する関数
-function updateCopiedContent(nodeId) {
-  var node = nodes.get(nodeId); // ノード情報を取得
-  var selectedContent = node.label; // ノードのラベル
+// ノードタイトルを表示する関数（複数ノード対応）
+function updateCopiedContent(nodeIds) {
+  var selectedContent = nodeIds
+    .map(function (id) {
+      var node = nodes.get(id);
+      return node ? node.label : "";
+    })
+    .join(", "); // 複数ノードのラベルをカンマ区切りで表示
 
   // タイトル表示エリアに設定
   var copiedContentElement = document.getElementById("copiedContent");
   copiedContentElement.innerText = selectedContent;
 }
+
+// ネットワークのクリックイベント
+network.on("click", function (event) {
+  if (event.nodes.length === 0 && event.edges.length === 0) {
+    // ノードやエッジが選択されていない場合
+    selectedNodes = []; // 選択リセット
+    highlightNodes(selectedNodes); // ハイライトを解除
+    updateCopiedContent(selectedNodes); // 表示内容をリセット
+  }
+});
+
+// 選択されたノードが存在するか確認
+selectedNodes.forEach(function (nodeId) {
+  console.log("Node exists:", nodes.get(nodeId) !== null);
+});
+
+console.log("Edges:", edges.get());
