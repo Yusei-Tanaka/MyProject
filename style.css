@@ -6,7 +6,7 @@ html, body {
 
 body {
   display: flex;
-  flex-direction: column; /* 縦方向に並べる */
+  flex-direction: column; /* 縨方向に並べる */
 }
 
 /* ヘッダー設定 */
@@ -78,17 +78,48 @@ body {
 
 /* メインエリアの右ナビ（キーワードエリア） */
 .right-navi {
-  width: 30%; /* 横幅を30%に設定 */
+  width: 30%; 
   background-color: #DCEAF7;
   color: black;
   text-align: center;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; /* 子要素を上部に揃える */
-  align-items: flex-start; /* 左寄せ */
-  padding: 10px;
+  justify-content: flex-start;
+  align-items: stretch; /* 内部要素を幅いっぱいにする */
+  padding: 6px; /* 余白を狭く */
   box-sizing: border-box;
   height: 100%;
+}
+
+/* 仮説エリアを右ナビ内で大きく、横幅いっぱいに表示 */
+.right-navi .hypothesis-area {
+  width: 100%;                    /* 右ナビ内で幅いっぱい */
+  margin: 0;                      /* 外側の余白をなくす */
+  padding: 6px;                   /* 内側の余白は小さめ */
+  box-sizing: border-box;
+  background: #fff7f0;
+  border: 1px solid #ddd;
+  /* 右ナビの高さに合わせて表示領域を確保 */
+  height: calc(100% - 36px);      /* 右ナビのヘッダ等の分だけ引く（調整可） */
+  max-height: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* 仮説エントリを幅いっぱいに */
+.hypothesis-wrapper,
+.right-navi .hypothesis-box {
+  width: 100%;
+}
+
+/* 各仮説ボックスの余白をさらに狭く*/
+.hypothesis-box {
+  margin-bottom: 6px;
+  padding: 6px;
+  max-height: 35vh;
+  overflow: hidden;
+  border: 1px solid #c39a00;
+  background: #fff3cc;
 }
 
 /* フッター設定 */
@@ -236,4 +267,83 @@ select {
 }
 .sdgs-checkbox-group input[type="checkbox"] {
   margin-right: 10px; /* チェックボックスとラベルの間隔を調整 */
+}
+
+/* 仮説エリアのスタイル */
+.hypothesis-area {
+  margin-top: 12px;
+  padding: 10px;
+  border: 2px solid #000;
+  background: #fff7f0;
+  box-sizing: border-box;
+}
+
+.hypothesis-title {
+  margin: 0 0 8px 0;
+  font-size: 1.2em;
+}
+
+.hypothesis-box {
+  border: 1px solid #c39a00;
+  background: #fff3cc;
+  margin-bottom: 8px;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.hypothesis-box-header {
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.hypothesis-box-body { }
+
+.hypothesis-text {
+  width: 100%;
+  min-height: 60px;
+  resize: vertical;
+  box-sizing: border-box;
+  padding: 6px;
+  font-size: 14px;
+}
+
+/* 総合仮説は目立たせる */
+.hypothesis-combined { background: #ffe9d6; border-color: #ff8c42; }
+
+/* 仮説立案エリア（右ナビ内）をスクロール可能にする */
+.hypothesis-area {
+  /* 右ナビ内に収まる高さを指定（必要に応じて調整） */
+  max-height: 60vh;
+  height: 60vh;
+  overflow-y: auto;       /* 縨スクロールを有効にする */
+  overflow-x: hidden;
+  padding: 10px;
+  box-sizing: border-box;
+  background: #fff7f0;
+  border: 1px solid #ddd;
+}
+
+/* 仮説エントリを縦に並べる */
+.hypothesis-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 各仮説ボックスの最大高さ（長文でも崩れにくくする） */
+.hypothesis-box {
+  max-height: 35vh;
+  overflow: hidden;
+}
+
+/* テキストエリアは内部でスクロール */
+.hypothesis-text {
+  width: 100%;
+  min-height: 80px;
+  max-height: 30vh;
+  resize: vertical;
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 6px;
+  font-size: 14px;
 }
