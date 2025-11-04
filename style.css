@@ -11,7 +11,7 @@ body {
 
 /* ヘッダー設定 */
 .header {
-  height: 15%; /* 全体の15%を占める */
+  height: 10%; /* 全体の15%を占める */
   background-color: #CAEEFB;
   text-align: center;
   line-height: 15%; /* テキストの縦中央揃え */
