@@ -1,3 +1,4 @@
+/*
 // テーマカテゴリが変更されたときの処理
 document.getElementById('theme-category').addEventListener('change', function() {
   var theme = this.value;
@@ -32,3 +33,4 @@ document.getElementById('theme-category').addEventListener('change', function() 
       sportswelfereCheckboxes.style.display = 'block';
   }
 });
+*/
