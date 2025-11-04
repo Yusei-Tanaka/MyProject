@@ -296,8 +296,6 @@ select {
   margin-bottom: 6px;
 }
 
-/* .hypothesis-box-body { } */
-
 .hypothesis-text {
   width: 100%;
   min-height: 60px;
@@ -405,16 +403,28 @@ select {
   color: #111;
 }
 
-/* タグ（バッジ）スタイル（既存の .scamper-tag があるなら統一） */
-.scamper-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
-.scamper-tag {
-  display:inline-block;
-  background:#ffd89b;
-  color:#333;
-  padding:4px 8px;
-  border-radius:12px;
-  font-size:12px;
-  cursor:pointer;
-  border:1px solid rgba(0,0,0,0.08);
+/* SCAMPERタグを縦に並べ、左寄せにする */
+.scamper-tags {
+  display: flex;
+  flex-direction: column; /* 縦方向に並べる */
+  gap: 6px;               /* タグ間の余白 */
+  margin-top: 6px;
+  align-items: flex-start; /* 左寄せにする */
 }
-.scamper-tag:hover { opacity:0.9; }
+
+.scamper-tag {
+  display: inline-block;
+  background: #ffd89b;
+  color: #333;
+  padding: 4px 8px; /* 内側の余白を調整 */
+  border-radius: 12px;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  white-space: nowrap; /* 1行に収める */
+  width: 142px; /* 幅を固定 */
+}
+
+.scamper-tag:hover {
+  opacity: 0.9;
+}

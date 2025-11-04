@@ -226,27 +226,22 @@ function applyScamperToEntry(entry, option) {
     entry.insertBefore(tagWrap, entry.querySelector(".hypothesis-box-body").nextSibling);
   }
 
-  // 同じタグがなければ追加
-  var exists = Array.from(tagWrap.children).some(function (c) {
-    return c.dataset.key === option.key;
+  // タグを追加（重複チェックを削除）
+  var tag = document.createElement("span");
+  tag.className = "scamper-tag";
+  tag.dataset.key = option.key;
+  tag.innerText = option.label;
+
+  // 右クリックで削除確認ダイアログを表示
+  tag.addEventListener("contextmenu", function (e) {
+    e.preventDefault();
+    var confirmDelete = confirm(`「${option.label}」タグを削除しますか？`);
+    if (confirmDelete) {
+      tagWrap.removeChild(tag);
+    }
   });
-  if (!exists) {
-    var tag = document.createElement("span");
-    tag.className = "scamper-tag";
-    tag.dataset.key = option.key;
-    tag.innerText = option.label;
 
-    // 右クリックで削除確認ダイアログを表示
-    tag.addEventListener("contextmenu", function (e) {
-      e.preventDefault();
-      var confirmDelete = confirm(`「${option.label}」の選択を解除しますか？`);
-      if (confirmDelete) {
-        tagWrap.removeChild(tag);
-      }
-    });
-
-    tagWrap.appendChild(tag);
-  }
+  tagWrap.appendChild(tag);
 
   // テンプレートを textarea に追加（末尾に一行追記）
   var ta = entry.querySelector("textarea.hypothesis-text");
