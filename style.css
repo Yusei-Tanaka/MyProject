@@ -1,0 +1,239 @@
+/* 親要素の高さ設定 */
+html, body {
+  height: 100%; /* 全体の高さを100% */
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column; /* 縦方向に並べる */
+}
+
+/* ヘッダー設定 */
+.header {
+  height: 15%; /* 全体の15%を占める */
+  background-color: #99CCFF;
+  text-align: center;
+  line-height: 15%; /* テキストの縦中央揃え */
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+#myTitle {
+  margin: 1%;
+  height: 60%;
+  width: 60%;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  white-space: nowrap; /* テキストを1行にする */
+  overflow: hidden; /* オーバーフロー時に隠す */
+}
+
+#serchBtn {
+  padding: 10px;
+  font-size: 20px;
+}
+
+.header button {
+  font-size: 100%;
+}
+
+/* メインコンテンツ設定 */
+.main {
+  height: 75%; /* メインコンテンツの高さを設定 */
+  display: flex; /* 横並びのレイアウト */
+  flex-direction: row; /* 横並びに設定 */
+}
+
+/* メインエリアの左ナビ（カテゴリ選択） */
+.left-navi {
+  width: 20%; /* 横幅を20%に設定 */
+  background-color: #fffb13;
+  color: black;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* 子要素を上部に揃える */
+  align-items: flex-start; /* 左寄せ */
+  padding: 10px;
+  box-sizing: border-box;
+  height: 100%;
+}
+
+/* メインエリアの中央（概念マップ作成エリア） */
+.main-contents {
+  width: 50%; /* 横幅を50%に設定 */
+  background-color: #93FFAB;
+  color: white;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* 子要素を上部に揃える */
+  padding: 10px;
+  box-sizing: border-box;
+  height: 100%;
+}
+
+/* メインエリアの右ナビ（キーワードエリア） */
+.right-navi {
+  width: 30%; /* 横幅を30%に設定 */
+  background-color: #f189ff;
+  color: black;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* 子要素を上部に揃える */
+  align-items: flex-start; /* 左寄せ */
+  padding: 10px;
+  box-sizing: border-box;
+  height: 100%;
+}
+
+/* フッター設定 */
+.footer {
+  height: 15%; /* 全体の15%を占める */
+  background-color: orange;
+  text-align: center;
+  line-height: 20%; /* テキストを中央揃え */
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+/* キーワード表示エリア */
+.h3 {
+  color: black;
+  font-size: 2em;
+  margin: 1%;
+}
+
+.h4 {
+  color: black;
+  font-size: 2em;
+  margin: 4%;
+}
+
+/* Vis.jsのネットワークグラフのスタイル */
+#mynetwork {
+  width: 100%;
+  height: 80%;
+  border: 1px solid lightgray;
+  background-color: white;
+}
+
+/* ボタンのスタイル */
+.button-container {
+  margin: 1%;
+}
+
+.button-container button {
+  margin-right: 10px;
+  padding: 10px;
+  font-size: 14px;
+}
+
+/* ノードの追加削除ボタン */
+.button-container button {
+  margin-right: 10px;
+  padding: 10px;
+  font-size: 14px;
+}
+
+/* 出力エリア */
+.output-area {
+  margin: 2% auto; /* 左右中央揃え、上下に2%のマージン */
+  width: 90%; /* 必要に応じて調整 */
+  height: 7%;
+  border: 1px solid lightgray;
+  background-color: white;
+  padding: 10px; /* 内側の余白 */
+  box-sizing: border-box; /* パディングを含めたボックスの大きさ */
+  overflow: auto; /* コンテンツがボックスを超える場合にスクロールバーを表示 */
+}
+
+#output {
+  width: 100%;
+  height: 100%;
+  color: #333; /* テキストの色 */
+  overflow-wrap: break-word; /* 長い単語の折り返し */
+  white-space: pre-wrap; /* テキストの改行を反映 */
+}
+
+#copiedContent {
+  font-size: 20px;
+  color: #333;
+  white-space: pre-wrap; /* 改行をそのまま表示 */
+  overflow-wrap: break-word; /* 単語の途中で改行を入れる */
+}
+
+/* その他のフォーム要素 */
+label[for="arrowToggle"] {
+  color: black; /* 文字を黒にする */
+}
+
+/* ボタン（右ナビゲーション） */
+button#keywordCreationBtn {
+  font-size: 16px;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+/* ログのタイトル */
+.h5 {
+  text-align: left;
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+/* ログ表示ボックスのスタイル */
+#logBoxContainer {
+  overflow-y: auto;  /* スクロールを有効にする */
+  background-color: white; /* 背景色を白に設定 */
+  height: 90%; /* 親要素の高さの75% */
+}
+
+#logBox {  
+  /* 文字のスタイル */
+  font-family: Arial, sans-serif; /* フォントを設定 */
+  font-size: 14px; /* 文字の大きさ */
+  color: #333; /* 文字色（黒に近いグレー） */
+  line-height: 1.5; /* 行間を少し広げる */
+  text-align: left; /* テキストを左揃え */
+  white-space: pre-wrap; /* 長い文字を折り返す */
+}
+
+/* 右ナビゲーションの結果表示エリア */
+#resultBox {
+  width: 100%;
+  height: 80%;
+  border: 1px solid #ccc;
+  padding: 10px;
+  background-color: #f9f9f9;
+  box-sizing: border-box;
+  margin-top: 10px;
+  overflow-y: auto; /* スクロール可能にする */
+  text-align: left; /* 左揃えにする */
+}
+
+ul li {
+  cursor: pointer;
+}
+label {
+  font-family: sans-serif;
+  font-size: 1rem;
+  padding-right: 10px;
+}
+select {
+  font-size: 0.9rem;
+  padding: 2px 5px;
+}
+/* SDGsチェックボックスのグループを左揃えにする */
+.sdgs-checkbox-group {
+  text-align: left; /* チェックボックスを左揃え */
+  padding-left: 20px; /* 左のマージンを少し調整 */
+}
+.sdgs-checkbox-group input[type="checkbox"] {
+  margin-right: 10px; /* チェックボックスとラベルの間隔を調整 */
+}

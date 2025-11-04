@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wikidata Entity Search</title>
+</head>
+<body>
+    <h1>Wikidata Entity Search</h1>
+
+    <form method="POST">
+        <label for="search_term">Search Term:</label>
+        <input type="text" id="search_term" name="search_term" required>
+        <button type="submit">Search</button>
+    </form>
+
+    {% if entity_id %}
+        <h2>Entity ID: {{ entity_id }}</h2>
+    {% endif %}
+
+</body>
+</html>

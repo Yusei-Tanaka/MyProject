@@ -1,0 +1,1265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OE_FILE filename="new_file.xml" ont_id="1740134084021ont" >
+<FILENAME_ONT>new_file.xml</FILENAME_ONT>
+<LABEL_NS name="wikidata_id" url="" lang="" symbol="" description="" isVisible="true" />
+<W_CONCEPTS>
+<CANVAS_SIZE w="7213" h="7247" x="0" y="1500" />
+<CONCEPT id="1740134084021_n0" >
+<LABEL>Any</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="0" y="0"/>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n1" >
+<LABEL>化学物質</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q11344" name="wikidata_id" lang="" symbol="" />
+<SUB_LABEL label="113145171" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="620" y="1240"/>
+<SLOTS>
+<SLOT id="1740134084021_s2" 
+ type="NW"  label="slot"  kind="a/o"  num="1"  role="構成要素"  class_constraint="元素"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="元素" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1740134084021_s3" 
+ type="NW"  label="slot2"  kind="a/o"  num="1"  role="用途"  class_constraint="Any"  rh_name=""  value="" >
+<SUB_LABELS>
+<SUB_LABEL label="P366" sub_label="" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="Any" rh_name ="" value ="" />
+</SLOT>
+</SLOTS>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n4" >
+<LABEL>実在物</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="200" y="60"/>
+<PART_TREE>close</PART_TREE>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n5" >
+<LABEL>具体物</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="420" y="40"/>
+<PART_TREE>close</PART_TREE>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n6" >
+<LABEL>もの</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q223557" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="600" y="40"/>
+<PART_TREE>close</PART_TREE>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n7" >
+<LABEL>抽象物</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="400" y="140"/>
+<PART_TREE>close</PART_TREE>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n8" >
+<LABEL>基底</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="220" y="300"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n9" >
+<LABEL>数</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="540" y="180"/>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n10" >
+<LABEL>実数</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="640" y="140"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n11" >
+<LABEL>虚数</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="640" y="240"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n12" >
+<LABEL>単位</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="520" y="380"/>
+<PART_TREE>close</PART_TREE>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n13" >
+<LABEL>論理値</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="740" y="900"/>
+<SLOTS>
+<SLOT id="1740134084021_s14" 
+ type="NW"  label="slot"  kind="p/o"  num="1"  role="真"  class_constraint="True"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="True" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1740134084021_s15" 
+ type="NW"  label="slot2"  kind="p/o"  num="1"  role="偽"  class_constraint="False"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="False" rh_name ="" value ="" />
+</SLOT>
+</SLOTS>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n16" >
+<LABEL>SI単位系</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="700" y="380"/>
+<SLOTS>
+<SLOT id="1740134084021_s17" 
+ type="NW"  label="slot"  kind="p/o"  num="1"  role="長さ単位"  class_constraint="m"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="slot" def="" role_name="role" class_const="長さ単位" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1740134084021_s18" 
+ type="NW"  label="slot2"  kind="p/o"  num="1"  role="質量単位"  class_constraint="kg"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="質量単位" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1740134084021_s19" 
+ type="NW"  label="slot3"  kind="p/o"  num="1"  role="時間単位"  class_constraint="s"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="時間単位" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1740134084021_s20" 
+ type="NW"  label="slot4"  kind="p/o"  num="1"  role="電流単位"  class_constraint="A"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="電流単位" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1740134084021_s21" 
+ type="NW"  label="slot5"  kind="p/o"  num="1"  role="熱力学単位"  class_constraint="K"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="熱力学単位" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1740134084021_s22" 
+ type="NW"  label="slot6"  kind="p/o"  num="1"  role="物質量単位"  class_constraint="mol"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="物質量単位" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1740134084021_s23" 
+ type="NW"  label="slot7"  kind="p/o"  num="1"  role="光度単位"  class_constraint="cd"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="光度単位" rh_name ="" value ="" />
+</SLOT>
+</SLOTS>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n24" >
+<LABEL>自然物</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="1020" y="60"/>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n25" >
+<LABEL>人工物</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q8205328" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="1000" y="580"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n26" >
+<LABEL>生物</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q7239" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="1440" y="40"/>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n27" >
+<LABEL>自然物質</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q3405827" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="1460" y="420"/>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n28" >
+<LABEL>真核生物ドメイン</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q19088" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="1600" y="140"/>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n29" >
+<LABEL>動物界</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q729" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="1860" y="160"/>
+<PART_TREE>close</PART_TREE>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n30" >
+<LABEL>植物界</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q756" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="1840" y="220"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n31" >
+<LABEL>菌界</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q764" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="1860" y="280"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n32" >
+<LABEL>原生生物界</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q10892" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="1840" y="360"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n33" >
+<LABEL>脊索動物門</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q10915" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="2100" y="160"/>
+<PART_TREE>close</PART_TREE>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n34" >
+<LABEL>節足動物門</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q1360" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="2100" y="200"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n35" >
+<LABEL>軟体動物門</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q25326" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="2100" y="260"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n36" >
+<LABEL>環形動物門</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q25522" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="2100" y="320"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n37" >
+<LABEL>頭索動物亜門</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q123252" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="2380" y="100"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n38" >
+<LABEL>尾索動物亜門</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q165118" name="wikidata_id" lang="" symbol="" />
+<SUB_LABEL label="Q39256712" name="wikidata_id" lang="" symbol="" />
+<SUB_LABEL label="Q3552321" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="2400" y="200"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n39" >
+<LABEL>脊椎動物亜門</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q25241" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="2400" y="280"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n40" >
+<LABEL>原核生物ドメイン</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="1580" y="40"/>
+<PART_TREE>close</PART_TREE>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n41" >
+<LABEL>原核生物界</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q19081" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="1860" y="60"/>
+<PART_TREE>close</PART_TREE>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n42" >
+<LABEL>細菌</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q10876" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="2140" y="0"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n43" >
+<LABEL>古細菌</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q10872" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="2120" y="80"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n44" >
+<LABEL>地質</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q11272686" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="1840" y="420"/>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n45" >
+<LABEL>水圏</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q83169" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="1860" y="500"/>
+<PART_TREE>close</PART_TREE>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n46" >
+<LABEL>大気</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q8104" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="1860" y="580"/>
+<PART_TREE>close</PART_TREE>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n48" >
+<LABEL>物理的状態</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="1860" y="1080"/>
+<PART_TREE>close</PART_TREE>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n49" >
+<LABEL>化学組織</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="1860" y="1200"/>
+<PART_TREE>close</PART_TREE>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n50" >
+<LABEL>エネルギー現象</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="1860" y="1540"/>
+<PART_TREE>close</PART_TREE>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084021_n51" >
+<LABEL>天体</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="1880" y="820"/>
+<PART_TREE>close</PART_TREE>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n51" >
+<LABEL>空気</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2300" y="640"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n52" >
+<LABEL>岩石</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q8063" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="2320" y="340"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n53" >
+<LABEL>鉱物</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q7946" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="2320" y="380"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n54" >
+<LABEL>土壌</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q36133" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="2320" y="420"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n55" >
+<LABEL>液体の水</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q29053744" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="2300" y="460"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n56" >
+<LABEL>固体の水</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2300" y="500"/>
+<PART_TREE>close</PART_TREE>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n57" >
+<LABEL>水蒸気</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q190120" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="2300" y="560"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n58" >
+<LABEL>気象現象</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2280" y="700"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n59" >
+<LABEL>恒星</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2300" y="840"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n60" >
+<LABEL>惑星</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2300" y="880"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n61" >
+<LABEL>衛星</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2300" y="900"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n62" >
+<LABEL>小惑星</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2300" y="940"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n63" >
+<LABEL>彗星</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2280" y="980"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n64" >
+<LABEL>星間物質</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2280" y="1020"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n65" >
+<LABEL>物質の状態</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2280" y="1100"/>
+<PART_TREE>close</PART_TREE>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n66" >
+<LABEL>固体</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2560" y="1060"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n67" >
+<LABEL>液体</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2540" y="1100"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n68" >
+<LABEL>気体</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2540" y="1160"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n69" >
+<LABEL>プラズマ</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2560" y="1200"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n70" >
+<LABEL>元素・化合物</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2240" y="1280"/>
+<PART_TREE>close</PART_TREE>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n71" >
+<LABEL>単体</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2560" y="1260"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n72" >
+<LABEL>化合物</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2560" y="1320"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n73" >
+<LABEL>混合物</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2560" y="1400"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n74" >
+<LABEL>イオン</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2560" y="1460"/>
+<SLOTS>
+<SLOT id="1740145315030_s75" 
+ type="NW"  label="slot"  kind="p/o"  num="1"  role="role"  class_constraint="陽イオン"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="陽イオン" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1740145315030_s76" 
+ type="NW"  label="slot2"  kind="p/o"  num="1"  role="role"  class_constraint="陰イオン"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="陰イオン" rh_name ="" value ="" />
+</SLOT>
+</SLOTS>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n77" >
+<LABEL>光</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2260" y="1640"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n78" >
+<LABEL>音</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2260" y="1700"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n79" >
+<LABEL>熱</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2260" y="1740"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n80" >
+<LABEL>電磁波</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2260" y="1820"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n81" >
+<LABEL>電気</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2260" y="1880"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n82" >
+<LABEL>運動・機械的エネルギー</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2240" y="1960"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n83" >
+<LABEL>火</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="2260" y="1580"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n84" >
+<LABEL>氷</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q23392" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="2660" y="440"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n85" >
+<LABEL>雪</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q11659792" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="2640" y="480"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n86" >
+<LABEL>霜</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q4590598" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="2640" y="520"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n87" >
+<LABEL>氷河</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q35666" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="2640" y="580"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n88" >
+<LABEL>氷晶</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q1325808" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="2640" y="600"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n89" >
+<LABEL>雹・霰</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q37602" name="wikidata_id" lang="" symbol="" />
+<SUB_LABEL label="Q213202" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="2640" y="740"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n90" >
+<LABEL>氷塊</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q61743562" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="2640" y="640"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n91" >
+<LABEL>霧氷</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q131099" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="2640" y="680"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740134084022_n92" >
+<LABEL>霧・氷霧</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="Q37477" name="wikidata_id" lang="" symbol="" />
+<SUB_LABEL label="Q3270074" name="wikidata_id" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="2640" y="800"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740146777000_n93" >
+<LABEL>総合探究</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="103" y="1460"/>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740146777000_n94" >
+<LABEL>テーマ</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="280" y="1443"/>
+<PART_TREE>close</PART_TREE>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740146777000_n95" >
+<LABEL>理数</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="460" y="1426"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740146777000_n96" >
+<LABEL>歴史</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="460" y="1480"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740146777000_n97" >
+<LABEL>古典</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="460" y="1523"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740146777000_n98" >
+<LABEL>地理</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="460" y="1600"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740146777000_n99" >
+<LABEL>キャリア</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="440" y="1640"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740146777000_n100" >
+<LABEL>SDGs</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="599" y="1604"/>
+<SUB_TREE>open</SUB_TREE>
+<SLOTS>
+<SLOT id="1741603028366_s101" 
+ type="NW"  label="slot"  kind="a/o"  num="1"  role="背景"  class_constraint="Any"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="Any" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1741603028366_s102" 
+ type="NW"  label="slot2"  kind="a/o"  num="1"  role="課題"  class_constraint="Any"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="Any" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1741603028366_s103" 
+ type="NW"  label="slot3"  kind="a/o"  num="1"  role="影響"  class_constraint="Any"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="Any" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1741603028366_s104" 
+ type="NW"  label="slot4"  kind="a/o"  num="1"  role="対策"  class_constraint="Any"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="Any" rh_name ="" value ="" />
+</SLOT>
+</SLOTS>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740146777000_n101" >
+<LABEL>SDGs×企業</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="460" y="1740"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740146777000_n102" >
+<LABEL>地域</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="480" y="1783"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740146777000_n103" >
+<LABEL>農業</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="463" y="1840"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740146777000_n104" >
+<LABEL>スポーツ</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="466" y="1903"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740146777000_n105" >
+<LABEL>福祉</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="480" y="1980"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1740146777000_n106" >
+<LABEL>海外の探求</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="463" y="2046"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1741315752000_n111" >
+<LABEL>目標１３</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="898" y="1623"/>
+<SLOTS>
+<SLOT id="1741603028366_s112" 
+ type="NW"  label="slot"  kind="a/o"  num="1"  role="要因"  class_constraint="Any"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="Any" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1741603028366_s113" 
+ type="NW"  label="slot2"  kind="a/o"  num="1"  role="評価"  class_constraint="Any"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="Any" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1741603028366_s114" 
+ type="NW"  label="slot3"  kind="a/o"  num="1"  role="持続可能性"  class_constraint="Any"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="Any" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1741603028366_s115" 
+ type="NW"  label="slot4"  kind="a/o"  num="1"  role="技術"  class_constraint="Any"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="Any" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1741603028366_s116" 
+ type="NW"  label="slot5"  kind="a/o"  num="1"  role="経済"  class_constraint="Any"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="Any" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1741603028366_s117" 
+ type="NW"  label="slot6"  kind="a/o"  num="1"  role="国際比較"  class_constraint="Any"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="Any" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1741603028366_s118" 
+ type="NW"  label="slot7"  kind="a/o"  num="1"  role="行動"  class_constraint="Any"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="Any" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1741603028366_s119" 
+ type="NW"  label="slot8"  kind="a/o"  num="1"  role="環境負荷"  class_constraint="Any"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="Any" rh_name ="" value ="" />
+</SLOT>
+</SLOTS>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<ISA id="1740134084021_isa52" parent="Any" child="化学物質" />
+<ISA id="1740134084021_isa53" parent="Any" child="実在物" />
+<ISA id="1740134084021_isa54" parent="実在物" child="具体物" />
+<ISA id="1740134084021_isa55" parent="具体物" child="もの" />
+<ISA id="1740134084021_isa56" parent="実在物" child="抽象物" />
+<ISA id="1740134084021_isa57" parent="Any" child="基底" />
+<ISA id="1740134084021_isa58" parent="抽象物" child="数" />
+<ISA id="1740134084021_isa59" parent="数" child="実数" />
+<ISA id="1740134084021_isa60" parent="数" child="虚数" />
+<ISA id="1740134084021_isa61" parent="抽象物" child="単位" />
+<ISA id="1740134084021_isa62" parent="単位" child="論理値" />
+<ISA id="1740134084021_isa63" parent="単位" child="SI単位系" />
+<ISA id="1740134084021_isa64" parent="もの" child="自然物" />
+<ISA id="1740134084021_isa65" parent="もの" child="人工物" />
+<ISA id="1740134084021_isa66" parent="自然物" child="生物" />
+<ISA id="1740134084021_isa67" parent="自然物" child="自然物質" />
+<ISA id="1740134084021_isa68" parent="生物" child="真核生物ドメイン" />
+<ISA id="1740134084021_isa69" parent="真核生物ドメイン" child="動物界" />
+<ISA id="1740134084021_isa70" parent="真核生物ドメイン" child="植物界" />
+<ISA id="1740134084021_isa71" parent="真核生物ドメイン" child="菌界" />
+<ISA id="1740134084021_isa72" parent="真核生物ドメイン" child="原生生物界" />
+<ISA id="1740134084021_isa73" parent="動物界" child="脊索動物門" />
+<ISA id="1740134084021_isa74" parent="動物界" child="節足動物門" />
+<ISA id="1740134084021_isa75" parent="動物界" child="軟体動物門" />
+<ISA id="1740134084021_isa76" parent="動物界" child="環形動物門" />
+<ISA id="1740134084021_isa77" parent="脊索動物門" child="頭索動物亜門" />
+<ISA id="1740134084021_isa78" parent="脊索動物門" child="尾索動物亜門" />
+<ISA id="1740134084021_isa79" parent="脊索動物門" child="脊椎動物亜門" />
+<ISA id="1740134084021_isa80" parent="生物" child="原核生物ドメイン" />
+<ISA id="1740134084021_isa81" parent="原核生物ドメイン" child="原核生物界" />
+<ISA id="1740134084021_isa82" parent="原核生物界" child="細菌" />
+<ISA id="1740134084021_isa83" parent="原核生物界" child="古細菌" />
+<ISA id="1740134084021_isa84" parent="自然物質" child="地質" />
+<ISA id="1740134084021_isa85" parent="自然物質" child="水圏" />
+<ISA id="1740134084021_isa86" parent="自然物質" child="大気" />
+<ISA id="1740134084021_isa88" parent="自然物質" child="物理的状態" />
+<ISA id="1740134084021_isa89" parent="自然物質" child="化学組織" />
+<ISA id="1740134084021_isa90" parent="自然物質" child="エネルギー現象" />
+<ISA id="1740134084021_isa91" parent="自然物質" child="天体" />
+<ISA id="1740134084022_isa132" parent="大気" child="空気" />
+<ISA id="1740134084022_isa133" parent="地質" child="岩石" />
+<ISA id="1740134084022_isa134" parent="地質" child="鉱物" />
+<ISA id="1740134084022_isa135" parent="地質" child="土壌" />
+<ISA id="1740134084022_isa136" parent="水圏" child="液体の水" />
+<ISA id="1740134084022_isa137" parent="水圏" child="固体の水" />
+<ISA id="1740134084022_isa138" parent="水圏" child="水蒸気" />
+<ISA id="1740134084022_isa139" parent="大気" child="気象現象" />
+<ISA id="1740134084022_isa140" parent="天体" child="恒星" />
+<ISA id="1740134084022_isa141" parent="天体" child="惑星" />
+<ISA id="1740134084022_isa142" parent="天体" child="衛星" />
+<ISA id="1740134084022_isa143" parent="天体" child="小惑星" />
+<ISA id="1740134084022_isa144" parent="天体" child="彗星" />
+<ISA id="1740134084022_isa145" parent="天体" child="星間物質" />
+<ISA id="1740134084022_isa146" parent="物理的状態" child="物質の状態" />
+<ISA id="1740134084022_isa147" parent="物質の状態" child="固体" />
+<ISA id="1740134084022_isa148" parent="物質の状態" child="液体" />
+<ISA id="1740134084022_isa149" parent="物質の状態" child="気体" />
+<ISA id="1740134084022_isa150" parent="物質の状態" child="プラズマ" />
+<ISA id="1740134084022_isa151" parent="化学組織" child="元素・化合物" />
+<ISA id="1740134084022_isa152" parent="元素・化合物" child="単体" />
+<ISA id="1740134084022_isa153" parent="元素・化合物" child="化合物" />
+<ISA id="1740134084022_isa154" parent="元素・化合物" child="混合物" />
+<ISA id="1740134084022_isa155" parent="元素・化合物" child="イオン" />
+<ISA id="1740134084022_isa156" parent="エネルギー現象" child="光" />
+<ISA id="1740134084022_isa157" parent="エネルギー現象" child="音" />
+<ISA id="1740134084022_isa158" parent="エネルギー現象" child="熱" />
+<ISA id="1740134084022_isa159" parent="エネルギー現象" child="電磁波" />
+<ISA id="1740134084022_isa160" parent="エネルギー現象" child="電気" />
+<ISA id="1740134084022_isa161" parent="エネルギー現象" child="運動・機械的エネルギー" />
+<ISA id="1740134084022_isa162" parent="エネルギー現象" child="火" />
+<ISA id="1740134084022_isa163" parent="固体の水" child="氷" />
+<ISA id="1740134084022_isa164" parent="固体の水" child="雪" />
+<ISA id="1740134084022_isa165" parent="固体の水" child="霜" />
+<ISA id="1740134084022_isa166" parent="固体の水" child="氷河" />
+<ISA id="1740134084022_isa167" parent="固体の水" child="氷晶" />
+<ISA id="1740134084022_isa168" parent="固体の水" child="雹・霰" />
+<ISA id="1740134084022_isa169" parent="固体の水" child="氷塊" />
+<ISA id="1740134084022_isa170" parent="固体の水" child="霧氷" />
+<ISA id="1740134084022_isa171" parent="固体の水" child="霧・氷霧" />
+<ISA id="1740146777000_isa186" parent="Any" child="総合探究" />
+<ISA id="1740146777000_isa187" parent="総合探究" child="テーマ" />
+<ISA id="1740146777000_isa188" parent="テーマ" child="理数" />
+<ISA id="1740146777000_isa189" parent="テーマ" child="歴史" />
+<ISA id="1740146777000_isa190" parent="テーマ" child="古典" />
+<ISA id="1740146777000_isa191" parent="テーマ" child="地理" />
+<ISA id="1740146777000_isa192" parent="テーマ" child="キャリア" />
+<ISA id="1740146777000_isa193" parent="テーマ" child="SDGs" />
+<ISA id="1740146777000_isa194" parent="テーマ" child="SDGs×企業" />
+<ISA id="1740146777000_isa195" parent="テーマ" child="地域" />
+<ISA id="1740146777000_isa196" parent="テーマ" child="農業" />
+<ISA id="1740146777000_isa197" parent="テーマ" child="スポーツ" />
+<ISA id="1740146777000_isa198" parent="テーマ" child="福祉" />
+<ISA id="1740146777000_isa199" parent="テーマ" child="海外の探求" />
+<ISA id="1741315752000_isa213" parent="SDGs" child="目標１３" />
+</W_CONCEPTS>
+<R_CONCEPTS>
+<CANVAS_SIZE w="7813" h="7744" />
+</R_CONCEPTS>
+<PRINTER>
+<PAGE_SETTINGS header="true" footer="true" cropmarks="true" scale="100" />
+<PAGE_FORMAT w="595.3322834645669" h="841.9181102362205" iw="451.3322834645669" ih="697.9181102362205" ix="72.0" iy="72.0" />
+<PRINTER_SETTINGS orientation="1" printername="LBP853Ci" />
+</PRINTER>
+</OE_FILE>

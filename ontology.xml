@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OE_FILE filename="ontology.xml" ont_id="1741320313211ont" >
+<FILENAME_ONT>ontology.xml</FILENAME_ONT>
+<W_CONCEPTS hasAny="false">
+<CANVAS_SIZE w="5772" h="6593" x="0" y="963" />
+<CONCEPT id="1741320313211_n0" >
+<LABEL>Any</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="13" y="1102"/>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1741320313211_n1" >
+<LABEL>総合的な探究の時間</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="89" y="1140"/>
+<PART_TREE>close</PART_TREE>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1741320313211_n2" >
+<LABEL>テーマのカテゴリー</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="180" y="1179"/>
+<PART_TREE>close</PART_TREE>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1741320313211_n3" >
+<LABEL>SDGｓに関する問題</LABEL>
+<SUB_LABELS>
+</SUB_LABELS>
+<POS x="250" y="1226"/>
+<SUB_TREE>open</SUB_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1750361481823_n8" >
+<LABEL>SDGs_1に関する問題</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="貧困をなくそう" name="" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="495" y="35"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1750361481823_n16" >
+<LABEL>SDGs_2に関する問題</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="飢餓をゼロに" name="" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="490" y="126"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1750361481823_n18" >
+<LABEL>SDGs_3に関する問題</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="すべての人に健康と福祉を" name="" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="495" y="225"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1750361481823_n19" >
+<LABEL>SDGs_4に関する問題</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="質の高い教育をみんなに" name="" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="490" y="320"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1750361481823_n20" >
+<LABEL>SDGs_5に関する問題</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="ジェンダー平等を実現しよう" name="" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="481" y="410"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1750361481823_n21" >
+<LABEL>SDGs_6に関する問題</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="安全な水とトイレを世界中に" name="" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="491" y="515"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1750361481823_n22" >
+<LABEL>SDGs_7に関する問題</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="エネルギーをみんなに，そしてクリーンに" name="" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="490" y="620"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1750361481823_n23" >
+<LABEL>SDGs_8に関する問題</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="働きがいも経済成長も" name="" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="485" y="715"/>
+<PART_TREE>close</PART_TREE>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1750361481823_n24" >
+<LABEL>SDGs_9に関する問題</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="産業と技術革新の基盤をつくろう" name="" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="480" y="795"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1750361481823_n25" >
+<LABEL>SDGs_10に関する問題</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="人や国の不平等をなくそう" name="" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="471" y="875"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1750361481823_n26" >
+<LABEL>SDGs_11に関する問題</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="住み続けられるまちづくりを" name="" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="480" y="950"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1750361481823_n27" >
+<LABEL>SDGs_12に関する問題</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="つくる責任　つかう責任" name="" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="470" y="1040"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1750361481823_n28" >
+<LABEL>SDGs_13に関する問題</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="気候変動に具体的な対策を" name="" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="456" y="1148"/>
+<SLOTS>
+<SLOT id="1751570953803_s17" 
+ type="NW"  label="slot"  kind="a/o"  num="0.."  role="文化的・価値観的背景"  class_constraint="string"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="string" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1751570953803_s18" 
+ type="NW"  label="slot2"  kind="a/o"  num="0.."  role="政治的・制度的背景"  class_constraint="string"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="string" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1751570953803_s19" 
+ type="NW"  label="slot3"  kind="a/o"  num="0.."  role="技術的・インフラ的背景"  class_constraint="string"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="string" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1751570953803_s20" 
+ type="NW"  label="slot4"  kind="a/o"  num="0.."  role="歴史的・地理的背景"  class_constraint="string"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="string" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1751570953803_s21" 
+ type="NW"  label="slot5"  kind="a/o"  num="0.."  role="環境的背景"  class_constraint="string"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="string" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1751570953803_s22" 
+ type="NW"  label="slot6"  kind="a/o"  num="0.."  role="法的・規範的背景"  class_constraint="string"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="string" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1751570953803_s23" 
+ type="NW"  label="slot7"  kind="a/o"  num="0.."  role="倫理的・哲学的背景"  class_constraint="string"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="string" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1751570953803_s24" 
+ type="NW"  label="slot8"  kind="a/o"  num="0.."  role="科学的・知識的背景"  class_constraint="string"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="string" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1751570953803_s25" 
+ type="NW"  label="slot9"  kind="a/o"  num="0.."  role="メディア・情報環境的背景"  class_constraint="string"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="string" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1751570953803_s26" 
+ type="NW"  label="slot10"  kind="a/o"  num="0.."  role="制度運用・実践的背景"  class_constraint="string"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="string" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1751570953803_s27" 
+ type="NW"  label="slot11"  kind="a/o"  num="0.."  role="統治・ガバナンス的背景"  class_constraint="string"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="string" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1751570953803_s28" 
+ type="NW"  label="slot12"  kind="a/o"  num="0.."  role="資源配分・優先順位的背景"  class_constraint="string"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="string" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1751570953803_s29" 
+ type="NW"  label="slot13"  kind="a/o"  num="0.."  role="時間的・世代的背景"  class_constraint="string"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="string" rh_name ="" value ="" />
+</SLOT>
+<SLOT id="1751570953803_s30" 
+ type="NW"  label="slot14"  kind="a/o"  num="0.."  role="近く・感情的背景"  class_constraint="string"  rh_name=""  value="" >
+<SUB_LABELS>
+</SUB_LABELS>
+<SUB_L label="" def="" role_name="" class_const="string" rh_name ="" value ="" />
+</SLOT>
+</SLOTS>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1750361481823_n29" >
+<LABEL>SDGs_14に関する問題</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="海の豊かさを守ろう" name="" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="439" y="1835"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1750361481823_n30" >
+<LABEL>SDGs_15に関する問題</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="陸の豊かさを守ろう" name="" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="434" y="1944"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1750361481823_n31" >
+<LABEL>SDGs_16に関する問題</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="平和ち恒星をすべての人に" name="" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="433" y="2023"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<CONCEPT id="1751558666143_n26" >
+<LABEL>SDGs_17に関する問題</LABEL>
+<SUB_LABELS>
+<SUB_LABEL label="パートナーシップで目標を達成しよう" name="" lang="" symbol="" />
+</SUB_LABELS>
+<POS x="418" y="2110"/>
+<RELATIONS>
+</RELATIONS>
+<SUB_L label="" def="" role_name="" class_const="" rh_name ="" value ="" />
+</CONCEPT>
+<ISA id="1741320313211_isa17" parent="Any" child="総合的な探究の時間" />
+<ISA id="1741320313211_isa18" parent="総合的な探究の時間" child="テーマのカテゴリー" />
+<ISA id="1741320313211_isa19" parent="テーマのカテゴリー" child="SDGｓに関する問題" />
+<ISA id="1750361481823_isa35" parent="SDGｓに関する問題" child="SDGs_1に関する問題" />
+<ISA id="1750361481823_isa36" parent="SDGｓに関する問題" child="SDGs_2に関する問題" />
+<ISA id="1750361481823_isa37" parent="SDGｓに関する問題" child="SDGs_3に関する問題" />
+<ISA id="1750361481823_isa38" parent="SDGｓに関する問題" child="SDGs_4に関する問題" />
+<ISA id="1750361481823_isa39" parent="SDGｓに関する問題" child="SDGs_5に関する問題" />
+<ISA id="1750361481823_isa40" parent="SDGｓに関する問題" child="SDGs_6に関する問題" />
+<ISA id="1750361481823_isa41" parent="SDGｓに関する問題" child="SDGs_7に関する問題" />
+<ISA id="1750361481823_isa42" parent="SDGｓに関する問題" child="SDGs_8に関する問題" />
+<ISA id="1750361481823_isa43" parent="SDGｓに関する問題" child="SDGs_9に関する問題" />
+<ISA id="1750361481823_isa44" parent="SDGｓに関する問題" child="SDGs_10に関する問題" />
+<ISA id="1750361481823_isa45" parent="SDGｓに関する問題" child="SDGs_11に関する問題" />
+<ISA id="1750361481823_isa46" parent="SDGｓに関する問題" child="SDGs_12に関する問題" />
+<ISA id="1750361481823_isa47" parent="SDGｓに関する問題" child="SDGs_13に関する問題" />
+<ISA id="1750361481823_isa48" parent="SDGｓに関する問題" child="SDGs_14に関する問題" />
+<ISA id="1750361481823_isa49" parent="SDGｓに関する問題" child="SDGs_15に関する問題" />
+<ISA id="1750361481823_isa50" parent="SDGｓに関する問題" child="SDGs_16に関する問題" />
+<ISA id="1751558666143_isa52" parent="SDGｓに関する問題" child="SDGs_17に関する問題" />
+</W_CONCEPTS>
+<R_CONCEPTS>
+<CANVAS_SIZE w="8331" h="8893" />
+</R_CONCEPTS>
+<PRINTER>
+<PAGE_SETTINGS header="true" footer="true" cropmarks="true" scale="100" />
+<PAGE_FORMAT w="595.3322834645669" h="841.9181102362205" iw="451.3322834645669" ih="697.9181102362205" ix="72.0" iy="72.0" />
+<PRINTER_SETTINGS orientation="1" printername="LBP853Ci" />
+</PRINTER>
+</OE_FILE>
