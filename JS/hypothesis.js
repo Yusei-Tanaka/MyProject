@@ -85,7 +85,11 @@ function addHypothesisEntry(nodeIds) {
   entry.appendChild(controls);
 
   wrapper.appendChild(entry);
+  enableScamperOnEntry(entry);
   entry.scrollIntoView({ behavior: "smooth" });
+
+  // ここを追加：
+  enableScamperOnEntry(entry);
 }
 
 // 表示されている仮説の番号を更新
@@ -133,3 +137,149 @@ selectedNodes.forEach(function (nodeId) {
 });
 
 console.log("Edges:", edges.get());
+
+// SCAMPER の選択肢（日本語ラベル）
+var SCAMPER_OPTIONS = [
+  { key: "Substitute", label: "置換 (Substitute)" },
+  { key: "Combine", label: "結合 (Combine)" },
+  { key: "Adapt", label: "適応 (Adapt)" },
+  { key: "Modify", label: "修正 (Modify)" },
+  { key: "PutToOtherUse", label: "転用 (Put to other use)" },
+  { key: "Eliminate", label: "削除 (Eliminate)" },
+  { key: "Reverse", label: "再構成 (Reverse)" },
+];
+
+// 右クリックメニュー作成（仮説入力ブロックのすぐ下に表示）
+function createScamperMenu(x, y, entry) {
+  removeScamperMenu();
+
+  // 仮説入力ブロック（bodyEl）の位置を取得して、document.body にメニューを追加する
+  var bodyEl = entry.querySelector(".hypothesis-box-body") || entry;
+  var rect = bodyEl.getBoundingClientRect();
+
+  // メニューを作成
+  var menu = document.createElement("div");
+  menu.id = "scamperMenu";
+  menu.className = "scamper-menu-inline";
+
+  // 表示位置：仮説入力ブロックの直下（スクロール位置を考慮）
+  var left = window.scrollX + rect.left + 6;
+  var top  = window.scrollY + rect.bottom + 6;
+
+  menu.style.position = "absolute";
+  menu.style.left = left + "px";
+  menu.style.top  = top + "px";
+
+  // 先頭に縦向きの S:C:A... の表示にする（画像に近い見た目）
+  var letterMap = {
+    Substitute: "S",
+    Combine: "C",
+    Adapt: "A",
+    Modify: "M",
+    PutToOtherUse: "P",
+    Eliminate: "E",
+    Reverse: "R",
+  };
+
+  SCAMPER_OPTIONS.forEach(function (opt) {
+    var item = document.createElement("div");
+    item.className = "scamper-option";
+    var letter = letterMap[opt.key] || "?";
+    item.innerHTML = "<span class='scamper-letter'>" + letter + "</span><span class='scamper-label'>" + opt.label + "</span>";
+    item.dataset.key = opt.key;
+    item.addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      applyScamperToEntry(entry, opt);
+      removeScamperMenu();
+    });
+    menu.appendChild(item);
+  });
+
+  // document.body に追加（親コンテナの overflow による切り取りを回避）
+  document.body.appendChild(menu);
+
+  // 外部クリックで閉じる（次回のみ）
+  setTimeout(function () {
+    document.addEventListener("click", removeScamperMenuOnce);
+  }, 0);
+}
+
+function removeScamperMenuOnce() {
+  removeScamperMenu();
+  document.removeEventListener("click", removeScamperMenuOnce);
+}
+function removeScamperMenu() {
+  var existing = document.getElementById("scamperMenu");
+  if (existing) {
+    existing.parentNode.removeChild(existing);
+  }
+}
+
+// SCAMPER 選択時の処理：タグ追加 + テンプレートを textarea に追記
+function applyScamperToEntry(entry, option) {
+  // タグ領域を用意
+  var tagWrap = entry.querySelector(".scamper-tags");
+  if (!tagWrap) {
+    tagWrap = document.createElement("div");
+    tagWrap.className = "scamper-tags";
+    tagWrap.style.marginTop = "6px";
+    entry.insertBefore(tagWrap, entry.querySelector(".hypothesis-box-body").nextSibling);
+  }
+
+  // 同じタグがなければ追加
+  var exists = Array.from(tagWrap.children).some(function (c) {
+    return c.dataset.key === option.key;
+  });
+  if (!exists) {
+    var tag = document.createElement("span");
+    tag.className = "scamper-tag";
+    tag.dataset.key = option.key;
+    tag.innerText = option.label;
+
+    // 右クリックで削除確認ダイアログを表示
+    tag.addEventListener("contextmenu", function (e) {
+      e.preventDefault();
+      var confirmDelete = confirm(`「${option.label}」の選択を解除しますか？`);
+      if (confirmDelete) {
+        tagWrap.removeChild(tag);
+      }
+    });
+
+    tagWrap.appendChild(tag);
+  }
+
+  // テンプレートを textarea に追加（末尾に一行追記）
+  var ta = entry.querySelector("textarea.hypothesis-text");
+  if (ta) {
+    var template = generateScamperTemplate(option, entry);
+    if (template) {
+      if (ta.value && ta.value.trim() !== "") ta.value += "\n\n";
+      ta.value += "[SCAMPER - " + option.key + "] " + template;
+    }
+  }
+
+  // メニューを削除（選択後に必ず閉じる）
+  removeScamperMenu();
+}
+
+// 外部クリックでメニューを閉じる
+function removeScamperMenuOnce() {
+  removeScamperMenu();
+  document.removeEventListener("click", removeScamperMenuOnce);
+}
+
+// メニューを削除する関数
+function removeScamperMenu() {
+  var existing = document.getElementById("scamperMenu");
+  if (existing) {
+    existing.parentNode.removeChild(existing);
+  }
+}
+
+// 仮説エントリ生成時に右クリックメニューを有効化する
+function enableScamperOnEntry(entry) {
+  entry.addEventListener("contextmenu", function (e) {
+    e.preventDefault();
+    createScamperMenu(e.clientX, e.clientY, entry);
+  });
+}
