@@ -11,7 +11,7 @@ body {
 
 /* ヘッダー設定 */
 .header {
-  height: 10%; /* 全体の15%を占める */
+  height: 15%; /* 全体の15%を占める */
   background-color: #CAEEFB;
   text-align: center;
   line-height: 15%; /* テキストの縦中央揃え */
@@ -124,7 +124,7 @@ body {
 
 /* フッター設定 */
 .footer {
-  height: 15%; /* 全体の15%を占める */
+  height: 10%; /* 全体の10%を占める */
   background-color: #F2F2F2;
   text-align: center;
   line-height: 20%; /* テキストを中央揃え */
