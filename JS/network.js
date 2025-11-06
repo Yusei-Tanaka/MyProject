@@ -198,3 +198,68 @@ network.on("click", function (event) {
   }
 });
 
+// ノードとエッジのデータをXML形式に変換する関数
+function generateXML(nodes, edges) {
+  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+  xml += "<ConceptMap>\n";
+
+  // ノード情報を追加
+  xml += "  <Nodes>\n";
+  nodes.forEach(function (node) {
+    xml += `    <Node id="${node.id}" label="${node.label}" />\n`;
+  });
+  xml += "  </Nodes>\n";
+
+  // エッジ情報を追加
+  xml += "  <Edges>\n";
+  edges.forEach(function (edge) {
+    xml += `    <Edge from="${edge.from}" to="${edge.to}" label="${edge.label || ""}" />\n`;
+  });
+  xml += "  </Edges>\n";
+
+  xml += "</ConceptMap>";
+  return xml;
+}
+
+// XMLファイルを保存する関数
+function saveXMLFile(content, filename) {
+  const blob = new Blob([content], { type: "application/xml" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+}
+
+// サーバーにXMLを送信する関数
+function sendXMLToServer(content, filename) {
+  fetch("http://localhost:3000/save-xml", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ filename, content }),
+  })
+    .then((response) => {
+      if (response.ok) {
+        console.log("XMLファイルがサーバーに保存されました");
+      } else {
+        console.error("XMLファイルの保存に失敗しました");
+      }
+    })
+    .catch((error) => {
+      console.error("サーバーへのリクエスト中にエラーが発生しました:", error);
+    });
+}
+
+// ネットワークが更新されるたびにXMLを出力
+function exportConceptMap() {
+  const allNodes = nodes.get(); // すべてのノードを取得
+  const allEdges = edges.get(); // すべてのエッジを取得
+  const xmlContent = generateXML(allNodes, allEdges);
+  sendXMLToServer(xmlContent, "concept_map.xml");
+}
+
+// ノードやエッジが追加・削除されたときにXMLを出力
+nodes.on("*", exportConceptMap);
+edges.on("*", exportConceptMap);
+
