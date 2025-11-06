@@ -149,6 +149,28 @@ var SCAMPER_OPTIONS = [
   { key: "Reverse", label: "再構成 (Reverse)" },
 ];
 
+// SCAMPER テンプレート生成関数
+function generateScamperTemplate(option) {
+  switch (option.key) {
+    case "Substitute":
+      return "何かを別のもので置き換えることで新しい解決策が得られるか検討する。";
+    case "Combine":
+      return "他の要素と結合して性能や価値を高められないか検討する。";
+    case "Adapt":
+      return "他分野のアイデアを適用できないか検討する。";
+    case "Modify":
+      return "形状・大きさ・性質を変更して改善できないか検討する。";
+    case "PutToOtherUse":
+      return "別用途に転用することで新たな価値が生まれないか検討する。";
+    case "Eliminate":
+      return "不要な要素を削除して簡素化やコスト削減が図れないか検討する。";
+    case "Reverse":
+      return "順序や役割を入れ替えることで新しい発想が生まれないか検討する。";
+    default:
+      return "";
+  }
+}
+
 // 右クリックメニュー作成（仮説入力ブロックのすぐ下に表示）
 function createScamperMenu(x, y, entry) {
   removeScamperMenu();
@@ -218,10 +240,10 @@ function removeScamperMenu() {
   }
 }
 
-// SCAMPER 選択時の処理：タグ追加 + テンプレートを textarea に追記
-function applyScamperToEntry(entry, option) {
+// SCAMPER 選択時の処理：タグ追加 + テキストボックスを生成
+function applyScamperToEntry(entry, option, parentContainer = null) {
   // タグ領域を用意
-  var tagWrap = entry.querySelector(".scamper-tags");
+  var tagWrap = parentContainer || entry.querySelector(".scamper-tags");
   if (!tagWrap) {
     tagWrap = document.createElement("div");
     tagWrap.className = "scamper-tags";
@@ -229,67 +251,81 @@ function applyScamperToEntry(entry, option) {
     entry.insertBefore(tagWrap, entry.querySelector(".hypothesis-box-body").nextSibling);
   }
 
-  // タグを追加
-  var tag = document.createElement("div");
-  tag.className = "scamper-tag-container";
+  // タグとテキストボックスをコンテナに追加
+  var tagContainer = document.createElement("div");
+  tagContainer.className = "scamper-tag-container";
+  tagContainer.style.marginLeft = parentContainer ? "20px" : "0px"; // インデントを追加
 
   var tagLabel = document.createElement("span");
   tagLabel.className = "scamper-tag";
   tagLabel.dataset.key = option.key;
   tagLabel.innerText = option.label;
 
-  // 修正用の仮説入力ボックス
   var editBox = document.createElement("textarea");
   editBox.className = "scamper-edit-box";
-  editBox.placeholder = "質問に基づいて発散させた仮説を記入してください";
+  editBox.placeholder = "発散させた仮説を記入してください";
+
+  // 修正後の仮説入力ボックスに右クリックでSCAMPERメニューを表示
+  editBox.addEventListener("contextmenu", function (e) {
+    e.preventDefault();
+    createScamperMenu(e.clientX, e.clientY, entry, editBox, tagContainer);
+  });
 
   // 右クリックで削除確認ダイアログを表示
   tagLabel.addEventListener("contextmenu", function (e) {
     e.preventDefault();
     var confirmDelete = confirm(`「${option.label}」タグを削除しますか？`);
     if (confirmDelete) {
-      tagWrap.removeChild(tag);
+      tagWrap.removeChild(tagContainer);
     }
   });
 
-  tag.appendChild(tagLabel);
-  tag.appendChild(editBox);
-  tagWrap.appendChild(tag);
-
-  // テンプレートを textarea に追加（末尾に一行追記）
-  var ta = entry.querySelector("textarea.hypothesis-text");
-  if (ta) {
-    var template = generateScamperTemplate(option, entry);
-    if (template) {
-      if (ta.value && ta.value.trim() !== "") ta.value += "\n\n";
-      ta.value += "[SCAMPER - " + option.key + "] " + template;
-    }
-  }
+  tagContainer.appendChild(tagLabel);
+  tagContainer.appendChild(editBox);
+  tagWrap.appendChild(tagContainer);
 
   // メニューを削除（選択後に必ず閉じる）
   removeScamperMenu();
 }
 
-// SCAMPER テンプレート生成関数
-function generateScamperTemplate(option, entry) {
-  switch (option.key) {
-    case "Substitute":
-      return;
-    case "Combine":
-      return;
-    case "Adapt":
-      return;
-    case "Modify":
-      return;
-    case "PutToOtherUse":
-      return;
-    case "Eliminate":
-      return;
-    case "Reverse":
-      return;
-    default:
-      return;
-  }
+// SCAMPERメニュー作成（仮説入力ブロックまたは修正後の仮説ボックスに対応）
+function createScamperMenu(x, y, entry, targetBox, parentContainer = null) {
+  removeScamperMenu();
+
+  var rect = targetBox.getBoundingClientRect();
+
+  // メニューを作成
+  var menu = document.createElement("div");
+  menu.id = "scamperMenu";
+  menu.className = "scamper-menu-inline";
+
+  // 表示位置：対象ボックスの直下（スクロール位置を考慮）
+  var left = window.scrollX + rect.left + 6;
+  var top = window.scrollY + rect.bottom + 6;
+
+  menu.style.position = "absolute";
+  menu.style.left = left + "px";
+  menu.style.top = top + "px";
+
+  SCAMPER_OPTIONS.forEach(function (opt) {
+    var item = document.createElement("div");
+    item.className = "scamper-option";
+    item.innerText = opt.label;
+    item.dataset.key = opt.key;
+    item.addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      applyScamperToEntry(entry, opt, parentContainer);
+      removeScamperMenu();
+    });
+    menu.appendChild(item);
+  });
+
+  document.body.appendChild(menu);
+
+  // 外部クリックで閉じる（次回のみ）
+  setTimeout(function () {
+    document.addEventListener("click", removeScamperMenuOnce);
+  }, 0);
 }
 
 // 外部クリックでメニューを閉じる
@@ -311,8 +347,11 @@ function removeScamperMenu() {
 
 // 仮説エントリ生成時に右クリックメニューを有効化する
 function enableScamperOnEntry(entry) {
-  entry.addEventListener("contextmenu", function (e) {
-    e.preventDefault();
-    createScamperMenu(e.clientX, e.clientY, entry);
-  });
+  var hypothesisBox = entry.querySelector("textarea.hypothesis-text");
+  if (hypothesisBox) {
+    hypothesisBox.addEventListener("contextmenu", function (e) {
+      e.preventDefault();
+      createScamperMenu(e.clientX, e.clientY, entry, hypothesisBox);
+    });
+  }
 }

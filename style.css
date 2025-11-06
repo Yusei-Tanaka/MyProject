@@ -283,12 +283,18 @@ select {
   font-size: 1.2em;
 }
 
+/* 仮説ボックス */
 .hypothesis-box {
   border: 1px solid #c39a00;
   background: #fff3cc;
   margin-bottom: 8px;
   padding: 8px;
   box-sizing: border-box;
+  max-height: 200px; /* 最大高さを設定 */
+  overflow-y: auto; /* 縦スクロールを有効にする */
+  display: flex;
+  flex-direction: column; /* 子要素を縦に並べる */
+  gap: 8px; /* 子要素間の余白を設定 */
 }
 
 .hypothesis-box-header {
@@ -330,7 +336,7 @@ select {
 
 /* 各仮説ボックスの最大高さ（長文でも崩れにくくする） */
 .hypothesis-box {
-  max-height: 35vh;
+  max-height: 50vh;
   overflow: hidden;
 }
 
@@ -369,15 +375,23 @@ select {
 /* SCAMPER メニュー（エントリ近傍に表示） */
 .scamper-menu-inline {
   position: absolute;
-  z-index: 2000;
+  z-index: 9999;
   background: #fff;
-  border: 2px solid #000;     /* 画像に近い太めの枠 */
-  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-  padding: 2px;
-  border-radius: 2px;
-  min-width: 120px;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  padding: 4px;
+  border-radius: 4px;
+  min-width: 200px;
+}
+
+.scamper-option {
+  padding: 6px 8px;
+  cursor: pointer;
   font-size: 13px;
-  box-sizing: border-box;
+}
+
+.scamper-option:hover {
+  background: #f0f0f0;
 }
 
 /* 各選択肢を縦に並べ、左に一文字を出す */
@@ -410,8 +424,24 @@ select {
   gap: 6px;               /* タグ間の余白 */
   margin-top: 6px;
   align-items: flex-start; /* 左寄せにする */
+  max-height: 300px;       /* 最大高さを設定 */
+  overflow-y: auto;        /* 縦スクロールを有効にする */
+  border: 1px solid #ddd;  /* 枠線を追加 */
+  padding: 6px;            /* 内側の余白を調整 */
+  box-sizing: border-box;  /* パディングを含めたサイズを計算 */
+  background: #fff;        /* 背景色を白に設定 */
 }
 
+/* SCAMPERタグコンテナ */
+.scamper-tag-container {
+  display: flex; /* フレックスボックスを使用 */
+  flex-direction: column; /* 縦方向に並べる */
+  gap: 8px; /* タグとテキストボックスの間隔 */
+  align-items: flex-start; /* 左寄せにする */
+  width: 100%; /* コンテナ全体を幅いっぱいに */
+}
+
+/* SCAMPERタグ */
 .scamper-tag {
   display: inline-block;
   background: #ffd89b;
@@ -422,29 +452,19 @@ select {
   cursor: pointer;
   border: 1px solid rgba(0, 0, 0, 0.08);
   white-space: nowrap; /* 1行に収める */
-  width: 142px; /* 幅を固定 */
-}
-
-.scamper-tag:hover {
-  opacity: 0.9;
-}
-
-/* SCAMPERタグコンテナ */
-.scamper-tag-container {
-  display: flex;
-  flex-direction: row; /* タグと修正ボックスを横並びに */
-  gap: 8px;            /* タグと修正ボックスの間隔 */
-  align-items: center; /* 垂直方向で中央揃え */
-  width: 100%;         /* コンテナ全体を幅いっぱいに */
+  width: 142px; /* 固定幅 */
 }
 
 /* 修正用仮説入力ボックス */
 .scamper-edit-box {
-  flex: 1; /* 修正ボックスを残り幅いっぱいに広げる */
-  min-height: 40px;
-  padding: 6px;
-  font-size: 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
+  width: 100%; /* 横幅いっぱいに広げる */
+  min-height: 40px; /* 最小高さを設定 */
+  max-height: 150px; /* 最大高さを設定 */
+  padding: 6px; /* 内側の余白 */
+  font-size: 12px; /* フォントサイズ */
+  border: 1px solid #ccc; /* 枠線 */
+  border-radius: 4px; /* 角を丸くする */
+  box-sizing: border-box; /* パディングを含めたサイズを計算 */
+  overflow-y: auto; /* 縦スクロールを有効にする */
+  resize: vertical; /* ユーザーが高さを調整できるようにする */
 }
