@@ -2,9 +2,9 @@
 <ConceptMap>
   <Nodes>
     <Node id="1" label="二酸化炭素" />
-    <Node id="2" label="カーボンフットプリント" />
+    <Node id="2" label="ゼロエミッション" />
   </Nodes>
   <Edges>
-    <Edge from="1" to="2" label="原因" />
+    <Edge from="1" to="2" label="対策" />
   </Edges>
 </ConceptMap>

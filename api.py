@@ -1,33 +1,50 @@
 import os
 from dotenv import load_dotenv
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import openai  # OpenAIライブラリをインポート
 from openai import OpenAI
 
 # .envファイルの内容を読み込む
 load_dotenv()
 # 環境変数からAPIキーを取得
-api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# OpenAIクライアントの初期化
-client = OpenAI(api_key=api_key)
+app = Flask(__name__)
+CORS(app)  # CORS を有効化
 
-# ChatGPTに対してmessの内容を問い合わせ，結果を受け取る関数
+# OpenAI APIを呼び出す関数
 def getgptdata(mess):
-    chat_completion = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "system", "content": "You are a helpful assistant."},
-                  {"role": "user", "content": mess}],
-        max_tokens=500  # ここでトークン数を増やす
-    )
-    data = chat_completion.choices[0].message.content
-    return data
+    try:
+        print("送信するプロンプト:", mess)  # デバッグ用ログ
+        chat_completion = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": mess}
+            ],
+            max_tokens=500
+        )
+        data = chat_completion.choices[0].message.content
+        print("受信したデータ:", data)  # デバッグ用ログ
+        return data
+    except Exception as e:
+        print("OpenAI APIエラー:", str(e))  # エラー内容をログに出力
+        raise
 
-# メイン処理の中で追加
+@app.route('/api', methods=['POST'])
+def handle_prompt():
+    data = request.get_json()
+    prompt = data.get('prompt', '')
+    print("受信したプロンプト:", prompt)  # デバッグ用ログ
+    try:
+        # OpenAI APIを呼び出して結果を取得
+        result = getgptdata(prompt)
+        print("生成された結果:", result)  # デバッグ用ログ
+        return jsonify({"result": result})
+    except Exception as e:
+        print("エラー発生:", str(e))  # エラー内容をログに出力
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
-    # ユーザー入力を取得
-    prompt = input("質問を入力してください: ")
-
-    # 各名詞に対してGPTへのメッセージを構築
-    messa = f"以下の質問に答えてください: {prompt}"
-    # GPTデータを取得
-    result = getgptdata(messa)
-    print(result)
+    app.run(debug=True, port=8000)

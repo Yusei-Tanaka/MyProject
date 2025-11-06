@@ -101,7 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 xmlData = xmlText;
             })
             .catch(error => {
-                console.error("XMLファイルの取得中にエラーが発生しました:", error);
+                alert("XMLファイルの取得中にエラーが発生しました: " + error.message);
             });
     };
     setInterval(fetchXML, 10000); // 10秒ごとに更新
@@ -117,21 +117,52 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // SCAMPERタグの情報を取得してアラートで表示
+    // SCAMPERタグの情報を取得してプロンプトを生成し、APIに送信
     document.body.addEventListener("click", (event) => {
         const clickedElement = event.target;
         if (clickedElement.classList.contains("scamper-tag")) {
             selectedScamper = clickedElement.innerText;
 
-            // データをまとめてアラートで表示
-            const summary = `
-                テーマ: ${theme}
-                XMLデータ: ${xmlData}
-                仮説内容: ${hypothesisData}
-                選んだキーワード: ${selectedKeywords}
-                選んだSCAMPER: ${selectedScamper}
+            // プロンプトを生成
+            const prompt = `
+##タスク
+総合的な探究の時間における，学習者の活動を⽀援するシステム
+
+##背景・文脈
+学習者は[${theme}]を目標に探究活動を行っている．今，学習者は[${hypothesisData}]という仮説を[${selectedKeywords}]のキーワードを基に立案した．また学習者が作成した概念マップによって読み取ることの出来る，学習者の理解状態は次のXMLファイルの通りである．[${xmlData}]
+
+##入力
+この仮説に対して，SCAMPER法に基づく観点から仮説をブラッシュアップさせる．そのためにあなたはSCAMPER法の[${selectedScamper}]に基づき，仮説をブラッシュアップさせることを促す質問を与えよ．
+
+##条件
+仮説を発散させるうえで，概念マップ内の他のキーワードを使うことや新たな概念を概念マップ内に追加させることで仮説の発散につながる場合はそれを暗に⽰唆した質問を⽣成せよ．必ずしもそうしなくても良い．何を追加するかや何を加えたら良いかなどは明⽰せず，あくまで質問をもとに促すようにせよ．
+
+##出力形式
+・ 条件に合う質問を，三つ程度，リスト形式で提示せよ．
+・リストのみでよい．その他の記述や説明は一切いらない．
             `;
-            alert(summary);
+
+            // APIにプロンプトを送信
+            fetch("http://127.0.0.1:8000/api", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ prompt: prompt })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTPエラー: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // APIの結果のみをアラートで表示
+                alert(data.result);
+            })
+            .catch(error => {
+                alert("API呼び出し中にエラーが発生しました: " + error.message);
+            });
         }
     });
 });
