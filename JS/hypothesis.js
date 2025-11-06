@@ -211,7 +211,10 @@ function removeScamperMenuOnce() {
 function removeScamperMenu() {
   var existing = document.getElementById("scamperMenu");
   if (existing) {
+    console.log("SCAMPERメニューを削除します:", existing); // 削除対象を確認
     existing.parentNode.removeChild(existing);
+  } else {
+    console.log("SCAMPERメニューが見つかりません。");
   }
 }
 
@@ -267,6 +270,28 @@ function applyScamperToEntry(entry, option) {
   removeScamperMenu();
 }
 
+// SCAMPER テンプレート生成関数
+function generateScamperTemplate(option, entry) {
+  switch (option.key) {
+    case "Substitute":
+      return;
+    case "Combine":
+      return;
+    case "Adapt":
+      return;
+    case "Modify":
+      return;
+    case "PutToOtherUse":
+      return;
+    case "Eliminate":
+      return;
+    case "Reverse":
+      return;
+    default:
+      return;
+  }
+}
+
 // 外部クリックでメニューを閉じる
 function removeScamperMenuOnce() {
   removeScamperMenu();
@@ -277,7 +302,10 @@ function removeScamperMenuOnce() {
 function removeScamperMenu() {
   var existing = document.getElementById("scamperMenu");
   if (existing) {
+    console.log("SCAMPERメニューを削除します:", existing); // 削除対象を確認
     existing.parentNode.removeChild(existing);
+  } else {
+    console.log("SCAMPERメニューが見つかりません。");
   }
 }
 
