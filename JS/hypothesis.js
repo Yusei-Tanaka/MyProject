@@ -233,10 +233,10 @@ function removeScamperMenuOnce() {
 function removeScamperMenu() {
   var existing = document.getElementById("scamperMenu");
   if (existing) {
-    console.log("SCAMPERメニューを削除します:", existing); // 削除対象を確認
+    //console.log("SCAMPERメニューを削除します:", existing); // 削除対象を確認
     existing.parentNode.removeChild(existing);
   } else {
-    console.log("SCAMPERメニューが見つかりません。");
+    //console.log("SCAMPERメニューが見つかりません。");
   }
 }
 
@@ -338,10 +338,10 @@ function removeScamperMenuOnce() {
 function removeScamperMenu() {
   var existing = document.getElementById("scamperMenu");
   if (existing) {
-    console.log("SCAMPERメニューを削除します:", existing); // 削除対象を確認
+    //console.log("SCAMPERメニューを削除します:", existing); // 削除対象を確認
     existing.parentNode.removeChild(existing);
   } else {
-    console.log("SCAMPERメニューが見つかりません。");
+    //console.log("SCAMPERメニューが見つかりません。");
   }
 }
 

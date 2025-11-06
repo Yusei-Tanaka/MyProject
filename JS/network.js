@@ -135,7 +135,7 @@ document.getElementById("addEdgeBtn").addEventListener("click", function () {
 
     try {
       edges.add(newEdge); // エッジを追加
-      alert("エッジを追加しました。");
+      //alert("エッジを追加しました。");
     } catch (error) {
       console.error("エッジの追加に失敗しました:", error);
     }
@@ -165,7 +165,7 @@ document.getElementById("deleteEdgeBtn").addEventListener("click", function () {
       edgesToDelete.forEach(function (edge) {
         edges.remove(edge.id);
       });
-      alert("エッジを削除しました。");
+      //alert("エッジを削除しました。");
     } else {
       alert("選択されたノード間にエッジが存在しません。");
     }
