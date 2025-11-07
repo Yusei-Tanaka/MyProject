@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ConceptMap>
   <Nodes>
-    <Node id="1" label="二酸化炭素" />
-    <Node id="2" label="ゼロエミッション" />
+    <Node id="1" label="炭素税" />
+    <Node id="2" label="二酸化炭素" />
+    <Node id="3" label="化石燃料" />
   </Nodes>
   <Edges>
-    <Edge from="1" to="2" label="対策" />
+    <Edge from="2" to="1" label="対策" />
+    <Edge from="1" to="2" label="New Edge" />
+    <Edge from="3" to="1" label="New Edge" />
   </Edges>
 </ConceptMap>
