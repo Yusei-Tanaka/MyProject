@@ -37,7 +37,7 @@ function generateSparqlQueryForEntities(entityIds) {
             }
             GROUP BY ?commonRelatedEntity ?commonLabel
             HAVING (COUNT(DISTINCT ?s) = ${entityIds.length})
-            LIMIT 10
+            LIMIT 30
         `;
     } else {
         // 和集合の検索結果
@@ -52,7 +52,7 @@ function generateSparqlQueryForEntities(entityIds) {
             SELECT ?commonRelatedEntity ?commonLabel WHERE {
                 ${queryParts.join(" UNION ")}
             }
-            LIMIT 10
+            LIMIT 30
         `;
     }
     

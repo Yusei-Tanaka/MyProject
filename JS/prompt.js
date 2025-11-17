@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return response.text();
             })
             .then(xmlText => {
-                console.log("取得したXMLデータ:", xmlText); // XMLデータをコンソールに出力
+                //console.log("取得したXMLデータ:", xmlText); // XMLデータをコンソールに出力
             })
             .catch(error => {
                 console.error("XMLファイルの取得中にエラーが発生しました:", error);

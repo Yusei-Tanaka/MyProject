@@ -1,10 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ConceptMap>
   <Nodes>
-    <Node id="1" label="地球温暖化" />
-    <Node id="2" label="再生可能エネルギー" />
+    <Node id="1" label="自動車" />
+    <Node id="2" label="地球温暖化" />
+    <Node id="3" label="二酸化炭素" />
+    <Node id="4" label="再生可能エネルギー" />
+    <Node id="5" label="持続可能な開発" />
+    <Node id="6" label="脱炭素化" />
+    <Node id="7" label="カーボン税" />
+    <Node id="8" label="炭素取引" />
+    <Node id="9" label="内燃機関" />
+    <Node id="10" label="電気自動車" />
+    <Node id="11" label="燃料電池自動車" />
+    <Node id="12" label="交通" />
   </Nodes>
   <Edges>
-    <Edge from="1" to="2" label="原因" />
+    <Edge from="2" to="3" label="原因" />
+    <Edge from="3" to="1" label="発生源" />
+    <Edge from="2" to="4" label="対策" />
+    <Edge from="4" to="5" label="目的" />
+    <Edge from="4" to="6" label="目的" />
+    <Edge from="6" to="3" label="対策" />
+    <Edge from="3" to="7" label="対策" />
+    <Edge from="8" to="3" label="対策" />
+    <Edge from="1" to="9" label="要素" />
+    <Edge from="1" to="10" label="対策" />
+    <Edge from="1" to="11" label="対策" />
+    <Edge from="12" to="1" label="上位概念" />
   </Edges>
 </ConceptMap>
