@@ -43,7 +43,7 @@ def handle_prompt():
         print("生成された結果:", result)  # デバッグ用ログ
         return jsonify({"result": result})
     except Exception as e:
-        print("エラー発生:", str(e))  # エラー内容をログに出力
+        print("エラー発生:", str(e))  # エラー内容をログに出力だよ
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
