@@ -541,7 +541,7 @@ select {
   max-height: 100%;
   overflow: auto;
   border: 1px solid #ccc;
-  background: #fff;
+  background: white;
 }
 
 /* ボタンコンテナをエリアの上に配置し、左寄せ */
