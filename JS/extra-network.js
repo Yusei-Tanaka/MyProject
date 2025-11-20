@@ -1,10 +1,33 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // extraNetworkエリアの初期化
   const container = document.getElementById("extraNetwork");
   const nodes = new vis.DataSet([]);
   const edges = new vis.DataSet([]);
   const data = { nodes, edges };
-  const options = { physics: true };
+  const options = {
+    physics: {
+      enabled: true, // ノードの物理エンジンを有効化
+    },
+    nodes: {
+      shape: "dot",
+      size: 16,
+      font: {
+        size: 14,
+        color: "#000",
+      },
+    },
+    edges: {
+      arrows: {
+        to: { enabled: true },
+      },
+      color: "#848484",
+      smooth: true,
+    },
+  };
   const network = new vis.Network(container, data, options);
+
+  // ノードデータセットをエリアに関連付け
+  container.visNetworkNodes = nodes;
 
   // 空のノードとエッジを初期化
   var nodesExtra = new vis.DataSet(); // 初期状態ではノードは空

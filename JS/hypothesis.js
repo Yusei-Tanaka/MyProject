@@ -116,21 +116,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-// 簡易仮説生成関数（テンプレート）
-// 例：キーワードA と キーワードB があれば「A が B に影響を与え、〜が起きる可能性がある」といった文を作る
-function generateSimpleHypothesis(keywordLabels){
-  if (!keywordLabels || keywordLabels.length === 0) return "";
-  if (keywordLabels.length === 1) {
-    return keywordLabels[0] + " に注目すると、関連する現象や要因が明らかになる可能性がある。";
-  }
-  // 2つ以上なら主要2つを使って簡易文を作成（拡張可）
-  var a = keywordLabels[0];
-  var b = keywordLabels[1];
-  var rest = keywordLabels.slice(2);
-  var restText = rest.length ? " 他に " + rest.join("、") + " などが関係する可能性がある。" : "";
-  return a + " と " + b + " の関係から、" + a + " が " + b + " に影響を与え、結果として具体的な変化（例：削減・代替・応用）が生じる可能性がある。" + restText;
-}
-
 // 選択されたノードが存在するか確認
 selectedNodes.forEach(function (nodeId) {
   console.log("Node exists:", nodes.get(nodeId) !== null);
@@ -140,14 +125,52 @@ console.log("Edges:", edges.get());
 
 // SCAMPER の選択肢（日本語ラベル）
 var SCAMPER_OPTIONS = [
+  { key: "AddNode", label: "ノードを追加", style: "background-color: lightpink; font-weight: bold;" }, // 一番上に配置し、スタイルを追加
   { key: "Substitute", label: "置換 (Substitute)" },
   { key: "Combine", label: "結合 (Combine)" },
   { key: "Adapt", label: "適応 (Adapt)" },
   { key: "Modify", label: "修正 (Modify)" },
   { key: "PutToOtherUse", label: "転用 (Put to other use)" },
   { key: "Eliminate", label: "削除 (Eliminate)" },
-  { key: "Reverse", label: "再構成 (Reverse)" },
+  { key: "Reverse", label: "再構成 (Reverse)" }
 ];
+
+// 「ノードを追加」選択時の処理
+function addNodeToNetwork(entry) {
+  // 仮説に関連するノードを取得
+  const subText = entry.querySelector(".hypothesis-box-body textarea").value;
+  const relatedNodes = subText.match(/[\wぁ-んァ-ン一-龥]+/g) || []; // 仮説内のキーワードを抽出
+
+  // extraNetworkエリアを取得
+  const networkArea = document.querySelector(".extra-content #extraNetwork");
+  if (!networkArea) {
+    console.error("extraNetworkエリアが見つかりません。");
+    return;
+  }
+
+  // vis.js のノードデータセットを取得
+  const nodesExtra = networkArea.visNetworkNodes; // vis.js のノードデータセット
+  if (!nodesExtra) {
+    console.error("extraNetworkのノードデータセットが初期化されていません。");
+    return;
+  }
+
+  // ノードを追加
+  relatedNodes.forEach((node) => {
+    if (!nodesExtra.get(node)) {
+      // ノードが存在しない場合のみ追加
+      nodesExtra.add({
+        id: node,
+        label: node,
+      });
+      console.log(`ノードが追加されました: ${node}`);
+    } else {
+      console.log(`ノードは既に存在します: ${node}`);
+    }
+  });
+
+  console.log("現在のノード一覧:", nodesExtra.get());
+}
 
 // SCAMPER テンプレート生成関数
 function generateScamperTemplate(option) {
@@ -288,7 +311,7 @@ function applyScamperToEntry(entry, option, parentContainer = null) {
   removeScamperMenu();
 }
 
-// SCAMPERメニュー作成（仮説入力ブロックまたは修正後の仮説ボックスに対応）
+// SCAMPERメニュー作成（修正済み）
 function createScamperMenu(x, y, entry, targetBox, parentContainer = null) {
   removeScamperMenu();
 
@@ -312,9 +335,19 @@ function createScamperMenu(x, y, entry, targetBox, parentContainer = null) {
     item.className = "scamper-option";
     item.innerText = opt.label;
     item.dataset.key = opt.key;
+
+    // スタイルを適用（ノードを追加の選択肢を目立たせる）
+    if (opt.style) {
+      item.style = opt.style;
+    }
+
     item.addEventListener("click", function (ev) {
       ev.stopPropagation();
-      applyScamperToEntry(entry, opt, parentContainer);
+      if (opt.key === "AddNode") {
+        addNodeToNetwork(entry); // 「ノードを追加」選択時の処理
+      } else {
+        applyScamperToEntry(entry, opt, parentContainer);
+      }
       removeScamperMenu();
     });
     menu.appendChild(item);
