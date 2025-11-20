@@ -56,9 +56,15 @@
       </div>
       <div class="extra-content">
         <!-- 新しいコンテンツエリア -->
-        <div class="h3"><!--仮説エリア--></div>
+        <div class="h3">（仮）仮説ネットワーク構成エリア</div>
         <div class="extra-content-area">
-          <p><!-- ここに新しいコンテンツを追加できます。--></p>
+          <div class="button-container">
+            <button id="addNodeExtraBtn">ノードの追加</button>
+            <button id="deleteNodeExtraBtn">ノードの削除</button>
+            <button id="addEdgeExtraBtn">エッジの追加</button>
+            <button id="deleteEdgeExtraBtn">エッジの削除</button>
+          </div>
+          <div id="extraNetwork"></div> <!-- ネットワーク表示エリア -->
         </div>
       </div>
     </div>
@@ -83,5 +89,6 @@
     <script src="JS/search.js"></script>
     <script src="JS/prompt.js"></script>
     <script src="JS/keywords.js"></script>
+    <script src="JS/extra-network.js"></script>
   </body>
 </html>

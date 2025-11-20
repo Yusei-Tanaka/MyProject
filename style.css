@@ -42,8 +42,8 @@ body {
 
 /* メインコンテンツ設定 */
 .main {
-  height: 75%; /* メインコンテンツの高さを設定 */
-  display: flex; /* 横並びのレイアウト */
+  height: 80%; /* 必要に応じて調整 */
+  display: flex;
   flex-direction: row; /* 横並びに設定 */
   justify-content: space-between;
   width: 100%;
@@ -519,10 +519,46 @@ select {
 }
 
 .extra-content {
-  flex: 0 0 50%; /* 横幅を30%に設定 */
+  flex: 0 0 70%; /* 横幅を70%に設定 */
   box-sizing: border-box;
   padding: 10px;
   border: 1px solid #ccc;
   background-color: #DCEAF7;
   scroll-snap-align: start;
+}
+
+/* 親要素の高さを調整 */
+.extra-content-area {
+  height: calc(100% - 10px); /* 親要素の高さを調整（フッターを侵食しない） */
+  display: flex;
+  flex-direction: column; /* ボタンとネットワークエリアを縦に並べる */
+  box-sizing: border-box;
+  overflow: hidden; /* 親要素からはみ出さないようにする */
+  height: 80%; /* 仮説ネットワーク構成エリアの高さ */
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+#extraNetwork {
+  height: 100%;
+  min-height: 50%;
+  max-height: 100%;
+  overflow: auto;
+  border: 1px solid #ccc;
+  background: #fff;
+}
+
+/* ボタンコンテナをエリアの上に配置し、左寄せ */
+.extra-content-area .button-container {
+  margin-bottom: 10px; /* ネットワークエリアとの間に余白を追加 */
+  text-align: left; /* ボタンを左寄せ */
+  height: 50px; /* ボタンコンテナの高さを固定 */
+}
+
+/* ボタンのスタイル */
+.extra-content-area .button-container button {
+  margin: 0 5px 5px 0; /* ボタン間の余白を調整（右と下に余白） */
+  padding: 10px 15px;
+  font-size: 16px;
 }
