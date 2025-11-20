@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ConceptMap>
   <Nodes>
-    <Node id="1" label="細胞の構成要素" />
+    <Node id="1" label="炭素" />
+    <Node id="2" label="酸素" />
   </Nodes>
   <Edges>
   </Edges>
