@@ -179,7 +179,7 @@ body {
 .output-area {
   margin: 2% auto; /* 左右中央揃え、上下に2%のマージン */
   width: 90%; /* 必要に応じて調整 */
-  height: 7%;
+  height: 13%;
   border: 1px solid lightgray;
   background-color: white;
   padding: 10px; /* 内側の余白 */

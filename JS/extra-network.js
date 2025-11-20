@@ -32,8 +32,30 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   var extraNetwork = new vis.Network(extraContainer, extraData, extraOptions);
 
-  // 最後に選択された2つのノードを保存
+  // 最後に選択されたノードを保存
   var selectedNodesExtra = []; // 選択されたノードIDを保存
+
+  // ノードをハイライトする関数
+  function highlightNodesExtra(nodeIds) {
+    // すべてのノードをデフォルトスタイルに戻す
+    nodesExtra.forEach(function (node) {
+      // テーマノード（ゴールド）は色を変更しない
+      if (node.color && node.color.background === "#FFD700") {
+        return; // テーマノードはスキップ
+      }
+      nodesExtra.update({ id: node.id, color: { background: "#97C2FC" } }); // デフォルトの色
+    });
+
+    // 選択されたノードをハイライト
+    nodeIds.forEach(function (id) {
+      const node = nodesExtra.get(id);
+      // テーマノード（ゴールド）は色を変更しない
+      if (node.color && node.color.background === "#FFD700") {
+        return; // テーマノードはスキップ
+      }
+      nodesExtra.update({ id: id, color: { background: "#FF5733" } }); // ハイライト色
+    });
+  }
 
   // ノードの選択イベント
   extraNetwork.on("selectNode", function (event) {
@@ -72,18 +94,14 @@ document.addEventListener("DOMContentLoaded", () => {
     highlightNodesExtra(selectedNodesExtra);
   });
 
-  // ノードをハイライトする関数
-  function highlightNodesExtra(nodeIds) {
-    // すべてのノードをデフォルトスタイルに戻す
-    nodesExtra.forEach(function (node) {
-      nodesExtra.update({ id: node.id, color: { background: "#97C2FC" } }); // デフォルトの色
-    });
-
-    // 選択されたノードをハイライト
-    nodeIds.forEach(function (id) {
-      nodesExtra.update({ id: id, color: { background: "#FF5733" } }); // ハイライト色
-    });
-  }
+  // ネットワークのクリックイベント
+  extraNetwork.on("click", function (event) {
+    if (event.nodes.length === 0 && event.edges.length === 0) {
+      // ノードやエッジが選択されていない場合
+      selectedNodesExtra = []; // 選択リセット
+      highlightNodesExtra([]); // ハイライトを解除
+    }
+  });
 
   // ノードまたはエッジをダブルクリックで編集
   extraNetwork.on("doubleClick", function (event) {
@@ -199,13 +217,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const themeInput = document.getElementById("myTitle").value.trim();
 
     if (themeInput) {
-      // ノードを追加
+      // ノードを追加（テーマノードは特定の色で表示）
       nodesExtra.add({
         id: themeInput, // ノードIDとしてテーマを使用
         label: themeInput,
+        color: { background: "#FFD700" }, // テーマノードの色（ゴールド）
       });
 
-      alert(`探索テーマ「${themeInput}」がネットワークに追加されました！`);
     } else {
       alert("探索テーマを入力してください。");
     }
