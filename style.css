@@ -523,6 +523,6 @@ select {
   box-sizing: border-box;
   padding: 10px;
   border: 1px solid #ccc;
-  background-color: #FFDAB9;
+  background-color: #DCEAF7;
   scroll-snap-align: start;
 }
