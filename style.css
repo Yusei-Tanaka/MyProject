@@ -316,7 +316,7 @@ select {
 }
 
 /* 総合仮説は目立たせる */
-.hypothesis-combined { background: #ffe9d6; border-color: #ff8c42; }
+.hypothesis-combined { background: white; border-color: #ff8c42; }
 
 /* 仮説立案エリア（右ナビ内）をスクロール可能にする */
 .hypothesis-area {
@@ -327,7 +327,7 @@ select {
   overflow-x: hidden;
   padding: 10px;
   box-sizing: border-box;
-  background: #fff7f0;
+  background: white;
   border: 1px solid #ddd;
 }
 
