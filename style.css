@@ -136,12 +136,7 @@ body {
 
 /* フッター設定 */
 .footer {
-  height: 12%; /* 全体の10%を占める */
-  background-color: #F2F2F2;
-  text-align: center;
-  line-height: 20%; /* テキストを中央揃え */
-  padding: 10px;
-  box-sizing: border-box;
+ display: none; /* フッターを非表示にする */
 }
 
 /* キーワード表示エリア */
