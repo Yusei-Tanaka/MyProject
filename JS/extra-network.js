@@ -235,20 +235,16 @@ document.addEventListener("DOMContentLoaded", () => {
     copiedContentElement.innerText = selectedContent;
   }
 
-  // 探索スタートボタンのクリックイベント
-  document.getElementById("serchBtn").addEventListener("click", () => {
-    const themeInput = document.getElementById("myTitle").value.trim();
-
-    if (themeInput) {
-      // ノードを追加（テーマノードは特定の色で表示）
-      nodesExtra.add({
-        id: themeInput, // ノードIDとしてテーマを使用
-        label: themeInput,
-        color: { background: "#FFD700" }, // テーマノードの色（ゴールド）
-      });
-
-    } else {
-      alert("探索テーマを入力してください。");
-    }
-  });
+  // ページ読み込み時にローカルストレージからテーマを取得して処理
+  const storedTitle = localStorage.getItem("searchTitle");
+  if (storedTitle) {
+    // テーマノードを追加
+    nodesExtra.add({
+      id: storedTitle, // ノードIDとしてテーマを使用
+      label: storedTitle,
+      color: { background: "#FFD700" }, // テーマノードの色（ゴールド）
+    });
+  } else {
+    console.log("ローカルストレージにテーマが設定されていません。");
+  };
 });

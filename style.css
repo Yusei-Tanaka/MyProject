@@ -11,12 +11,20 @@ body {
 
 /* ヘッダー設定 */
 .header {
-  height: 13%; /* 全体の15%を占める */
-  background-color: #CAEEFB;
-  text-align: center;
-  line-height: 15%; /* テキストの縦中央揃え */
-  padding: 10px;
-  box-sizing: border-box;
+  display: none; /* ヘッダーを非表示にする */
+}
+
+.header span {
+  margin-right: 10px;
+}
+
+.header input {
+  font-size: 12px;
+  padding: 2px 5px;
+  width: 200px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
 }
 
 #myTitle {
@@ -128,12 +136,7 @@ body {
 
 /* フッター設定 */
 .footer {
-  height: 12%; /* 全体の10%を占める */
-  background-color: #F2F2F2;
-  text-align: center;
-  line-height: 20%; /* テキストを中央揃え */
-  padding: 10px;
-  box-sizing: border-box;
+ display: none; /* フッターを非表示にする */
 }
 
 /* キーワード表示エリア */
