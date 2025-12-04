@@ -247,4 +247,6 @@ document.addEventListener("DOMContentLoaded", () => {
   } else {
     console.log("ローカルストレージにテーマが設定されていません。");
   };
+
+  window.nodesExtra = nodesExtra;
 });

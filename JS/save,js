@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+/* document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('saveBtn').addEventListener('click', function() {
     const data = {
       title: document.getElementById('myTitle').value || null, // タイトル
@@ -39,4 +39,4 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     reader.readAsText(file);
   });
-});
+}); */

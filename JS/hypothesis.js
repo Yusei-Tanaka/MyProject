@@ -157,20 +157,16 @@ function addNodeToNetwork(entry) {
 
   // ノードを追加
   relatedNodes.forEach((node) => {
-    if (!nodesExtra.get(node)) {
-      // ノードが存在しない場合のみ追加
-      nodesExtra.add({
+    if (window.nodesExtra && !window.nodesExtra.get(node)) {
+      window.nodesExtra.add({
         id: node,
         label: node,
       });
-      console.log(`ノードが追加されました: ${node}`);
-    } else {
-      console.log(`ノードは既に存在します: ${node}`);
     }
   });
 
   console.log("現在のノード一覧:", nodesExtra.get());
-}
+}  
 
 // SCAMPER テンプレート生成関数
 function generateScamperTemplate(option) {
@@ -388,3 +384,34 @@ function enableScamperOnEntry(entry) {
     });
   }
 }
+
+// キーワードクリック時にノード追加
+function handleKeywordClick(keyword) {
+    console.log(`クリックされたキーワード: ${keyword}`);
+
+    // ノードが既に存在するかチェック（ラベルで重複を避ける）
+    let existingNode = nodes.get({
+        filter: function(node) {
+            return node.label === keyword;
+        }
+    });
+
+    if (existingNode.length === 0) {
+        // 新しいノードを作成
+        var newNode = {
+            id: nodes.length + 1, // IDを自動生成
+            label: keyword,
+        };
+        nodes.add(newNode); // ノードを追加
+        console.log(`キーワード "${keyword}" をノードとして追加しました。`);
+    } else {
+        console.log(`キーワード "${keyword}" のノードは既に存在しています。`);
+    }
+}
+
+// 例：キーワードリストの各要素にイベントを設定
+document.querySelectorAll('.keyword').forEach(function(elem) {
+    elem.addEventListener('click', function() {
+        handleKeywordClick(elem.textContent.trim());
+    });
+});
