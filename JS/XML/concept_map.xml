@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ConceptMap>
   <Nodes>
-    <Node id="1" label="水素" />
+    <Node id="1" label="持続可能な開発" />
+    <Node id="2" label="カーボンニュートラル" />
+    <Node id="3" label="再生可能エネルギー" />
+    <Node id="4" label="地球温暖化" />
   </Nodes>
   <Edges>
+    <Edge from="1" to="2" label="New Edge" />
+    <Edge from="3" to="1" label="New Edge" />
+    <Edge from="4" to="1" label="New Edge" />
+    <Edge from="2" to="4" label="New Edge" />
   </Edges>
 </ConceptMap>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>総合的な探究の時間の支援システム</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" href="style-copy.css">
+    <!-- <link rel="stylesheet" href="style2.css"> -->
+    <link rel="icon" href="./img/favicon.ico">
+
+    <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="https://golden-layout.com/files/latest/js/goldenlayout.min.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://golden-layout.com/files/latest/css/goldenlayout-base.css" />
+    </head>
+  <body>
+    <div class="header">
+      <input id="myTitle" type="text" placeholder="探索テーマを入力">
+          <script>
+              <!-- localStorageからmyTitleに値をセットするJSは外部ファイル化 -->
+          </script>
+      <!-- <button id="serchBtn">探索スタート!</button> 
+      <button id="saveBtn">作業内容保存</button>
+      <input type="file" id="loadInput" style="display:none;" accept="application/json">
+      <button id="loadBtn">作業内容読込</button>-->
+    </div>
+    
+    <div id="golden-layout-container"></div>
+
+    <div class="footer">
+      <div class="h5">&emsp;&emsp;&emsp;&emsp;ログ</div>
+      <div id="logBoxContainer">
+        <div id="logBox"></div>
+      </div>
+    </div>
+    
+    <div id="left-navi-content" style="display: none;">
+      <div class="left-navi">
+        <div class="h3">キーワード
+          <button id="keywordCreationBtn">生成</button>
+        </div>
+        <div class="output-area">
+          <div id="output" contenteditable="true"></div> </div>
+        <label for="intersectionMode">
+          <input type="checkbox" id="intersectionMode">
+          情報をしぼる
+        </label> 
+        <div id="resultBox" style="border: 1px solid #ccc; padding: 10px; margin-top: 10px; background-color: #f9f9f9;">
+          <strong><u>生成されたキーワード</u></strong>
+          <br>
+        </div>
+      </div>
+    </div>
+
+    <div id="main-contents-content" style="display: none;">
+      <div class="main-contents">
+        <div class="h3">概念マップ形成エリア</div>
+        <div class="button-container">
+          <button id="addNodeBtn">キーワードの追加</button>
+          <button id="deleteNodeBtn">キーワードの削除</button>
+          <button id="addEdgeBtn">リンクの追加</button>
+          <button id="deleteEdgeBtn">リンクの削除</button>
+          <button id="createHypothesisBtn">仮説を立案</button>   
+          <label for="arrowToggle">
+            <input type="checkbox" id="arrowToggle">
+            矢印を有効化
+          </label>     
+        </div>
+        <div id="mynetwork"></div>
+        <div id="copiedContent"></div>
+      </div>
+    </div>
+
+    <div id="right-navi-content" style="display: none;">
+      <div class="right-navi">
+        <div class="h3">仮説設定エリア</div>
+        <div class="hypothesis-area">
+          <div id="hypothesisOutput" contenteditable="true"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="extra-content-content" style="display: none;">
+    <div id="extra-content-content" style="display: block;">
+      <div class="extra-content">
+        <div class="h3">ツリー型マインドマップエディタ</div>
+        <div class="extra-content-area">
+          <div id="myDiagramDiv" style="width:100%;height:60vh;border:1px solid #ccc;"></div>
+        </div>
+      </div>
+    </div>
+    
+
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <script src="JS/network.js"></script>
+    <script src="JS/hypothesis.js"></script>
+    <script src="JS/log.js"></script>
+    <script src="JS/setFontSize.js"></script>
+    <script src="JS/kuromoji.js"></script>
+    <script src="JS/word-analyze.js"></script>
+    <script src="JS/csv.js"></script>
+    <script src="JS/wiki-query.js"></script>
+    <script src="JS/search.js"></script>
+    <script src="JS/prompt.js"></script>
+    <script src="JS/keywords.js"></script>
+    <script src="JS/extra-network.js"></script>
+    <script src="JS/main.js"></script>
+    <script src="JS/save.js"></script>
+    <script src="https://unpkg.com/gojs/release/go.js"></script>
+    <script src="JS/mindmap.js"></script>
+    <script src="JS/set-title.js"></script>
+  </body>
+</html>

@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+/* document.addEventListener("DOMContentLoaded", () => {
   // extraNetworkエリアの初期化
   const container = document.getElementById("extraNetwork");
   const nodes = new vis.DataSet([]);
@@ -249,4 +249,4 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   window.nodesExtra = nodesExtra;
-});
+}); */
