@@ -507,6 +507,7 @@ select {
   padding: 10px;
   border: 1px solid #ccc;
   background-color: #D9F2D0;
+  height: 100%;
 }
 
 .right-navi {
