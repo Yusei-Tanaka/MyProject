@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>タイトル入力</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style-sub.css">
   </head>
   <body>
     <div class="title-input-container">
@@ -14,8 +14,12 @@
     </div>
 
     <script>
-      document.getElementById('startSearchBtn').addEventListener('click', () => {
-        const title = document.getElementById('titleInput').value;
+      const startSearchBtn = document.getElementById('startSearchBtn');
+      const titleInput = document.getElementById('titleInput');
+
+      // ボタンクリック時の処理
+      const startSearch = () => {
+        const title = titleInput.value;
         if (title.trim()) {
           // テーマをローカルストレージに保存
           localStorage.setItem('searchTitle', title);
@@ -23,6 +27,16 @@
           window.location.href = 'index.html';
         } else {
           alert('タイトルを入力してください。');
+        }
+      };
+
+      // ボタンクリックイベント
+      startSearchBtn.addEventListener('click', startSearch);
+
+      // エンターキーでボタンを動作させる
+      titleInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          startSearch();
         }
       });
     </script>
