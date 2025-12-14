@@ -10,10 +10,14 @@ function handleKeywordClick(keyword) {
     });
 
     if (existingNode.length === 0) {
+        // ネットワークの中心座標を取得
+        var center = network.getViewPosition();
         // 新しいノードを作成
         var newNode = {
             id: nodes.length + 1, // IDを自動生成
             label: keyword,
+            x: center.x,
+            y: center.y
         };
         nodes.add(newNode); // ノードを追加
         console.log(`キーワード "${keyword}" をノードとして追加しました。`);
