@@ -248,7 +248,20 @@ document.addEventListener("DOMContentLoaded", () => {
                     btn.style.width = "100%";
                     btn.style.textAlign = "left";
                     btn.onclick = () => {
-                        console.log("選択された質問:", li.textContent);
+                        // 既存の表示を消す
+                        let old = clickedElement.parentNode.querySelector('.scamper-question-view');
+                        if (old) old.remove();
+                        // SCAMPERタグの右に質問を表示
+                        const span = document.createElement('span');
+                        span.className = 'scamper-question-view';
+                        span.textContent = li.textContent;
+                        span.style.marginLeft = '12px';
+                        span.style.background = '#ffffe0';
+                        span.style.border = '1px solid #ccc';
+                        span.style.padding = '2px 8px';
+                        span.style.borderRadius = '6px';
+                        span.style.fontSize = '0.95em';
+                        clickedElement.insertAdjacentElement('afterend', span);
                         document.body.removeChild(dialog);
                     };
                     dialog.appendChild(btn);
