@@ -220,8 +220,8 @@ button#keywordCreationBtn {
     margin-bottom: 8px;
     padding: 8px;
     box-sizing: border-box;
-    min-height: 100px;
-    max-height: 400px;
+    min-height: 200px;
+    max-height: 500px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
