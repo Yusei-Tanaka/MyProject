@@ -1,0 +1,555 @@
+/* 親要素の高さ設定 */
+html, body {
+  height: 100%; /* 全体の高さを100% */
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column; /* 縚方向に並べる */
+}
+
+/* ヘッダー設定 */
+.header {
+  display: none; /* ヘッダーを非表示にする */
+}
+
+.header span {
+  margin-right: 10px;
+}
+
+.header input {
+  font-size: 12px;
+  padding: 2px 5px;
+  width: 200px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+}
+
+#myTitle {
+  margin: 1%;
+  height: 60%;
+  width: 60%;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  white-space: nowrap; /* テキストを1行にする */
+  overflow: hidden; /* オーバーフロー時に隠す */
+}
+
+#serchBtn {
+  padding: 10px;
+  font-size: 20px;
+}
+
+.header button {
+  font-size: 100%;
+}
+
+/* メインコンテンツ設定 */
+.main {
+  height: 80%; /* 必要に応じて調整 */
+  display: flex;
+  flex-direction: row; /* 横並びに設定 */
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* メインエリアの左ナビ（カテゴリ選択） */
+.left-navi {
+  width: 20%; /* 幅を20%に固定 */
+  flex-shrink: 0; /* 幅が縮まないようにする */
+  flex-grow: 0; /* 幅が広がらないようにする */
+  box-sizing: border-box; /* パディングを含めたサイズ計算 */
+  overflow: hidden; /* 内容がはみ出さないようにする */
+  background-color: #FCE7FA;
+  color: black;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* 子要素を上部に揃える */
+  align-items: flex-start; /* 左寄せ */
+  padding: 10px;
+}
+
+/* メインエリアの中央（概念マップ作成エリア） */
+.main-contents {
+  width: 50%; /* 横幅を50%に設定 */
+  background-color: #D9F2D0;
+  color: white;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* 子要素を上部に揃える */
+  padding: 10px;
+  box-sizing: border-box;
+  height: 100%;
+}
+
+/* メインエリアの右ナビ（キーワードエリア） */
+.right-navi {
+  width: 30%; /* 横幅を30%に設定 */
+  background-color: #DCEAF7;
+  color: black;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch; /* 内部要素を幅いっぱいにする */
+  padding: 6px; /* 余白を狭く */
+  box-sizing: border-box;
+  height: 100%;
+}
+
+/* 仮説エリアを右ナビ内で大きく、横幅いっぱいに表示 */
+.right-navi .hypothesis-area {
+  width: 100%;                    /* 右ナビ内で幅いっぱい */
+  margin: 0;                      /* 外側の余白をなくす */
+  padding: 6px;                   /* 内側の余白は小さめ */
+  box-sizing: border-box;
+  background: #fff7f0;
+  border: 1px solid #ddd;
+  /* 右ナビの高さに合わせて表示領域を確保 */
+  height: calc(100% - 36px);      /* 右ナビのヘッダ等の分だけ引く（調整可） */
+  max-height: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* 仮説エントリを幅いっぱいに */
+.hypothesis-wrapper,
+.right-navi .hypothesis-box {
+  width: 100%;
+}
+
+/* 各仮説ボックスの余白をさらに狭く*/
+.hypothesis-box {
+  margin-bottom: 6px;
+  padding: 6px;
+  max-height: 35vh;
+  overflow: hidden;
+  border: 1px solid #c39a00;
+  background: #fff3cc;
+}
+
+/* フッター設定 */
+.footer {
+ display: none; /* フッターを非表示にする */
+}
+
+/* キーワード表示エリア */
+.h3 {
+  color: black;
+  font-size: 2em;
+  margin: 1%;
+}
+
+.h4 {
+  color: black;
+  font-size: 2em;
+  margin: 4%;
+}
+
+/* Vis.jsのネットワークグラフのスタイル */
+#mynetwork {
+  width: 100%;
+  height: 80%;
+  border: 1px solid lightgray;
+  background-color: white;
+}
+
+/* ボタンのスタイル */
+.button-container {
+  margin: 1%;
+}
+
+.button-container button {
+  margin-right: 10px;
+  padding: 10px;
+  font-size: 14px;
+}
+
+/* ノードの追加削除ボタン */
+.button-container button {
+  margin-right: 10px;
+  padding: 10px;
+  font-size: 14px;
+}
+
+/* 出力エリア */
+.output-area {
+  margin: 2% auto; /* 左右中央揃え、上下に2%のマージン */
+  width: 90%; /* 必要に応じて調整 */
+  height: 13%;
+  border: 1px solid lightgray;
+  background-color: white;
+  padding: 10px; /* 内側の余白 */
+  box-sizing: border-box; /* パディングを含めたボックスの大きさ */
+  overflow: auto; /* コンテンツがボックスを超える場合にスクロールバーを表示 */
+}
+
+#output {
+  width: 100%;
+  height: 100%;
+  color: #333; /* テキストの色 */
+  overflow-wrap: break-word; /* 長い単語の折り返し */
+  white-space: pre-wrap; /* テキストの改行を反映 */
+}
+
+#copiedContent {
+  font-size: 20px;
+  color: #333;
+  white-space: pre-wrap; /* 改行をそのまま表示 */
+  overflow-wrap: break-word; /* 単語の途中で改行を入れる */
+}
+
+/* その他のフォーム要素 */
+label[for="arrowToggle"] {
+  color: black; /* 文字を黒にする */
+}
+
+/* ボタン（右ナビゲーション） */
+button#keywordCreationBtn {
+  font-size: 16px;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+/* ログのタイトル */
+.h5 {
+  text-align: left;
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+/* ログ表示ボックスのスタイル */
+#logBoxContainer {
+  overflow-y: auto;  /* スクロールを有効にする */
+  background-color: white; /* 背景色を白に設定 */
+  height: 90%; /* 親要素の高さの75% */
+}
+
+#logBox {  
+  /* 文字のスタイル */
+  font-family: Arial, sans-serif; /* フォントを設定 */
+  font-size: 14px; /* 文字の大きさ */
+  color: #333; /* 文字色（黒に近いグレー） */
+  line-height: 1.5; /* 行間を少し広げる */
+  text-align: left; /* テキストを左揃え */
+  white-space: pre-wrap; /* 長い文字を折り返す */
+}
+
+/* 右ナビゲーションの結果表示エリア */
+#resultBox {
+  width: 100%;
+  height: 80%;
+  border: 1px solid #ccc;
+  padding: 10px;
+  background-color: #f9f9f9;
+  box-sizing: border-box;
+  margin-top: 10px;
+  overflow-y: auto; /* スクロール可能にする */
+  text-align: left; /* 左揃えにする */
+}
+
+ul li {
+  cursor: pointer;
+}
+label {
+  font-family: sans-serif;
+  font-size: 1rem;
+  padding-right: 10px;
+}
+select {
+  font-size: 0.9rem;
+  padding: 2px 5px;
+}
+
+/* 仮説エリアのスタイル */
+.hypothesis-area {
+  margin-top: 12px;
+  padding: 10px;
+  border: 2px solid #000;
+  background: #fff7f0;
+  box-sizing: border-box;
+}
+
+.hypothesis-title {
+  margin: 0 0 8px 0;
+  font-size: 1.2em;
+}
+
+/* 仮説ボックス */
+.hypothesis-box {
+  border: 1px solid #c39a00;
+  background: #fff3cc;
+  margin-bottom: 8px;
+  padding: 8px;
+  box-sizing: border-box;
+  max-height: 200px; /* 最大高さを設定 */
+  overflow-y: auto; /* 縦スクロールを有効にする */
+  display: flex;
+  flex-direction: column; /* 子要素を縦に並べる */
+  gap: 8px; /* 子要素間の余白を設定 */
+}
+
+.hypothesis-box-header {
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.hypothesis-text {
+  width: 100%;
+  min-height: 60px;
+  resize: vertical;
+  box-sizing: border-box;
+  padding: 6px;
+  font-size: 14px;
+}
+
+/* 総合仮説は目立たせる */
+.hypothesis-combined { background: white; border-color: #ff8c42; }
+
+/* 仮説立案エリア（右ナビ内）をスクロール可能にする */
+.hypothesis-area {
+  /* 右ナビ内に収まる高さを指定（必要に応じて調整） */
+  max-height: 60vh;
+  height: 60vh;
+  overflow-y: auto;       /* 縪スクロールを有効にする */
+  overflow-x: hidden;
+  padding: 10px;
+  box-sizing: border-box;
+  background: white;
+  border: 1px solid #ddd;
+}
+
+/* 仮説エントリを縦に並べる */
+.hypothesis-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 各仮説ボックスの最大高さ（長文でも崩れにくくする） */
+.hypothesis-box {
+  max-height: 50vh;
+  overflow: hidden;
+}
+
+/* テキストエリアは内部でスクロール */
+.hypothesis-text {
+  width: 100%;
+  min-height: 80px;
+  max-height: 30vh;
+  resize: vertical;
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 6px;
+  font-size: 14px;
+}
+
+/* SCAMPER コンテキストメニュー */
+.scamper-menu {
+  position: fixed;
+  z-index: 2000;
+  background: #ffffff;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  padding: 4px;
+  border-radius: 4px;
+  min-width: 200px;
+}
+.scamper-option {
+  padding: 6px 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.scamper-option:hover {
+  background: #f0f0f0;
+}
+
+/* SCAMPER メニュー（エントリ近傍に表示） */
+.scamper-menu-inline {
+  position: absolute;
+  z-index: 9999;
+  background: #fff;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  padding: 4px;
+  border-radius: 4px;
+  min-width: 200px;
+}
+
+.scamper-option {
+  padding: 6px 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.scamper-option:hover {
+  background: #f0f0f0;
+}
+
+/* 各選択肢を縦に並べ、左に一文字を出す */
+.scamper-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  cursor: pointer;
+  border-bottom: 1px solid #000;
+  white-space: nowrap;
+}
+.scamper-option:last-child { border-bottom: none; }
+
+.scamper-letter {
+  display: inline-block;
+  width: 20px;
+  text-align: center;
+  font-weight: bold;
+}
+.scamper-label {
+  font-size: 12px;
+  color: #111;
+}
+
+/* SCAMPERタグを縦に並べ、左寄せにする */
+.scamper-tags {
+  display: flex;
+  flex-direction: column; /* 縦方向に並べる */
+  gap: 6px;               /* タグ間の余白 */
+  margin-top: 6px;
+  align-items: flex-start; /* 左寄せにする */
+  max-height: 300px;       /* 最大高さを設定 */
+  overflow-y: auto;        /* 縦スクロールを有効にする */
+  border: 1px solid #ddd;  /* 枠線を追加 */
+  padding: 6px;            /* 内側の余白を調整 */
+  box-sizing: border-box;  /* パディングを含めたサイズを計算 */
+  background: #fff;        /* 背景色を白に設定 */
+}
+
+/* SCAMPERタグコンテナ */
+.scamper-tag-container {
+  display: flex; /* フレックスボックスを使用 */
+  flex-direction: column; /* 縦方向に並べる */
+  gap: 8px; /* タグとテキストボックスの間隔 */
+  align-items: flex-start; /* 左寄せにする */
+  width: 100%; /* コンテナ全体を幅いっぱいに */
+}
+
+/* SCAMPERタグ */
+.scamper-tag {
+  display: inline-block;
+  background: #ffd89b;
+  color: #333;
+  padding: 4px 8px; /* 内側の余白を調整 */
+  border-radius: 12px;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  white-space: nowrap; /* 1行に収める */
+  width: 142px; /* 固定幅 */
+}
+
+/* 修正用仮説入力ボックス */
+.scamper-edit-box {
+  width: 100%; /* 横幅いっぱいに広げる */
+  min-height: 40px; /* 最小高さを設定 */
+  max-height: 150px; /* 最大高さを設定 */
+  padding: 6px; /* 内側の余白 */
+  font-size: 12px; /* フォントサイズ */
+  border: 1px solid #ccc; /* 枠線 */
+  border-radius: 4px; /* 角を丸くする */
+  box-sizing: border-box; /* パディングを含めたサイズを計算 */
+  overflow-y: auto; /* 縦スクロールを有効にする */
+  resize: vertical; /* ユーザーが高さを調整できるようにする */
+}
+
+/* mainエリアを横に広げる */
+.main {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* mainエリアを横スクロール可能にする */
+.main {
+  display: flex;
+  overflow-x: auto; /* 横スクロールを有効化 */
+  white-space: nowrap; /* コンテンツが折り返されないようにする */
+  width: 100%; /* 画面幅に合わせる */
+  height: 100%; /* 高さを100%に設定 */
+}
+
+/* 各コンテンツエリアのスタイル */
+.left-navi {
+  flex: 0 0 15%; /* 横幅を20%に設定 */
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #ccc;
+  background-color: #FCE7FA;
+}
+
+.main-contents {
+  flex: 0 0 50%; /* 横幅を50%に設定 */
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #ccc;
+  background-color: #D9F2D0;
+  height: 100%;
+}
+
+.right-navi {
+  flex: 0 0 30%; /* 横幅を30%に設定 */
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #ccc;
+  background-color: #DCEAF7;
+}
+
+.extra-content {
+  flex: 0 0 70%; /* 横幅を70%に設定 */
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #ccc;
+  background-color: #DCEAF7;
+}
+
+/* 親要素の高さを調整 */
+.extra-content-area {
+  height: calc(100% - 10px); /* 親要素の高さを調整（フッターを侵食しない） */
+  display: flex;
+  flex-direction: column; /* ボタンとネットワークエリアを縦に並べる */
+  box-sizing: border-box;
+  overflow: hidden; /* 親要素からはみ出さないようにする */
+  height: 80%; /* 仮説ネットワーク構成エリアの高さ */
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+#extraNetwork {
+  height: 100%;
+  min-height: 50%;
+  max-height: 100%;
+  overflow: auto;
+  border: 1px solid #ccc;
+  background: white;
+}
+
+/* ボタンコンテナをエリアの上に配置し、左寄せ */
+.extra-content-area .button-container {
+  margin-bottom: 10px; /* ネットワークエリアとの間に余白を追加 */
+  text-align: left; /* ボタンを左寄せ */
+  height: 50px; /* ボタンコンテナの高さを固定 */
+}
+
+/* ボタンのスタイル */
+.extra-content-area .button-container button {
+  margin: 0 5px 5px 0; /* ボタン間の余白を調整（右と下に余白） */
+  padding: 10px 15px;
+  font-size: 16px;
+}
