@@ -221,7 +221,7 @@ button#keywordCreationBtn {
     padding: 8px;
     box-sizing: border-box;
     min-height: 100px;
-    min-height: 300px;
+    max-height: 400px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;

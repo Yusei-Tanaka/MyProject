@@ -416,8 +416,6 @@ document.querySelectorAll('.keyword').forEach(function(elem) {
   });
 });
 
-// ================= prompt.js の内容を統合 =================
-
 // HTMLの入力フィールドからタイトルを取得してコンソールに出力する
 document.addEventListener("DOMContentLoaded", () => {
   const titleInput = document.querySelector("#myTitle"); // タイトル入力用のinput要素を取得
