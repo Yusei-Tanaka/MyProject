@@ -14,9 +14,20 @@ window.addEventListener('DOMContentLoaded', function() {
     nodeSpacing: 20
   });
 
+  // レイアウト完了後に全ノードを一括で上方に平行移動
+  diagram.addDiagramListener("LayoutCompleted", function(e) {
+    // ずらす量（Y方向）
+    var offsetY = -200;
+    diagram.nodes.each(function(node) {
+      var loc = node.location;
+      node.location = new go.Point(loc.x, loc.y + offsetY);
+    });
+  });
+
   /* ノードテンプレート */
   diagram.nodeTemplate =
     $(go.Node, "Auto",
+      new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
       $(go.Shape, "Ellipse",
         // key:0（タイトルノード）のみ色を変更
         new go.Binding("fill", "key", function(key) {
@@ -24,8 +35,15 @@ window.addEventListener('DOMContentLoaded', function() {
         })
       ),
       $(go.TextBlock,
-        { margin: 8 },
-        new go.Binding("text").makeTwoWay()
+        // key:0（タイトルノード）は折り返しなし、それ以外は折り返し有効
+        new go.Binding("text").makeTwoWay(),
+        new go.Binding("wrap", "key", function(key) {
+          return key === 0 ? go.TextBlock.None : go.TextBlock.WrapFit;
+        }),
+        new go.Binding("width", "key", function(key) {
+          return key === 0 ? NaN : 120;
+        }),
+        { margin: 8 }
       ),
       {
         doubleClick: (e, node) => {
@@ -78,7 +96,7 @@ window.addEventListener('DOMContentLoaded', function() {
   var titleInput = document.getElementById('myTitle');
   var initialText = searchTitle || (titleInput && titleInput.value) || "新しいマインドマップ";
   diagram.model = new go.TreeModel([
-    { key: 0, text: initialText }
+    { key: 0, text: initialText, loc: "0 -200" }
   ]);
 
   // myTitleの値が変更されたらルートノードも更新
