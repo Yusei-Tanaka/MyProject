@@ -102,9 +102,13 @@ network.on("doubleClick", function (event) {
 
 // ノード追加ボタン
 document.getElementById("addNodeBtn").addEventListener("click", function () {
+  // ネットワークの中心座標を取得
+  var center = network.getViewPosition();
   var newNode = {
     id: nodes.length + 1, // IDを自動生成
     label: "New Node",
+    x: center.x,
+    y: center.y
   };
   nodes.add(newNode); // 新しいノードを追加
 });
@@ -124,15 +128,12 @@ document.getElementById("deleteNodeBtn").addEventListener("click", function () {
 document.getElementById("addEdgeBtn").addEventListener("click", function () {
   if (selectedNodes.length === 2) {
     var arrowEnabled = document.getElementById("arrowToggle").checked; // チェックボックスの状態を取得
-
-    // 選択された2つのノード間にエッジを追加
     var newEdge = {
       from: selectedNodes[0],
       to: selectedNodes[1],
       label: "New Edge",
-      arrows: arrowEnabled ? "to" : "", // 矢印の有無をチェックボックスで決定
+      arrows: arrowEnabled ? "to" : "" // 矢印の有無をチェックボックスで決定
     };
-
     try {
       edges.add(newEdge); // エッジを追加
       //alert("エッジを追加しました。");
