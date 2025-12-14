@@ -26,6 +26,84 @@ function handleKeywordClick(keyword) {
     }
 }
 
+// output内のキーワード群を基にAPIへ問い合わせる
+async function requestKeywordsFromOutput(keywords) {
+    const uniqueKeywords = [...new Set(keywords.map(k => k.trim()).filter(Boolean))];
+
+    if (uniqueKeywords.length === 0) {
+        console.log("APIリクエスト用のキーワードがありません。");
+        return;
+    }
+
+    const themeValue = (window.theme || document.querySelector("#myTitle")?.value || "未設定のテーマ").trim();
+    const relationPerspectives = [
+        "背景",
+        "課題",
+        "影響",
+        "対策",
+        "要因",
+        "評価",
+        "持続可能性",
+        "技術",
+        "経済",
+        "国際比較",
+        "行動",
+        "環境負荷"
+    ];
+
+    const generate = [];
+
+    // APIにプロンプトを送信する共通処理
+    const postPrompt = async (prompt, keyword, perspective) => {
+        try {
+            const response = await fetch("http://127.0.0.1:8000/api", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ prompt })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTPエラー: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log(`outputキーワードAPIの結果 (${keyword}/${perspective}):`, data.result);
+            generate.push({ keyword, perspective, result: data.result });
+        } catch (error) {
+            alert(`outputキーワードAPI(${keyword}/${perspective})呼び出し中にエラーが発生しました: ${error.message}`);
+        }
+    };
+
+    // output[i] × relation[j] のイメージで逐次的に問い合わせる
+    for (const keyword of uniqueKeywords) {
+        for (const perspective of relationPerspectives) {
+            const prompt = `
+                ##タスク
+                ・総合的な探究の時間における，学習者の活動を⽀援するシステム
+                ##背景・文脈
+                ・学習者は[${themeValue}]を目標に探究活動を行っている
+                ##入力
+                ・対象キーワード: [${keyword}]
+                ・観点: [${perspective}]
+                ・あなたは「${keyword}」の「${perspective}」観点から関係のありそうなキーワードを10個程度提示してください
+                ##条件
+                ・提示するキーワードは必ずしも10個に満たなくても良い
+                ・関係のありそうなキーワードが存在しないと判断された場合はnullを返してもよい
+                ・提示する全てのキーワードはWikidataに項目が存在するものに限り、存在確認を行った上で回答してください
+                ##出力形式
+                ・条件に合うキーワードをリスト形式のみで提示せよ（その他の記述は不要）
+            `;
+
+            console.log(`生成されたプロンプト(output[i]/relation[j]): ${keyword} / ${perspective}`, prompt);
+            await postPrompt(prompt, keyword, perspective);
+        }
+    }
+
+    console.log("generate (output×relationの結果一覧):", generate);
+}
+
 // キーワード生成の処理
 document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("keywordCreationBtn").addEventListener("click", async function () {
@@ -44,6 +122,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         //【追加】ログエリアにキーワードを表示
         displayKeywordsLog(keywords);
+
+    // outputのキーワードを使ってAPIに問い合わせ
+    await requestKeywordsFromOutput(keywords);
 
         let resultBox = document.getElementById("resultBox");
         resultBox.innerHTML = "<strong><u>生成されたキーワード</u></strong><br>"; // 初期化
