@@ -1,0 +1,231 @@
+// キーワードをクリックした際にノードを追加
+function handleKeywordClick(keyword) {
+    console.log(`クリックされたキーワード: ${keyword}`); // クリックされたキーワードを確認
+
+    // ノードが既に存在するかチェック（ラベルで重複を避ける）
+    let existingNode = nodes.get({
+        filter: function(node) {
+            return node.label === keyword;
+        }
+    });
+
+    if (existingNode.length === 0) {
+        // ネットワークの中心座標を取得
+        var center = network.getViewPosition();
+        // 新しいノードを作成
+        var newNode = {
+            id: nodes.length + 1, // IDを自動生成
+            label: keyword,
+            x: center.x,
+            y: center.y
+        };
+        nodes.add(newNode); // ノードを追加
+        console.log(`キーワード "${keyword}" をノードとして追加しました。`);
+    } else {
+        console.log(`キーワード "${keyword}" のノードは既に存在しています。`);
+    }
+}
+
+// output内のキーワード群を基にAPIへ問い合わせる
+async function requestKeywordsFromOutput(keywords) {
+    const uniqueKeywords = [...new Set(keywords.map(k => k.trim()).filter(Boolean))];
+
+    if (uniqueKeywords.length === 0) {
+        console.log("APIリクエスト用のキーワードがありません。");
+        return;
+    }
+
+    const themeValue = (window.theme || document.querySelector("#myTitle")?.value || "未設定のテーマ").trim();
+    const relationPerspectives = [
+        "背景",
+        "課題",
+        "影響",
+        "対策",
+        "要因",
+        "評価",
+        "持続可能性",
+        "技術",
+        "経済",
+        "国際比較",
+        "行動",
+        "環境負荷"
+    ];
+
+    const generate = [];
+
+    // APIにプロンプトを送信する共通処理
+    const postPrompt = async (prompt) => {
+        try {
+            const response = await fetch("http://127.0.0.1:8000/api", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ prompt })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTPエラー: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log("outputキーワードAPIの結果 (対象キーワード一覧):", data.result);
+            generate.push({ keywords: uniqueKeywords, result: data.result });
+        } catch (error) {
+            alert(`outputキーワードAPI呼び出し中にエラーが発生しました: ${error.message}`);
+        }
+    };
+
+        const prompt = `
+        ##タスク
+        ・総合的な探究の時間における，学習者の活動を⽀援するシステム
+
+        ##背景・文脈
+        ・学習者は[${themeValue}]を目標に探究活動を行っている
+
+        ##入力
+        ・対象キーワード一覧:
+        ${uniqueKeywords.map(k => `・${k}`).join("\n")}
+
+        ・観点一覧:
+        ${relationPerspectives.map(p => `・${p}`).join("\n")}
+
+        ・あなたは，上記すべての「対象キーワード」それぞれについて，
+        　上記すべての「観点」ごとに，
+        　関係のありそうなキーワードを10個程度提示してください
+
+        ##条件
+        ・提示するキーワードは必ずしも10個に満たなくても良い
+        ・関係のありそうなキーワードが存在しないと判断された場合尾
+        ・提示する全てのキーワードはWikidataに項目が存在するものに限り，
+        　存在確認を行った上で回答してください
+
+        ##出力形式
+        ・以下の JSON 形式のみで出力せよ（その他の記述は不要）
+
+        {
+            "対象キーワード": {
+                "観点": ["キーワード1", "キーワード2", "..."]
+            }
+        }
+        `;
+
+        console.log("生成されたプロンプト(output全体):", prompt);
+        await postPrompt(prompt);
+
+        console.log("generate (outputキーワードの全結果):", generate);
+}
+
+// キーワード生成の処理
+document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("keywordCreationBtn").addEventListener("click", async function () {
+        let outputElement = document.getElementById("output");
+        let text = outputElement.innerText.trim();
+
+        //【修正】全角→半角変換 & 句読点・スペースを削除
+        text = text.replace(/[、，\s]+/g, " ");  // 句読点・スペースを統一
+        text = text.replace(/[Ａ-Ｚａ-ｚ０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0)); // 全角→半角
+
+        let keywords = text.split(" ")
+            .map(k => k.replace(/^[,、\s]+|[,、\s]+$/g, "")) // 先頭・末尾のカンマやスペースを削除
+            .filter(k => k.length > 0); // 空のキーワードを除外
+
+        console.log("処理後のキーワード:", keywords);
+
+        //【追加】ログエリアにキーワードを表示
+        displayKeywordsLog(keywords);
+
+    // outputのキーワードを使ってAPIに問い合わせ
+    await requestKeywordsFromOutput(keywords);
+
+        let resultBox = document.getElementById("resultBox");
+        resultBox.innerHTML = "<strong><u>生成されたキーワード</u></strong><br>"; // 初期化
+
+        // 複数キーワードのエンティティIDを取得
+        let entityIds = [];
+        for (let keyword of keywords) {
+            let entityId = await getWikidataEntityId(keyword);
+            loadCSVData();  // データ読み込み
+            setTimeout(() => {
+                let relatedWords = getRelatedKeywords(keyword);  // 関数に渡す
+            
+                // 【修正】全てのカテゴリーのデータを統合する
+                if (relatedWords && typeof relatedWords === "object") {
+                    relatedWords = Object.values(relatedWords).flat(); // 配列に統合
+                } else {
+                    relatedWords = [];  // データがない場合は空の配列に
+                }
+            
+                console.log(`「${keyword}」に関連する語（統合）:`, relatedWords); // デバッグ用
+            
+                if (Array.isArray(relatedWords)) {  // 配列であるかをチェック
+                    console.log(`キーワード「${keyword}」に関連する語:`, relatedWords);
+            
+                    // 関連語をresultBoxに追加
+                    let relatedList = document.createElement("ul");
+                    
+                    // 既存のキーワードを統合し、重複を取り除く
+                    let allRelatedWords = [...new Set(relatedWords)];
+
+                    allRelatedWords.forEach(relatedWord => {
+                        let listItem = document.createElement("li");
+                        listItem.textContent = relatedWord; // リスト項目に関連語を設定
+                        listItem.style.cursor = "pointer";  // ポインタを手のひらに変更
+                        listItem.addEventListener("click", function () {
+                            console.log(`関連語 "${relatedWord}" がクリックされました`); // クリックされた関連語を確認
+                            handleKeywordClick(relatedWord);  // クリックされた関連語でノード追加
+                        });
+                        relatedList.appendChild(listItem);
+                    });
+            
+                    // 関連語リストを結果に追加
+                    let relatedItem = document.createElement("div");
+                    //relatedItem.innerHTML = `<strong>${keyword} に関連する語</strong>`;
+                    relatedItem.appendChild(relatedList);
+                    resultBox.appendChild(relatedItem);
+                } else {
+                    console.error(`関連語が配列でありません: ${keyword}`);
+                }
+            }, 2000);            
+            if (entityId) {
+                entityIds.push(entityId);
+            }
+        }
+
+        if (entityIds.length === 0) {
+            console.log("エンティティIDが見つかりませんでした。");
+            return;
+        }
+
+        // 取得したエンティティIDを使って共通関連ワードを取得
+        let sparqlQuery = generateSparqlQueryForEntities(entityIds);
+        let results = await queryWikidata(sparqlQuery);
+
+        if (results.length > 0) {
+            let uniqueResults = Array.from(new Set(results.map(binding => binding.commonLabel.value)));
+
+            // <ul> タグを作成してリストを生成
+            let resultList = document.createElement("ul");
+
+            // 各キーワードを <li> タグとして追加
+            uniqueResults.forEach(label => {
+                let listItem = document.createElement("li");
+                listItem.textContent = label; // リスト項目にキーワードを設定
+                listItem.style.cursor = "pointer";  // ポインタを手のひらに変更
+                listItem.addEventListener("click", function () {
+                    console.log(`キーワード "${label}" がクリックされました`); // キーワードクリック時に確認
+                    handleKeywordClick(label);  // クリックされたキーワードでノード追加
+                });
+                resultList.appendChild(listItem);
+            });
+
+            // 左寄せにするためのスタイルを追加
+            resultList.style.textAlign = "left";
+
+            // 結果を表示
+            let resultItem = document.createElement("div");
+            resultItem.appendChild(resultList);
+            resultBox.appendChild(resultItem);
+        }
+    });
+});
