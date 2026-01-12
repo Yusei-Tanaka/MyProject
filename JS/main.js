@@ -15,7 +15,7 @@ var config = {
       content: [
           {
               type: 'column',
-              width: 20, // 左カラムの幅（全体の20%）
+              width: 0, // 初期: 左カラム 0%
               content: [
                   {
                       type: 'component',
@@ -33,7 +33,7 @@ var config = {
           },
           {
               type: 'column',
-              width: 80, // 右カラムの幅（全体の80%）
+              width: 100, // 初期: 右カラム 100%
               content: [
                   {
                       type: 'component',
@@ -85,3 +85,29 @@ container.getElement().append( content );
 
 // 4. レイアウトの初期化と起動
 myLayout.init();
+
+// 5. ボタン押下で左20%・右80%に変更
+$(function(){
+    var row = null;
+    myLayout.on('initialised', function(){
+        // 初期化後に row を取得し、サイズ再計算
+        row = myLayout.root.contentItems[0];
+        if (row) {
+            row.callDownwards('setSize');
+        }
+    });
+
+    // 左 20%・右 80% に切替するボタン
+    $('#showLeftBtn').on('click', function(){
+        if (!row) {
+            row = myLayout.root.contentItems[0];
+        }
+        if (!row || row.contentItems.length < 2) return;
+        var leftCol = row.contentItems[0];
+        var rightCol = row.contentItems[1];
+        leftCol.config.width = 20;
+        rightCol.config.width = 80;
+        // サイズ再計算を下位要素に伝播
+        row.callDownwards('setSize');
+    });
+});
