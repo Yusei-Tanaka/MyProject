@@ -111,23 +111,28 @@ body {
 }
 
 /* ===================== 左ナビ ===================== */
+#left-navi-content,
+.left-navi {
+    height: 100%;
+}
 .left-navi {
     background: #FCE7FA;
     padding: 12px;
     box-sizing: border-box;
     color: #222;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+    display: grid;
+    grid-template-rows: auto minmax(80px, 0.2fr) minmax(0, 0.8fr);
+    row-gap: 10px;
     border-right: 1px solid #ccc;
     width: 100%;
-    height: 100%;
     min-height: 0; /* 子要素のスクロールを許可 */
 }
+.left-navi .h3,
+.left-navi label {
+    margin: 0;
+}
 .output-area {
-    margin: 10px 0;
     width: 100%;
-    min-height: 60px;
     border: 1px solid #ccc;
     background: #fff;
     padding: 8px;
@@ -136,7 +141,6 @@ body {
 }
 #output {
     width: 100%;
-    height: 100%;
     color: #333;
     overflow-wrap: break-word;
     white-space: pre-wrap;
@@ -144,11 +148,10 @@ body {
 #resultBox {
     border: 1px solid #ccc;
     padding: 10px;
-    margin-top: 10px;
     background-color: #f9f9f9;
     width: 100%;
-    /* スクロール可能な領域に制限 */
-    max-height: 50vh;
+    min-height: 0;
+    height: 100%;
     box-sizing: border-box;
     overflow-y: auto;
     text-align: left;
@@ -388,309 +391,6 @@ label {
 select {
     font-size: 0.9rem;
     padding: 2px 5px;
-}
-/* ===================== 共通・全体レイアウト ===================== */
-html, body {
-    height: 100%;
-    margin: 0;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-body {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-/* ===================== ヘッダー ===================== */
-.header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 10px;
-    background: #f9f9f9;
-    height: 36px;
-    width: 100%;
-}
-.header span { margin-right: 10px; }
-.header input, #myTitle {
-    font-size: 16px;
-    padding: 4px 10px;
-    width: 100%;
-    max-width: 900px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background: #fff;
-    margin: 4px auto;
-    text-align: center;
-    display: block;
-    box-sizing: border-box;
-    height: 28px;
-}
-#serchBtn, .header button {
-    padding: 8px 16px;
-    font-size: 16px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    background: #e0e0e0;
-    cursor: pointer;
-}
-
-/* ===================== レイアウト全体 ===================== */
-#golden-layout-container {
-    flex: 1;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-}
-
-/* ===================== 左ナビ ===================== */
-.left-navi {
-    background: #FCE7FA;
-    padding: 12px;
-    box-sizing: border-box;
-    color: #222;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    border-right: 1px solid #ccc;
-    width: 100%;
-    height: 100%;
-    min-height: 0; /* 子要素のスクロールを許可 */
-}
-.output-area {
-    margin: 10px 0;
-    width: 100%;
-    min-height: 60px;
-    border: 1px solid #ccc;
-    background: #fff;
-    padding: 8px;
-    box-sizing: border-box;
-    overflow: auto;
-}
-#resultBox {
-    border: 1px solid #ccc;
-    padding: 10px;
-    margin-top: 10px;
-    background-color: #f9f9f9;
-    width: 100%;
-    height: 80%;
-    box-sizing: border-box;
-    overflow-y: auto;
-    text-align: left;
-    overscroll-behavior: contain;
-    touch-action: pan-y;
-}
-
-/* ===================== 中央コンテンツ ===================== */
-.main-contents {
-    background: #D9F2D0;
-    padding: 12px;
-    box-sizing: border-box;
-    color: #222;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 100%;
-}
-.button-container {
-    margin: 10px 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-.button-container button,
-button#keywordCreationBtn {
-    padding: 8px 16px;
-    font-size: 15px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    background: #ffd89b;
-    cursor: pointer;
-}
-#mynetwork {
-    width: 100%;
-    height: 80%;
-    border: 1px solid #ccc;
-    background: #fff;
-    margin-bottom: 10px;
-}
-
-/* ===================== 右ナビ ===================== */
-.right-navi {
-    background: #DCEAF7;
-    padding: 12px;
-    box-sizing: border-box;
-    color: #222;
-    display: flex;
-    flex-direction: column;
-    border-left: 1px solid #ccc;
-    width: 100%;
-    height: 100%;
-}
-.hypothesis-area {
-    width: 100%;
-    margin-top: 10px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    background: #ffffff;
-    box-sizing: border-box;
-    height: 100%;
-    overflow-y: auto;
-}
-.hypothesis-box {
-    border: 1px solid #c39a00;
-    background: #fff3cc;
-    margin-bottom: 8px;
-    padding: 8px;
-    box-sizing: border-box;
-    max-height: 200px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-.hypothesis-combined { background: #fff; border-color: #ffffff; }
-.hypothesis-title { font-size: 1.2em; margin-bottom: 8px; }
-.hypothesis-text {
-    width: 100%;
-    min-height: 60px;
-    resize: vertical;
-    box-sizing: border-box;
-    padding: 6px;
-    font-size: 14px;
-}
-
-/* ===================== 仮説ネットワーク構成エリア（extra-content） ===================== */
-.extra-content {
-    background: #DCEAF7;
-    padding: 12px;
-    box-sizing: border-box;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
-    min-height: 0;
-}
-.extra-content-area {
-    flex: 1 1 auto;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-    overflow: auto;
-    height: 100%;
-    min-height: 0;
-}
-#extraNetwork {
-    flex: 1;
-    min-height: 220px;
-    border: 1px solid #ccc;
-    background: white;
-    overflow: auto;
-}
-.extra-content-area .button-container {
-    margin-bottom: 10px;
-    text-align: left;
-    align-items: flex-start;
-}
-.extra-content-area .button-container button {
-    margin: 0 8px 8px 0;
-    padding: 10px 18px;
-    font-size: 16px;
-    border-radius: 6px;
-}
-#myDiagramDiv {
-    width: 100%;
-    height: 80%;
-    border: 1px solid lightgray;
-    background-color: white;
-}
-.diagram-area {
-    width: 100%;
-    flex: 1 1 auto;
-    min-height: 0;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-    background: #fff;
-    overflow: auto;
-}
-
-/* ===================== フッター・ログ ===================== */
-.footer {
-    flex-shrink: 0;
-    height: 50px;
-    display: none;
-}
-#logBoxContainer {
-    overflow-y: auto;
-    background: #fff;
-    height: 90%;
-}
-#logBox {
-    font-family: Arial, sans-serif;
-    font-size: 14px;
-    color: #333;
-    line-height: 1.5;
-    text-align: left;
-    white-space: pre-wrap;
-}
-
-/* ===================== SCAMPERメニュー・タグ ===================== */
-.scamper-menu, .scamper-menu-inline {
-    position: absolute;
-    z-index: 2000;
-    background: #fff;
-    border: 1px solid #ccc;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    padding: 4px;
-    border-radius: 4px;
-    min-width: 200px;
-}
-.scamper-option {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 8px;
-    cursor: pointer;
-    font-size: 13px;
-    border-bottom: 1px solid #eee;
-    white-space: nowrap;
-}
-.scamper-option:last-child { border-bottom: none; }
-.scamper-letter { width: 20px; text-align: center; font-weight: bold; }
-.scamper-label { font-size: 12px; color: #111; }
-.scamper-tags, .scamper-tag-container {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    align-items: flex-start;
-    width: 100%;
-}
-.scamper-tag {
-    background: #ffd89b;
-    color: #333;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    cursor: pointer;
-    border: 1px solid rgba(0,0,0,0.08);
-    white-space: nowrap;
-    width: 142px;
-}
-.scamper-edit-box {
-    width: 100%;
-    min-height: 40px;
-    max-height: 150px;
-    padding: 6px;
-    font-size: 12px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
-    overflow-y: auto;
-    resize: vertical;
 }
 
 /* ===================== レスポンシブ対応 ===================== */
