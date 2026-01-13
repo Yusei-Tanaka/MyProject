@@ -18,7 +18,7 @@ function handleKeywordClick(keyword) {
         nodes.add(newNode); // ノードを追加
         console.log(`キーワード "${keyword}" をノードとして追加しました。`);
     } else {
-        console.log(`キーワード "${keyword}" のノードは既に存在しています。`);
+        alert(`キーワード "${keyword}" のノードは既に存在しています。`);
     }
 }
 
