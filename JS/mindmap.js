@@ -1,4 +1,3 @@
-
 window.addEventListener('DOMContentLoaded', function() {
   const $ = go.GraphObject.make;
 
@@ -28,7 +27,7 @@ window.addEventListener('DOMContentLoaded', function() {
   diagram.nodeTemplate =
     $(go.Node, "Auto",
       new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
-      $(go.Shape, "Ellipse",
+      $(go.Shape, "Rectangle",
         // key:0（タイトルノード）のみ色を変更
         new go.Binding("fill", "key", function(key) {
           return key === 0 ? "#ffcc00" : "lightblue";
