@@ -51,10 +51,13 @@ async function requestKeywordsFromOutput(keywords) {
         "環境負荷"
     ];
 
+    const host = window.location.hostname;
+    const apiBaseUrl = `http://${host}:8000`;
+
     // APIにプロンプトを送信する共通処理
     const postPrompt = async (prompt, keyword, perspective) => {
         try {
-            const response = await fetch("http://127.0.0.1:8000/api", {
+            const response = await fetch(`${apiBaseUrl}/api`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

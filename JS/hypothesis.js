@@ -571,7 +571,7 @@ document.addEventListener("DOMContentLoaded", () => {
       console.log("生成されたプロンプト:", prompt);
 
       // APIにプロンプトを送信
-      fetch("http://127.0.0.1:8000/api", {
+      fetch(`${hypothesisApiBaseUrl}/api`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -703,3 +703,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+const hypothesisApiHost = window.location.hostname;
+const hypothesisApiBaseUrl = `http://${hypothesisApiHost}:8000`;

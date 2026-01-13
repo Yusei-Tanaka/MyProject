@@ -20,45 +20,46 @@ async function getWikidataEntityId(searchTerm) {
 
 // 複数のエンティティIDを元に共通関連ワードを取得するSPARQLクエリを生成
 function generateSparqlQueryForEntities(entityIds) {
-    if (entityIds.length === 0) return null;
-    
-    const isIntersectionMode = document.getElementById("intersectionMode").checked;
-    let sparqlQuery;
-    
-    if (isIntersectionMode) {
-        // 積集合の検索結果
-        let valuesClause = `VALUES ?s { ${entityIds.map(id => `wd:${id}`).join(" ")} }`;
-        sparqlQuery = `
-            SELECT ?commonRelatedEntity ?commonLabel WHERE {
-                ${valuesClause}
-                ?s ?p ?commonRelatedEntity . 
-                ?commonRelatedEntity rdfs:label ?commonLabel . 
-                FILTER(LANG(?commonLabel) = "ja")
-            }
-            GROUP BY ?commonRelatedEntity ?commonLabel
-            HAVING (COUNT(DISTINCT ?s) = ${entityIds.length})
-            LIMIT 30
-        `;
-    } else {
-        // 和集合の検索結果
-        let queryParts = entityIds.map(id => `
-            {
-                wd:${id} ?p ?commonRelatedEntity . 
-                ?commonRelatedEntity rdfs:label ?commonLabel . 
-                FILTER(LANG(?commonLabel) = "ja")
-            }
-        `);
-        sparqlQuery = `
-            SELECT ?commonRelatedEntity ?commonLabel WHERE {
-                ${queryParts.join(" UNION ")}
-            }
-            LIMIT 30
-        `;
-    }
-    
-    console.log("チェックボックスの状態:", isIntersectionMode);
-    console.log("生成したSPARQLクエリ:", sparqlQuery);
-    return sparqlQuery;
+  if (entityIds.length === 0) return null;
+
+  const intersectionCheckbox = document.getElementById("intersectionMode");
+  const isIntersectionMode = intersectionCheckbox ? intersectionCheckbox.checked : false;
+  let sparqlQuery;
+  
+  if (isIntersectionMode) {
+      // 積集合の検索結果
+      let valuesClause = `VALUES ?s { ${entityIds.map(id => `wd:${id}`).join(" ")} }`;
+      sparqlQuery = `
+          SELECT ?commonRelatedEntity ?commonLabel WHERE {
+              ${valuesClause}
+              ?s ?p ?commonRelatedEntity . 
+              ?commonRelatedEntity rdfs:label ?commonLabel . 
+              FILTER(LANG(?commonLabel) = "ja")
+          }
+          GROUP BY ?commonRelatedEntity ?commonLabel
+          HAVING (COUNT(DISTINCT ?s) = ${entityIds.length})
+          LIMIT 30
+      `;
+  } else {
+      // 和集合の検索結果
+      let queryParts = entityIds.map(id => `
+          {
+              wd:${id} ?p ?commonRelatedEntity . 
+              ?commonRelatedEntity rdfs:label ?commonLabel . 
+              FILTER(LANG(?commonLabel) = "ja")
+          }
+      `);
+      sparqlQuery = `
+          SELECT ?commonRelatedEntity ?commonLabel WHERE {
+              ${queryParts.join(" UNION ")}
+          }
+          LIMIT 30
+      `;
+  }
+  
+  console.log("チェックボックスの状態:", isIntersectionMode);
+  console.log("生成したSPARQLクエリ:", sparqlQuery);
+  return sparqlQuery;
 }
 
 // WikidataにSPARQLクエリを投げる
@@ -74,3 +75,6 @@ async function queryWikidata(sparqlQuery) {
         return [];
     }
 }
+
+const arrowToggle = document.getElementById("arrowToggle");
+const arrowEnabled = arrowToggle ? arrowToggle.checked : false;

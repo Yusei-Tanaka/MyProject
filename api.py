@@ -2,12 +2,12 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import openai  # OpenAIライブラリをインポート
+import openai
 from openai import OpenAI
 
 # .envファイルの内容を読み込む
 load_dotenv()
-# 環境変数からAPIキーを取得
+# .envファイルからAPIキーを取得
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app = Flask(__name__)
@@ -47,4 +47,4 @@ def handle_prompt():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8000)
+    app.run(host="0.0.0.0", port=8000)

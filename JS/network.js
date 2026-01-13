@@ -232,24 +232,15 @@ function saveXMLFile(content, filename) {
 }
 
 // サーバーにXMLを送信する関数
-function sendXMLToServer(content, filename) {
-  fetch("http://localhost:3000/save-xml", {
+function sendXMLToServer(content, filename = "concept_map.xml") {
+  return fetch(`${saveXmlBaseUrl}/save-xml`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ filename, content }),
-  })
-    .then((response) => {
-      if (response.ok) {
-        console.log("XMLファイルがサーバーに保存されました");
-      } else {
-        console.error("XMLファイルの保存に失敗しました");
-      }
-    })
-    .catch((error) => {
-      console.error("サーバーへのリクエスト中にエラーが発生しました:", error);
-    });
+  }).then((res) => {
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.text();
+  });
 }
 
 // ネットワークが更新されるたびにXMLを出力
@@ -263,4 +254,38 @@ function exportConceptMap() {
 // ノードやエッジが追加・削除されたときにXMLを出力
 nodes.on("*", exportConceptMap);
 edges.on("*", exportConceptMap);
+
+// APIのベースURLを設定
+const host = window.location.hostname;
+const apiBaseUrl = `http://${host}:8000`;
+const saveXmlBaseUrl = `http://${host}:3000`;
+
+// ここにAPI呼び出しのコードを追加
+async function callApi(payload) {
+  const response = await fetch(`${apiBaseUrl}/api`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  // ...
+}
+
+async function sendXMLToServer(xmlString) {
+  const payload = {
+    filename: "concept_map.xml",
+    content: xmlString,
+  };
+  const response = await fetch(`${saveXmlBaseUrl}/save-xml`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.text();
+}
+
+// APIを呼び出すボタン
+document.getElementById("callApiBtn").addEventListener("click", function () {
+  callApi();
+});
 

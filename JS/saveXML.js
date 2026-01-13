@@ -5,15 +5,27 @@ const cors = require("cors");
 
 const app = express();
 const PORT = 3000;
+const HOST = "0.0.0.0";
 
 // CORSを有効化
 const corsOptions = {
-  origin: "http://localhost:8008", // 許可するオリジン
+  origin: (origin, callback) => {
+    const allowed = [
+      "http://localhost:8008",
+      "http://10.158.102.153:8008",
+    ];
+    if (!origin || allowed.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   methods: ["GET", "POST"], // 許可するHTTPメソッド
   allowedHeaders: ["Content-Type"], // 許可するヘッダー
 };
 
 app.use(cors(corsOptions)); // この行でCORSを有効化
+app.options("/save-xml", cors(corsOptions)); // preflight
 
 // XML保存用ディレクトリ
 const xmlDir = path.join(__dirname, "XML");
@@ -27,6 +39,7 @@ if (!fs.existsSync(xmlDir)) {
 app.use(express.json());
 app.post("/save-xml", (req, res) => {
   console.log("リクエストを受信しました:", req.body); // リクエスト内容をログに出力
+  console.log("save-xml 受信データ:", req.body); // ←追加
 
   const { filename, content } = req.body;
 
@@ -49,6 +62,6 @@ app.post("/save-xml", (req, res) => {
 });
 
 // サーバーを起動
-app.listen(PORT, () => {
-  console.log(`サーバーが起動しました: http://localhost:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`サーバーが起動しました: http://0.0.0.0:${PORT}`);
 });

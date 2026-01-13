@@ -2,7 +2,9 @@
 <ConceptMap>
   <Nodes>
     <Node id="1" label="地球温暖化" />
+    <Node id="2" label="温室効果ガス" />
   </Nodes>
   <Edges>
+    <Edge from="2" to="1" label="原因" />
   </Edges>
 </ConceptMap>
