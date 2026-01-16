@@ -285,6 +285,9 @@ button#keywordCreationBtn,
     gap: 6px;
     font-weight: 600;
 }
+.is-hidden {
+    display: none !important;
+}
 button#keywordCreationBtn:hover,
 #createHypothesisBtn:hover,
 .right-navi button:hover {

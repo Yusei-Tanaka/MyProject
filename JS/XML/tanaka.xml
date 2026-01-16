@@ -1,12 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ConceptMap>
-  <Nodes>
-    <Node id="1" label="二酸化炭素" />
-    <Node id="2" label="炭素" />
-    <Node id="3" label="持続可能な開発" />
-  </Nodes>
-  <Edges>
-    <Edge from="1" to="2" label="構成要素" />
-    <Edge from="1" to="3" label="原因" />
-  </Edges>
-</ConceptMap>
+<root></root>

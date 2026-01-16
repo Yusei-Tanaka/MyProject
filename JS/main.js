@@ -109,5 +109,6 @@ $(function(){
         rightCol.config.width = 80;
         // サイズ再計算を下位要素に伝播
         row.callDownwards('setSize');
+        $('#createHypothesisBtn').removeAttr('hidden').removeClass('is-hidden');
     });
 });
