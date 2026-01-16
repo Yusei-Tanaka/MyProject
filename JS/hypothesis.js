@@ -142,6 +142,22 @@ let selectedKeywords = "";
 let selectedScamper = "";
 window.theme = "";
 
+function updateHypothesisContextFromEntry(entry, customText, customKeywordLabel) {
+  if (!entry) return;
+  const textArea = entry.querySelector(".hypothesis-text");
+  const keywordElement = entry.querySelector("div:nth-child(2)");
+  const baseKeywords = keywordElement ? keywordElement.innerText : "(キーワードなし)";
+  const keywordsToUse =
+    customKeywordLabel !== undefined && customKeywordLabel !== null
+      ? `${baseKeywords} / ${customKeywordLabel}`
+      : baseKeywords;
+  const baseText = textArea ? textArea.value : "";
+  const textToUse =
+    customText !== undefined && customText !== null ? customText : baseText;
+  hypothesisData = textToUse;
+  selectedKeywords = keywordsToUse;
+}
+
 // 「ノードを追加」選択時の処理
 function addNodeToNetwork(entry) {
   // 仮説に関連するノードを取得
@@ -294,6 +310,7 @@ function applyScamperToEntry(entry, option, parentContainer = null) {
   // 修正後の仮説入力ボックスに右クリックでSCAMPERメニューを表示
   editBox.addEventListener("contextmenu", function (e) {
     e.preventDefault();
+    updateHypothesisContextFromEntry(entry, editBox.value, option.label);
     createScamperMenu(e.clientX, e.clientY, entry, editBox, tagContainer);
   });
 
@@ -392,6 +409,7 @@ function enableScamperOnEntry(entry) {
   if (hypothesisBox) {
     hypothesisBox.addEventListener("contextmenu", function (e) {
       e.preventDefault();
+      updateHypothesisContextFromEntry(entry);
       createScamperMenu(e.clientX, e.clientY, entry, hypothesisBox);
     });
   }
@@ -478,14 +496,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // 仮説の情報を取得
     if (clickedElement.classList.contains("hypothesis-text")) {
       const hypothesisBox = clickedElement.closest(".hypothesis-box"); // 仮説エントリ全体を取得
-      const keywordElement = hypothesisBox.querySelector("div:nth-child(2)"); // キーワードが記載された要素を取得
-      const hypothesisText = clickedElement.value; // 仮説内容を取得
-
-      if (keywordElement && hypothesisText) {
-        console.log("仮説で使用されたキーワード:", keywordElement.innerText);
-        console.log("仮説内容:", hypothesisText);
-      } else {
-        console.log("仮説のキーワードまたは内容が見つかりませんでした。");
+      updateHypothesisContextFromEntry(hypothesisBox);
+      if (hypothesisBox) {
+        console.log("仮説で使用されたキーワード:", selectedKeywords);
+        console.log("仮説内容:", hypothesisData);
       }
     }
   });
