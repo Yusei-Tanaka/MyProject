@@ -104,4 +104,36 @@ window.addEventListener('DOMContentLoaded', function() {
       diagram.model.set(diagram.model.nodeDataArray[0], "text", titleInput.value || "新しいマインドマップ");
     });
   }
+
+  // 外部スクリプトから参照できるようヘルパーを公開
+  window.getMindmapNodes = function () {
+    if (!diagram.model) return [];
+    return diagram.model.nodeDataArray.map(function (data) {
+      return { key: data.key, text: data.text, parent: data.parent };
+    });
+  };
+
+  window.addMindmapChild = function (parentKey, text) {
+    if (!diagram.model) return false;
+    if (!text || !text.trim()) return false;
+
+    var normalizedKey = parentKey;
+    var parentNode = diagram.findNodeForKey(normalizedKey);
+    if (!parentNode && typeof parentKey === "string" && parentKey !== "") {
+      var numericKey = Number(parentKey);
+      if (!isNaN(numericKey)) {
+        normalizedKey = numericKey;
+        parentNode = diagram.findNodeForKey(normalizedKey);
+      }
+    }
+
+    if (!parentNode) return false;
+
+    diagram.startTransaction("add mindmap child");
+    var newNodeData = { text: text.trim(), parent: parentNode.data.key };
+    diagram.model.addNodeData(newNodeData);
+    diagram.commitTransaction("add mindmap child");
+    diagram.select(diagram.findNodeForData(newNodeData));
+    return true;
+  };
 });

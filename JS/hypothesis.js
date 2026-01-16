@@ -158,38 +158,133 @@ function updateHypothesisContextFromEntry(entry, customText, customKeywordLabel)
   selectedKeywords = keywordsToUse;
 }
 
-// 「ノードを追加」選択時の処理
-function addNodeToNetwork(entry) {
-  // 仮説に関連するノードを取得
-  const subText = entry.querySelector(".hypothesis-box-body textarea").value;
-  const relatedNodes = subText.match(/[\wぁ-んァ-ン一-龥]+/g) || []; // 仮説内のキーワードを抽出
-
-  // extraNetworkエリアを取得
-  const networkArea = document.querySelector(".extra-content #extraNetwork");
-  if (!networkArea) {
-    console.error("extraNetworkエリアが見つかりません。");
+// 「ノードを追加」選択時の処理（マインドマップ）
+function addNodeToNetwork(entry, sourceTextarea) {
+  const fallbackTextarea = entry.querySelector(".hypothesis-box-body textarea");
+  const rawText = sourceTextarea ? sourceTextarea.value : fallbackTextarea?.value;
+  const candidateText = (rawText || "").trim();
+  if (!candidateText) {
+    alert("追加する仮説の内容を入力してください。");
     return;
   }
 
-  // vis.js のノードデータセットを取得
-  const nodesExtra = networkArea.visNetworkNodes; // vis.js のノードデータセット
-  if (!nodesExtra) {
-    console.error("extraNetworkのノードデータセットが初期化されていません。");
+  if (typeof window.getMindmapNodes !== "function" || typeof window.addMindmapChild !== "function") {
+    alert("マインドマップが利用できません。ページを再読み込みしてください。");
     return;
   }
 
-  // ノードを追加
-  relatedNodes.forEach((node) => {
-    if (window.nodesExtra && !window.nodesExtra.get(node)) {
-      window.nodesExtra.add({
-        id: node,
-        label: node,
-      });
-    }
+  const mindmapNodes = window.getMindmapNodes();
+  if (!mindmapNodes || mindmapNodes.length === 0) {
+    alert("マインドマップに親ノードがありません。");
+    return;
+  }
+
+  const overlay = document.createElement("div");
+  overlay.style.position = "fixed";
+  overlay.style.top = 0;
+  overlay.style.left = 0;
+  overlay.style.right = 0;
+  overlay.style.bottom = 0;
+  overlay.style.background = "rgba(0,0,0,0.3)";
+  overlay.style.zIndex = 9998;
+
+  const dialog = document.createElement("div");
+  dialog.style.position = "absolute";
+  dialog.style.top = "50%";
+  dialog.style.left = "50%";
+  dialog.style.transform = "translate(-50%, -50%)";
+  dialog.style.background = "#fff";
+  dialog.style.border = "2px solid #555";
+  dialog.style.borderRadius = "8px";
+  dialog.style.padding = "20px";
+  dialog.style.width = "360px";
+  dialog.style.boxShadow = "0 8px 24px rgba(0,0,0,0.2)";
+  dialog.style.fontSize = "14px";
+
+  const title = document.createElement("h3");
+  title.innerText = "マインドマップにノードを追加";
+  title.style.marginTop = 0;
+  dialog.appendChild(title);
+
+  const parentLabel = document.createElement("label");
+  parentLabel.innerText = "親ノードを選択";
+  parentLabel.style.display = "block";
+  parentLabel.style.marginBottom = "4px";
+  dialog.appendChild(parentLabel);
+
+  const select = document.createElement("select");
+  select.style.width = "100%";
+  select.style.marginBottom = "12px";
+
+  mindmapNodes.forEach((node, index) => {
+    const option = document.createElement("option");
+    option.value = String(index);
+    const prefix = node.parent == null ? "(ルート)" : "";
+    option.innerText = `${prefix}${node.text || "(無題ノード)"}`;
+    select.appendChild(option);
   });
 
-  console.log("現在のノード一覧:", nodesExtra.get());
-}  
+  dialog.appendChild(select);
+
+  const textLabel = document.createElement("label");
+  textLabel.innerText = "追加する仮説";
+  textLabel.style.display = "block";
+  textLabel.style.marginBottom = "4px";
+  dialog.appendChild(textLabel);
+
+  const textArea = document.createElement("textarea");
+  textArea.style.width = "100%";
+  textArea.style.minHeight = "80px";
+  textArea.value = candidateText;
+  dialog.appendChild(textArea);
+
+  const buttonRow = document.createElement("div");
+  buttonRow.style.display = "flex";
+  buttonRow.style.justifyContent = "flex-end";
+  buttonRow.style.gap = "8px";
+  buttonRow.style.marginTop = "16px";
+
+  const cancelBtn = document.createElement("button");
+  cancelBtn.type = "button";
+  cancelBtn.innerText = "キャンセル";
+  cancelBtn.addEventListener("click", () => {
+    document.body.removeChild(overlay);
+  });
+
+  const addBtn = document.createElement("button");
+  addBtn.type = "button";
+  addBtn.innerText = "追加";
+  addBtn.style.background = "#4caf50";
+  addBtn.style.color = "#fff";
+  addBtn.style.border = "none";
+  addBtn.style.padding = "6px 16px";
+  addBtn.style.borderRadius = "4px";
+  addBtn.addEventListener("click", () => {
+    const trimmed = textArea.value.trim();
+    if (!trimmed) {
+      alert("仮説が空です。");
+      return;
+    }
+
+    const selectedIndex = parseInt(select.value, 10);
+    const parentNode = mindmapNodes[selectedIndex] || mindmapNodes[0];
+    const success = window.addMindmapChild(parentNode.key, trimmed);
+    if (!success) {
+      alert("ノードの追加に失敗しました。");
+      return;
+    }
+
+    document.body.removeChild(overlay);
+  });
+
+  buttonRow.appendChild(cancelBtn);
+  buttonRow.appendChild(addBtn);
+  dialog.appendChild(buttonRow);
+
+  overlay.appendChild(dialog);
+  document.body.appendChild(overlay);
+  textArea.focus();
+}
 
 // SCAMPER テンプレート生成関数
 function generateScamperTemplate(option) {
@@ -211,61 +306,6 @@ function generateScamperTemplate(option) {
     default:
       return "";
   }
-}
-
-// 右クリックメニュー作成（仮説入力ブロックのすぐ下に表示）
-function createScamperMenu(x, y, entry) {
-  removeScamperMenu();
-
-  // 仮説入力ブロック（bodyEl）の位置を取得して、document.body にメニューを追加する
-  var bodyEl = entry.querySelector(".hypothesis-box-body") || entry;
-  var rect = bodyEl.getBoundingClientRect();
-
-  // メニューを作成
-  var menu = document.createElement("div");
-  menu.id = "scamperMenu";
-  menu.className = "scamper-menu-inline";
-
-  // 表示位置：仮説入力ブロックの直下（スクロール位置を考慮）
-  var left = window.scrollX + rect.left + 6;
-  var top  = window.scrollY + rect.bottom + 6;
-
-  menu.style.position = "absolute";
-  menu.style.left = left + "px";
-  menu.style.top  = top + "px";
-
-  // 先頭に縦向きの S:C:A... の表示にする（画像に近い見た目）
-  var letterMap = {
-    Substitute: "S",
-    Combine: "C",
-    Adapt: "A",
-    Modify: "M",
-    PutToOtherUse: "P",
-    Eliminate: "E",
-    Reverse: "R",
-  };
-
-  SCAMPER_OPTIONS.forEach(function (opt) {
-    var item = document.createElement("div");
-    item.className = "scamper-option";
-    var letter = letterMap[opt.key] || "?";
-    item.innerHTML = "<span class='scamper-letter'>" + letter + "</span><span class='scamper-label'>" + opt.label + "</span>";
-    item.dataset.key = opt.key;
-    item.addEventListener("click", function (ev) {
-      ev.stopPropagation();
-      applyScamperToEntry(entry, opt);
-      removeScamperMenu();
-    });
-    menu.appendChild(item);
-  });
-
-  // document.body に追加（親コンテナの overflow による切り取りを回避）
-  document.body.appendChild(menu);
-
-  // 外部クリックで閉じる（次回のみ）
-  setTimeout(function () {
-    document.addEventListener("click", removeScamperMenuOnce);
-  }, 0);
 }
 
 function removeScamperMenuOnce() {
@@ -366,7 +406,7 @@ function createScamperMenu(x, y, entry, targetBox, parentContainer = null) {
     item.addEventListener("click", function (ev) {
       ev.stopPropagation();
       if (opt.key === "AddNode") {
-        addNodeToNetwork(entry); // 「ノードを追加」選択時の処理
+        addNodeToNetwork(entry, targetBox); // 「ノードを追加」選択時の処理
       } else {
         var newTag = applyScamperToEntry(entry, opt, parentContainer);
         if (newTag) {
