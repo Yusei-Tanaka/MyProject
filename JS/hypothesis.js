@@ -122,7 +122,6 @@ console.log("Edges:", edges.get());
 
 // SCAMPER の選択肢（日本語ラベル）
 var SCAMPER_OPTIONS = [
-  //{ key: "AddNode", label: "ノードを追加", style: "background-color: lightpink; font-weight: bold;" }, // 一番上に配置し、スタイルを追加
   { key: "Substitute", label: "置換 (Substitute)" },
   { key: "Combine", label: "結合 (Combine)" },
   { key: "Adapt", label: "適応 (Adapt)" },
@@ -313,7 +312,7 @@ function attachHypothesisActions(targetTextarea, entry, parentContainer = null, 
   const scamperBtn = document.createElement("button");
   scamperBtn.type = "button";
   scamperBtn.className = "hypothesis-action-button scamper-button";
-  scamperBtn.innerText = "SCAMPER";
+  scamperBtn.innerText = "仮説を発散";
   scamperBtn.addEventListener("click", function (e) {
     e.preventDefault();
     if (!targetTextarea.value.trim()) {
