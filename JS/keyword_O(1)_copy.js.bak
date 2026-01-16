@@ -48,32 +48,29 @@ async function requestKeywordsFromOutput(keywords) {
 
     const themeValue = (window.theme || document.querySelector("#myTitle")?.value || "未設定のテーマ").trim();
     const relationPerspectives = [
-        { id: "P01", label: "背景" },
-        { id: "P02", label: "課題" },
-        { id: "P03", label: "影響" },
-        { id: "P04", label: "対策" },
-        { id: "P05", label: "要因" },
-        { id: "P06", label: "評価" },
-        { id: "P07", label: "持続可能性" },
-        { id: "P08", label: "技術" },
-        { id: "P09", label: "経済" },
-        { id: "P10", label: "国際比較" },
-        { id: "P11", label: "行動" },
-        { id: "P12", label: "環境負荷" }
+        "背景",
+        "課題",
+        "影響",
+        "対策",
+        "要因",
+        "評価",
+        "持続可能性",
+        "技術",
+        "経済",
+        "国際比較",
+        "行動",
+        "環境負荷"
     ];
 
-    const perspectiveIdMap = new Map(relationPerspectives.map(p => [p.id, p.label]));
     const aiResponses = [];
-    const KEYWORDS_PER_REQUEST = 3; // 2〜3件まとめて問い合わせ、ラウンドトリップ数を削減
-    const MAX_PROMPT_RETRIES = 1;
+    const KEYWORDS_PER_REQUEST = 1; // 1件ずつAIへ問い合わせて出力欠損を防ぐ
+    const MAX_PROMPT_RETRIES = 3;
     const failedChunks = [];
 
     const keywordChunks = [];
     for (let i = 0; i < validKeywords.length; i += KEYWORDS_PER_REQUEST) {
         keywordChunks.push(validKeywords.slice(i, i + KEYWORDS_PER_REQUEST));
     }
-
-    const perspectiveLegend = relationPerspectives.map(p => `${p.id}:${p.label}`).join(" / ");
 
     // APIにプロンプトを送信する共通処理
     const postPrompt = async (prompt, chunkLabel) => {
@@ -98,8 +95,7 @@ async function requestKeywordsFromOutput(keywords) {
 
                 const parsedResult = parseJsonFromAiResponse(data.result);
                 if (parsedResult) {
-                    const normalized = expandPerspectiveIds(parsedResult, perspectiveIdMap);
-                    aiResponses.push(normalized);
+                    aiResponses.push(parsedResult);
                     return true;
                 }
 
@@ -120,46 +116,48 @@ async function requestKeywordsFromOutput(keywords) {
         return false;
     };
     
-    const chunkTasks = keywordChunks.map(chunk => {
-        const chunkLabel = chunk.join(", ");
+    for (const chunk of keywordChunks) {
         const prompt = `
         ##タスク
-        目的: 学習者は「${themeValue}」の探究中。各対象キーワードについて観点ID(Pxx)ごとにWikidataに存在する関連語を最大10件挙げること。
+        ・総合的な探究の時間における，学習者の活動を⽀援するシステム
 
-        ##対象キーワード
-        ${chunk.map(k => `- ${k}`).join("\n")}
+        ##背景・文脈
+        ・学習者は[${themeValue}]を目標に探究活動を行っている
 
-        ##観点ID一覧
-        ${perspectiveLegend}
+        ##入力
+        ・対象キーワード一覧:
+        ${chunk.map(k => `・${k}`).join("\n")}
 
-        ##制約
-        1. 出力キーは観点ID(P01等)のみを使用。
-        2. 各語はWikidataに項目があるものに限定。
-        3. 関連語が不足する場合は無理に埋めない。
+        ・観点一覧:
+        ${relationPerspectives.map(p => `・${p}`).join("\n")}
+
+        ・あなたは，上記すべての「対象キーワード」それぞれについて，
+		上記すべての「観点」ごとに，
+		関係のありそうなキーワードを10個程度提示してください
+
+        ##条件
+        ・提示するキーワードは必ずしも10個に満たなくても良い
+        ・関係のありそうなキーワードが存在しないと判断された場合は，無理に提示しなくて良い
+        ・提示する全てのキーワードはWikidataに項目が存在するものに限り，
+		存在確認を行った上で回答してください
 
         ##出力形式
+        ・以下の JSON 形式のみで出力せよ（その他の記述は不要）
+
         {
-            "対象キーワード1": {
-                "P01": ["関連語1", "関連語2"],
-                "P02": []
+            "対象キーワード": {
+                "観点": ["キーワード1", "キーワード2", "..."]
             }
         }
         `;
 
+        const chunkLabel = chunk.join(", ");
         console.log("生成されたプロンプト(output部分):", prompt);
-        return postPrompt(prompt, chunkLabel).then(success => ({ chunkLabel, success }));
-    });
-
-    const settledResults = await Promise.allSettled(chunkTasks);
-    settledResults.forEach(result => {
-        if (result.status === "fulfilled") {
-            if (!result.value.success) {
-                failedChunks.push(result.value.chunkLabel);
-            }
-        } else {
-            console.warn("観点生成タスクで予期せぬ拒否が発生", result.reason);
+        const success = await postPrompt(prompt, chunkLabel);
+        if (!success) {
+            failedChunks.push(chunkLabel);
         }
-    });
+    }
 
     if (failedChunks.length > 0) {
         console.warn("AI生成に失敗したキーワード:", failedChunks);
@@ -260,25 +258,6 @@ function parseJsonFromAiResponse(aiOutput) {
     return null;
 }
 
-function expandPerspectiveIds(response, idMap) {
-    if (!response || typeof response !== "object") {
-        return response;
-    }
-
-    const expanded = {};
-    Object.entries(response).forEach(([keyword, perspectives]) => {
-        const normalizedPerspectives = perspectives && typeof perspectives === "object" ? perspectives : {};
-        expanded[keyword] = {};
-
-        Object.entries(normalizedPerspectives).forEach(([perspectiveId, keywords]) => {
-            const label = idMap.get(perspectiveId) || perspectiveId;
-            expanded[keyword][label] = Array.isArray(keywords) ? keywords : [];
-        });
-    });
-
-    return expanded;
-}
-
 function balanceJsonBraces(text) {
     const openCount = (text.match(/{/g) || []).length;
     const closeCount = (text.match(/}/g) || []).length;
@@ -339,18 +318,25 @@ function delay(ms) {
 }
 
 function renderAiKeywords(resultBox, aiResponses) {
-    const list = document.createElement("ul");
     aiResponses.forEach(response => {
-        Object.values(response || {}).forEach(perspectives => {
-            Object.values(perspectives || {}).forEach(keywords => {
+        Object.entries(response || {}).forEach(([targetKeyword, perspectives]) => {
+            const targetContainer = document.createElement("div");
+
+            const targetTitle = document.createElement("div");
+            targetTitle.innerHTML = `<strong>${targetKeyword} に関連するキーワード</strong>`;
+            targetContainer.appendChild(targetTitle);
+
+            Object.entries(perspectives || {}).forEach(([perspective, keywords]) => {
                 if (!Array.isArray(keywords) || keywords.length === 0) {
                     return;
                 }
 
+                const perspectiveLabel = document.createElement("div");
+                perspectiveLabel.textContent = `観点: ${perspective}`;
+                targetContainer.appendChild(perspectiveLabel);
+
+                const list = document.createElement("ul");
                 keywords.forEach(relatedWord => {
-                    if (!relatedWord) {
-                        return;
-                    }
                     const listItem = document.createElement("li");
                     listItem.textContent = relatedWord;
                     listItem.style.cursor = "pointer";
@@ -360,16 +346,12 @@ function renderAiKeywords(resultBox, aiResponses) {
                     });
                     list.appendChild(listItem);
                 });
+                targetContainer.appendChild(list);
             });
+
+            resultBox.appendChild(targetContainer);
         });
     });
-
-    if (!list.hasChildNodes()) {
-        resultBox.innerHTML += "<p>生成キーワードを取得できませんでした。</p>";
-        return;
-    }
-
-    resultBox.appendChild(list);
 }
 
 // キーワード生成の処理
