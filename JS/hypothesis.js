@@ -122,7 +122,7 @@ console.log("Edges:", edges.get());
 
 // SCAMPER の選択肢（日本語ラベル）
 var SCAMPER_OPTIONS = [
-  { key: "AddNode", label: "ノードを追加", style: "background-color: lightpink; font-weight: bold;" }, // 一番上に配置し、スタイルを追加
+  //{ key: "AddNode", label: "ノードを追加", style: "background-color: lightpink; font-weight: bold;" }, // 一番上に配置し、スタイルを追加
   { key: "Substitute", label: "置換 (Substitute)" },
   { key: "Combine", label: "結合 (Combine)" },
   { key: "Adapt", label: "適応 (Adapt)" },
@@ -286,6 +286,60 @@ function addNodeToNetwork(entry, sourceTextarea) {
   textArea.focus();
 }
 
+function attachHypothesisActions(targetTextarea, entry, parentContainer = null, optionLabel = null) {
+  if (!targetTextarea || targetTextarea.dataset.hasActionBar === "true") {
+    return;
+  }
+
+  const actionBar = document.createElement("div");
+  actionBar.className = "hypothesis-action-bar";
+  actionBar.style.display = "flex";
+  actionBar.style.justifyContent = "flex-end";
+  actionBar.style.gap = "6px";
+  actionBar.style.marginBottom = "4px";
+
+  const addNodeBtn = document.createElement("button");
+  addNodeBtn.type = "button";
+  addNodeBtn.className = "hypothesis-action-button add-node-button";
+  addNodeBtn.innerText = "ノード追加";
+  addNodeBtn.addEventListener("click", function () {
+    if (!targetTextarea.value.trim()) {
+      alert("仮説を入力してください。");
+      return;
+    }
+    addNodeToNetwork(entry, targetTextarea);
+  });
+
+  const scamperBtn = document.createElement("button");
+  scamperBtn.type = "button";
+  scamperBtn.className = "hypothesis-action-button scamper-button";
+  scamperBtn.innerText = "SCAMPER";
+  scamperBtn.addEventListener("click", function (e) {
+    e.preventDefault();
+    if (!targetTextarea.value.trim()) {
+      alert("仮説を入力してください。");
+      return;
+    }
+    const currentText = targetTextarea.value;
+    if (optionLabel) {
+      updateHypothesisContextFromEntry(entry, currentText, optionLabel);
+    } else {
+      updateHypothesisContextFromEntry(entry, currentText);
+    }
+    createScamperMenu(e.clientX, e.clientY, entry, targetTextarea, parentContainer, e.currentTarget);
+  });
+
+  actionBar.appendChild(addNodeBtn);
+  actionBar.appendChild(scamperBtn);
+
+  const parent = targetTextarea.parentNode;
+  if (parent) {
+    parent.insertBefore(actionBar, targetTextarea);
+  }
+
+  targetTextarea.dataset.hasActionBar = "true";
+}
+
 // SCAMPER テンプレート生成関数
 function generateScamperTemplate(option) {
   switch (option.key) {
@@ -347,17 +401,6 @@ function applyScamperToEntry(entry, option, parentContainer = null) {
   editBox.className = "scamper-edit-box";
   editBox.placeholder = "発散させた仮説を記入してください";
 
-  // 修正後の仮説入力ボックスに右クリックでSCAMPERメニューを表示
-  editBox.addEventListener("contextmenu", function (e) {
-    e.preventDefault();
-    if (!editBox.value.trim()) {
-      alert("仮説を入力してください。");
-      return;
-    }
-    updateHypothesisContextFromEntry(entry, editBox.value, option.label);
-    createScamperMenu(e.clientX, e.clientY, entry, editBox, tagContainer);
-  });
-
   // 右クリックで削除確認ダイアログを表示
   tagLabel.addEventListener("contextmenu", function (e) {
     e.preventDefault();
@@ -370,6 +413,7 @@ function applyScamperToEntry(entry, option, parentContainer = null) {
   tagContainer.appendChild(tagLabel);
   tagContainer.appendChild(editBox);
   tagWrap.appendChild(tagContainer);
+  attachHypothesisActions(editBox, entry, tagContainer, option.label);
 
   // メニューを削除（選択後に必ず閉じる）
   removeScamperMenu();
@@ -378,10 +422,11 @@ function applyScamperToEntry(entry, option, parentContainer = null) {
 }
 
 // SCAMPERメニュー作成（修正済み）
-function createScamperMenu(x, y, entry, targetBox, parentContainer = null) {
+function createScamperMenu(x, y, entry, targetBox, parentContainer = null, anchorElement = null) {
   removeScamperMenu();
 
-  var rect = targetBox.getBoundingClientRect();
+  var anchor = anchorElement || targetBox;
+  var rect = anchor.getBoundingClientRect();
 
   // メニューを作成
   var menu = document.createElement("div");
@@ -451,15 +496,7 @@ function removeScamperMenu() {
 function enableScamperOnEntry(entry) {
   var hypothesisBox = entry.querySelector("textarea.hypothesis-text");
   if (hypothesisBox) {
-    hypothesisBox.addEventListener("contextmenu", function (e) {
-      e.preventDefault();
-      if (!hypothesisBox.value.trim()) {
-        alert("仮説を入力してください。");
-        return;
-      }
-      updateHypothesisContextFromEntry(entry);
-      createScamperMenu(e.clientX, e.clientY, entry, hypothesisBox);
-    });
+    attachHypothesisActions(hypothesisBox, entry);
   }
 }
 

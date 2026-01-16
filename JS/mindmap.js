@@ -84,9 +84,14 @@ window.addEventListener('DOMContentLoaded', function() {
   /* ノードの削除 */
   function removeNode(node) {
     if (!node) return;
-    diagram.startTransaction("remove");
-    diagram.remove(node);
-    diagram.commitTransaction("remove");
+    if (node.data && node.data.key === 0) {
+      alert("タイトルノードは削除できません。");
+      return;
+    }
+    diagram.startTransaction("remove subtree");
+    var subtree = node.findTreeParts();
+    diagram.removeParts(subtree, false);
+    diagram.commitTransaction("remove subtree");
   }
 
   /* 初期データをmyTitleから取得 */
