@@ -52,7 +52,7 @@ body {
 html, body {
     height: 100%;
     margin: 0;
-    overflow: hidden;
+    overflow: auto; /* ← hiddenをautoへ */
     display: flex;
     flex-direction: column;
 }
@@ -405,4 +405,21 @@ select {
         flex: 1 1 100%;
         border: none;
     }
+}
+
+#saveForm {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+#saveForm input {
+    padding: 6px 10px;
+    font-size: 14px;
+}
+#saveForm button {
+    padding: 6px 14px;
+    font-size: 14px;
 }

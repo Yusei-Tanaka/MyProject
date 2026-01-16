@@ -13,32 +13,10 @@
       <button id="startSearchBtn">探索スタート!</button>
     </div>
 
-    <script>
-      const startSearchBtn = document.getElementById('startSearchBtn');
-      const titleInput = document.getElementById('titleInput');
+    <form id="saveForm">
+      <input id="username" type="text" placeholder="名前" required />
+    </form>
 
-      // ボタンクリック時の処理
-      const startSearch = () => {
-        const title = titleInput.value;
-        if (title.trim()) {
-          // テーマをローカルストレージに保存
-          localStorage.setItem('searchTitle', title);
-          // main.html に遷移
-          window.location.href = 'main.html';
-        } else {
-          alert('タイトルを入力してください。');
-        }
-      };
-
-      // ボタンクリックイベント
-      startSearchBtn.addEventListener('click', startSearch);
-
-      // エンターキーでボタンを動作させる
-      titleInput.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') {
-          startSearch();
-        }
-      });
-    </script>
+    <script src="JS/index.js"></script>
   </body>
 </html>

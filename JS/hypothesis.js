@@ -416,6 +416,13 @@ document.querySelectorAll('.keyword').forEach(function(elem) {
   });
 });
 
+function getUserXmlRelativePath() {
+  const storedName = localStorage.getItem("userName");
+  const trimmed = storedName ? storedName.trim() : "";
+  const filename = `${trimmed || "user_map"}.xml`;
+  return `JS/XML/${filename}`;
+}
+
 // HTMLの入力フィールドからタイトルを取得してコンソールに出力する
 document.addEventListener("DOMContentLoaded", () => {
   const titleInput = document.querySelector("#myTitle"); // タイトル入力用のinput要素を取得
@@ -431,7 +438,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // XMLファイルを定期的に取得してコンソールに表示
   const fetchXML = () => {
-    const xmlFilePath = "JS/XML/concept_map.xml"; // XMLファイルのパスを指定
+    const xmlFilePath = getUserXmlRelativePath(); // XMLファイルのパスを指定
     fetch(xmlFilePath)
       .then(response => {
         if (!response.ok) {
@@ -509,7 +516,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // XMLデータの取得
   const fetchXML = () => {
-    const xmlFilePath = "JS/XML/concept_map.xml";
+    const xmlFilePath = getUserXmlRelativePath();
     fetch(xmlFilePath)
       .then(response => {
         if (!response.ok) {

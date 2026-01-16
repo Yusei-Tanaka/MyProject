@@ -24,6 +24,10 @@ var data = {
 };
 var network = new vis.Network(container, data, options);
 
+const host = window.location.hostname;
+const apiBaseUrl = `http://${host}:8000`;
+const saveXmlBaseUrl = `http://${host}:3000`;
+
 // 最後に選択された2つのノードを保存
 var selectedNodes = []; // 選択されたノードIDを保存
 
@@ -231,16 +235,24 @@ function saveXMLFile(content, filename) {
   link.click();
 }
 
-// サーバーにXMLを送信する関数
-function sendXMLToServer(content, filename = "concept_map.xml") {
-  return fetch(`${saveXmlBaseUrl}/save-xml`, {
+function getUserXmlFilename() {
+  const storedName = localStorage.getItem("userName");
+  const trimmed = storedName ? storedName.trim() : "";
+  return `${trimmed || "user_map"}.xml`;
+}
+
+async function sendConceptMapToServer(content) {
+  const payload = {
+    filename: getUserXmlFilename(),
+    content,
+  };
+  const response = await fetch(`${saveXmlBaseUrl}/save-xml`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ filename, content }),
-  }).then((res) => {
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.text();
+    body: JSON.stringify(payload),
   });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.text();
 }
 
 // ネットワークが更新されるたびにXMLを出力
@@ -248,17 +260,14 @@ function exportConceptMap() {
   const allNodes = nodes.get(); // すべてのノードを取得
   const allEdges = edges.get(); // すべてのエッジを取得
   const xmlContent = generateXML(allNodes, allEdges);
-  sendXMLToServer(xmlContent, "concept_map.xml");
+  sendConceptMapToServer(xmlContent).catch((error) => {
+    console.error("概念マップの保存に失敗しました:", error);
+  });
 }
 
 // ノードやエッジが追加・削除されたときにXMLを出力
 nodes.on("*", exportConceptMap);
 edges.on("*", exportConceptMap);
-
-// APIのベースURLを設定
-const host = window.location.hostname;
-const apiBaseUrl = `http://${host}:8000`;
-const saveXmlBaseUrl = `http://${host}:3000`;
 
 // ここにAPI呼び出しのコードを追加
 async function callApi(payload) {
@@ -268,20 +277,6 @@ async function callApi(payload) {
     body: JSON.stringify(payload),
   });
   // ...
-}
-
-async function sendXMLToServer(xmlString) {
-  const payload = {
-    filename: "concept_map.xml",
-    content: xmlString,
-  };
-  const response = await fetch(`${saveXmlBaseUrl}/save-xml`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  return response.text();
 }
 
 // APIを呼び出すボタン
