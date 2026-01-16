@@ -644,6 +644,7 @@ function triggerScamperQuestion(targetTag, scamperLabel) {
       console.log(data.result);
 
       const dialog = document.createElement("div");
+      dialog.className = "question-dialog";
       dialog.style.position = "fixed";
       const minWidth = 320;
       let left = Math.floor(window.innerWidth * 0.2);
@@ -653,20 +654,16 @@ function triggerScamperQuestion(targetTag, scamperLabel) {
       if (top > window.innerHeight - 200) top = window.innerHeight - 200;
       dialog.style.left = left + "px";
       dialog.style.top = top + "px";
-      dialog.style.background = "#fff";
-      dialog.style.border = "2px solid #333";
-      dialog.style.padding = "24px";
-      dialog.style.zIndex = 9999;
-      dialog.style.boxShadow = "0 4px 16px rgba(0,0,0,0.2)";
       dialog.style.minWidth = minWidth + "px";
 
       const dragBar = document.createElement("div");
+      dragBar.className = "question-dialog__header";
       dragBar.textContent = "質問を選択してください";
-      dragBar.style.fontWeight = "bold";
-      dragBar.style.marginBottom = "12px";
-      dragBar.style.cursor = "move";
-      dragBar.style.userSelect = "none";
       dialog.appendChild(dragBar);
+
+      const dialogBody = document.createElement("div");
+      dialogBody.className = "question-dialog__body";
+      dialog.appendChild(dialogBody);
 
       let isDragging = false;
       let dragOffsetX = 0;
@@ -697,11 +694,8 @@ function triggerScamperQuestion(targetTag, scamperLabel) {
 
       items.forEach((li) => {
         const btn = document.createElement("button");
+        btn.className = "question-dialog__option";
         btn.textContent = li.textContent;
-        btn.style.display = "block";
-        btn.style.margin = "8px 0";
-        btn.style.width = "100%";
-        btn.style.textAlign = "left";
         btn.onclick = () => {
           const existing = targetTag.parentNode.querySelector(".scamper-question-view");
           if (existing) existing.remove();
@@ -717,17 +711,16 @@ function triggerScamperQuestion(targetTag, scamperLabel) {
           targetTag.insertAdjacentElement("afterend", span);
           document.body.removeChild(dialog);
         };
-        dialog.appendChild(btn);
+        dialogBody.appendChild(btn);
       });
 
       const closeBtn = document.createElement("button");
       closeBtn.textContent = "キャンセル";
-      closeBtn.style.marginTop = "16px";
-      closeBtn.style.width = "100%";
+      closeBtn.className = "question-dialog__close";
       closeBtn.onclick = () => {
         document.body.removeChild(dialog);
       };
-      dialog.appendChild(closeBtn);
+      dialogBody.appendChild(closeBtn);
 
       document.body.appendChild(dialog);
     })

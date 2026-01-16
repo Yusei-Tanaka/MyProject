@@ -10,9 +10,35 @@ var options = {
   physics: {
     enabled: false, // ノードの物理エンジンを無効にして動かないようにする
   },
+  nodes: {
+    borderWidth: 2,
+    color: {
+      background: "#FFFFFF",
+      border: "#3498DB",
+      highlight: {
+        background: "#E67E22",
+        border: "#E67E22"
+      },
+      hover: {
+        background: "#EBF5FB",
+        border: "#3498DB"
+      }
+    },
+    font: {
+      color: "#34495E",
+      size: 16,
+      face: "Arial"
+    }
+  },
   edges: {
     smooth: false, // エッジを直線にする
     arrows: "to", //矢印を追加
+    color: {
+      color: "#95A5A6",
+      highlight: "#95A5A6",
+      hover: "#3498DB"
+    },
+    width: 2
   },
 };
 
@@ -68,16 +94,40 @@ network.on("deselectNode", function (event) {
   highlightNodes(selectedNodes);
 });
 
+function applyDefaultNodeStyle(nodeId) {
+  nodes.update({
+    id: nodeId,
+    color: {
+      background: "#FFFFFF",
+      border: "#3498DB"
+    },
+    borderWidth: 2,
+    font: {
+      color: "#34495E"
+    }
+  });
+}
+
 // ノードをハイライトする関数
 function highlightNodes(nodeIds) {
   // すべてのノードをデフォルトスタイルに戻す
   nodes.forEach(function (node) {
-    nodes.update({ id: node.id, color: { background: "#97C2FC" } }); // デフォルトの色
+    applyDefaultNodeStyle(node.id);
   });
 
   // 選択されたノードをハイライト
   nodeIds.forEach(function (id) {
-    nodes.update({ id: id, color: { background: "#FF5733" } }); // ハイライト色
+    nodes.update({
+      id: id,
+      color: {
+        background: "#E67E22",
+        border: "#E67E22"
+      },
+      borderWidth: 2,
+      font: {
+        color: "#FFFFFF"
+      }
+    });
   });
 }
 
@@ -112,7 +162,15 @@ document.getElementById("addNodeBtn").addEventListener("click", function () {
     id: nodes.length + 1, // IDを自動生成
     label: "New Node",
     x: center.x,
-    y: center.y
+    y: center.y,
+    color: {
+      background: "#FFFFFF",
+      border: "#3498DB"
+    },
+    borderWidth: 2,
+    font: {
+      color: "#34495E"
+    }
   };
   nodes.add(newNode); // 新しいノードを追加
 });

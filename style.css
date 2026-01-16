@@ -1,3 +1,37 @@
+/* ===================== テーマカラーパレット ===================== */
+:root {
+    --color-header-bg: #2C3E50;
+    --color-header-text: #FFFFFF;
+    --color-header-subtext: #CBD5E1;
+    --color-sidebar-bg: #F8FAFC;
+    --color-heading-bg: #E1E8ED;
+    --color-heading-text: #34495E;
+    --color-keyword-bg: #F8FAFC;
+    --color-keyword-border: #E1E8ED;
+    --color-keyword-button: #3498DB;
+    --color-main-bg: #F8FAFC;
+    --color-main-border: #E5E7EB;
+    --color-main-button-bg: #FFFFFF;
+    --color-main-button-text: #7F8C8D;
+    --color-canvas-bg: #FFFFFF;
+    --color-canvas-grid: #F1F5F9;
+    --color-hypothesis-bg: #FFFBEB;
+    --color-hypothesis-border: #FDE68A;
+    --color-hypothesis-heading: #92400E;
+    --color-hypothesis-button: #3498DB;
+    --color-extra-bg: #F1F5F9;
+    --color-extra-border: #CBD5E1;
+    --color-button-primary: #3498DB;
+    --color-button-primary-hover: #2B7AB1;
+    --color-button-secondary-border: #BDC3C7;
+    --color-button-secondary-text: #7F8C8D;
+    --color-button-secondary-hover: #EBF5FB;
+    --color-edge: #95A5A6;
+    --color-node-border: #3498DB;
+    --color-node-highlight: #E67E22;
+    --color-node-highlight-text: #FFFFFF;
+}
+
 /* ===================== タイトル入力・独自UI（style-sub.css由来） ===================== */
 .title-input-container {
     display: flex;
@@ -68,10 +102,11 @@ body {
     align-items: center;
     justify-content: center;
     padding: 0 10px;
-    background: #f9f9f9;
+    background: var(--color-header-bg);
     height: 36px;
     width: 100%;
     position: relative;
+    color: var(--color-header-text);
 }
 .user-name-display {
     position: absolute;
@@ -79,11 +114,11 @@ body {
     top: 6px;
     font-size: 14px;
     font-weight: 600;
-    color: #333;
+    color: var(--color-header-bg);
     padding: 2px 10px;
     border-radius: 12px;
-    background: #e6f0ff;
-    border: 1px solid #c2d7ff;
+    background: var(--color-header-subtext);
+    border: 1px solid rgba(255,255,255,0.4);
     min-width: 80px;
     text-align: center;
     box-sizing: border-box;
@@ -94,21 +129,27 @@ body {
     padding: 4px 10px;
     width: 100%;
     max-width: 900px;
-    border: 1px solid #ccc;
+    border: 1px solid rgba(255,255,255,0.4);
     border-radius: 4px;
-    background: #fff;
+    background: rgba(255,255,255,0.15);
     margin: 4px auto;
     text-align: center;
     display: block;
     box-sizing: border-box;
     height: 28px;
+    color: var(--color-header-text);
+}
+#myTitle::placeholder,
+.header input::placeholder {
+    color: rgba(255,255,255,0.7);
 }
 #serchBtn, .header button {
     padding: 8px 16px;
     font-size: 16px;
     border-radius: 4px;
-    border: 1px solid #ccc;
-    background: #e0e0e0;
+    border: 1px solid rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.2);
+    color: var(--color-header-text);
     cursor: pointer;
 }
 .h4 {
@@ -132,24 +173,43 @@ body {
     height: 100%;
 }
 .left-navi {
-    background: #FCE7FA;
+    background: var(--color-sidebar-bg);
     padding: 12px;
     box-sizing: border-box;
-    color: #222;
+    color: var(--color-heading-text);
     display: grid;
     grid-template-rows: auto minmax(80px, 0.2fr) minmax(0, 0.8fr);
     gap: 0;
-    border-right: 1px solid #ccc;
+    border-right: 1px solid var(--color-keyword-border);
     width: 100%;
     min-height: 0; /* 子要素のスクロールを許可 */
 }
 .left-navi .h3,
 .left-navi label {
     margin: 0;
+    color: var(--color-heading-text);
+}
+
+.left-navi .h3,
+.right-navi .h3 {
+    background: var(--color-heading-bg);
+    color: var(--color-heading-text);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.left-navi .h3 #keywordCreationBtn {
+    margin-left: auto;
+    flex-shrink: 0;
 }
 .output-area {
     width: 100%;
-    border: 1px solid #ccc;
+    border: 1px solid var(--color-keyword-border);
     background: #fff;
     padding: 8px;
     box-sizing: border-box;
@@ -158,14 +218,14 @@ body {
 }
 #output {
     width: 100%;
-    color: #333;
+    color: var(--color-heading-text);
     overflow-wrap: break-word;
     white-space: pre-wrap;
 }
 #resultBox {
-    border: 1px solid #ccc;
+    border: 1px solid var(--color-keyword-border);
     padding: 10px;
-    background-color: #f9f9f9;
+    background-color: #fff;
     width: 100%;
     min-height: 0;
     height: 100%;
@@ -178,14 +238,15 @@ body {
 
 /* ===================== 中央コンテンツ ===================== */
 .main-contents {
-    background: #D9F2D0;
+    background: var(--color-main-bg);
     padding: 12px;
     box-sizing: border-box;
-    color: #222;
+    color: var(--color-heading-text);
     display: flex;
     flex-direction: column;
     width: 100%;
     height: 100%;
+    border: 1px solid var(--color-main-border);
 }
 .button-container {
     margin: 10px 0;
@@ -193,38 +254,69 @@ body {
     flex-wrap: wrap;
     gap: 8px;
 }
-.button-container button,
-button#keywordCreationBtn {
+.button-container button {
     padding: 8px 16px;
     font-size: 15px;
     border-radius: 4px;
-    border: 1px solid #ccc;
-    background: #ffd89b;
+    border: 1px solid var(--color-button-secondary-border);
+    background: var(--color-main-button-bg);
+    color: var(--color-main-button-text);
     cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.button-container button:hover {
+    background: var(--color-button-secondary-hover);
+    border-color: var(--color-button-primary);
+    color: var(--color-heading-text);
+}
+button#keywordCreationBtn,
+#createHypothesisBtn {
+    padding: 8px 16px;
+    font-size: 15px;
+    border-radius: 4px;
+    border: 1px solid var(--color-button-primary);
+    background: var(--color-button-primary);
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-weight: 600;
+}
+button#keywordCreationBtn:hover,
+#createHypothesisBtn:hover,
+.right-navi button:hover {
+    background: var(--color-button-primary-hover);
+    border-color: var(--color-button-primary-hover);
 }
 #mynetwork {
     width: 100%;
     height: 80%;
-    border: 1px solid #ccc;
-    background: #fff;
+    border: 1px solid var(--color-main-border);
+    background-color: var(--color-canvas-bg);
+    background-image: linear-gradient(0deg, var(--color-canvas-grid) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--color-canvas-grid) 1px, transparent 1px);
+    background-size: 24px 24px;
     margin-bottom: 10px;
 }
 #copiedContent {
     font-size: 20px;
-    color: #333;
+    color: var(--color-heading-text);
     white-space: pre-wrap;
     overflow-wrap: break-word;
 }
 
 /* ===================== 右ナビ ===================== */
 .right-navi {
-    background: #DCEAF7;
+    background: var(--color-hypothesis-bg);
     padding: 12px;
     box-sizing: border-box;
-    color: #222;
+    color: var(--color-heading-text);
     display: flex;
     flex-direction: column;
-    border-left: 1px solid #ccc;
+    border-left: 1px solid var(--color-hypothesis-border);
     width: 100%;
     height: 100%;
 }
@@ -232,15 +324,15 @@ button#keywordCreationBtn {
     width: 100%;
     margin-top: 10px;
     padding: 10px;
-    border: 2px solid #ccc;
+    border: 2px solid var(--color-hypothesis-border);
     background: #ffffff;
     box-sizing: border-box;
     height: 100%;
     overflow-y: auto;
 }
 .hypothesis-box {
-    border: 1px solid #c39a00;
-    background: #fff3cc;
+    border: 1px solid var(--color-hypothesis-border);
+    background: rgba(255, 251, 235, 0.8);
     margin-bottom: 8px;
     padding: 8px;
     box-sizing: border-box;
@@ -252,7 +344,7 @@ button#keywordCreationBtn {
     gap: 8px;
 }
 .hypothesis-combined { background: #fff; border-color: #ffffff; }
-.hypothesis-title { font-size: 1.2em; margin-bottom: 8px; }
+.hypothesis-title { font-size: 1.2em; margin-bottom: 8px; color: var(--color-hypothesis-heading); }
 .hypothesis-text {
     width: 100%;
     min-height: 60px;
@@ -264,11 +356,26 @@ button#keywordCreationBtn {
 .hypothesis-box-header {
     font-weight: bold;
     margin-bottom: 6px;
+    color: var(--color-hypothesis-heading);
+}
+.right-navi button {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1px solid var(--color-button-primary);
+    background: var(--color-button-primary);
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-weight: 600;
 }
 
 /* ===================== 仮説ネットワーク構成エリア（extra-content） ===================== */
 .extra-content {
-    background: #DCEAF7;
+    background: var(--color-extra-bg);
     padding: 12px;
     box-sizing: border-box;
     width: 100%;
@@ -290,8 +397,8 @@ button#keywordCreationBtn {
 #extraNetwork {
     flex: 1;
     min-height: 220px;
-    border: 1px solid #ccc;
-    background: white;
+    border: 1px solid var(--color-extra-border);
+    background: #fff;
     overflow: auto;
 }
 .extra-content-area .button-container {
@@ -308,14 +415,14 @@ button#keywordCreationBtn {
 #myDiagramDiv {
     width: 100%;
     height: 80%;
-    border: 1px solid lightgray;
-    background-color: white;
+    border: 1px solid var(--color-extra-border);
+    background-color: #fff;
 }
 .diagram-area {
     width: 100%;
     flex: 1 1 auto;
     min-height: 0;
-    border: 1px solid #ccc;
+    border: 1px solid var(--color-extra-border);
     box-sizing: border-box;
     background: #fff;
     overflow: auto;
@@ -339,6 +446,53 @@ button#keywordCreationBtn {
     line-height: 1.5;
     text-align: left;
     white-space: pre-wrap;
+}
+
+/* ===================== 質問ダイアログ ===================== */
+.question-dialog {
+    position: fixed;
+    background: #fff;
+    border: 1px solid var(--color-button-primary);
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(44, 62, 80, 0.25);
+    min-width: 320px;
+    z-index: 9999;
+    overflow: hidden;
+}
+.question-dialog__header {
+    background: var(--color-button-primary);
+    color: #fff;
+    padding: 12px 16px;
+    font-weight: 600;
+    cursor: move;
+    user-select: none;
+}
+.question-dialog__body {
+    padding: 16px;
+    background: #fff;
+}
+.question-dialog__option,
+.question-dialog__close {
+    width: 100%;
+    text-align: left;
+    background: #FDFDFD;
+    border: 1px solid #DCDDE1;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    color: var(--color-heading-text);
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+.question-dialog__option:hover,
+.question-dialog__close:hover {
+    background: #EBF5FB;
+    border-color: var(--color-button-primary);
+}
+.question-dialog__close {
+    text-align: center;
+    font-weight: 600;
+    margin-top: 4px;
 }
 
 /* ===================== SCAMPERメニュー・タグ ===================== */

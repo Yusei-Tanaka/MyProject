@@ -27,14 +27,25 @@ window.addEventListener('DOMContentLoaded', function() {
   diagram.nodeTemplate =
     $(go.Node, "Auto",
       new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
-      $(go.Shape, "Rectangle",
-        // key:0（タイトルノード）のみ色を変更
+      $(go.Shape, "RoundedRectangle",
+        {
+          stroke: "#3498DB",
+          strokeWidth: 2,
+          fill: "#FFFFFF"
+        },
         new go.Binding("fill", "key", function(key) {
-          return key === 0 ? "#ffcc00" : "lightblue";
+          return key === 0 ? "#E67E22" : "#FFFFFF";
+        }),
+        new go.Binding("stroke", "key", function(key) {
+          return key === 0 ? "#E67E22" : "#3498DB";
         })
       ),
       $(go.TextBlock,
-        // key:0（タイトルノード）は折り返しなし、それ以外は折り返し有効
+        {
+          margin: 8,
+          stroke: "#34495E",
+          font: "bold 14px 'Segoe UI', sans-serif"
+        },
         new go.Binding("text").makeTwoWay(),
         new go.Binding("wrap", "key", function(key) {
           return key === 0 ? go.TextBlock.None : go.TextBlock.WrapFit;
@@ -42,7 +53,9 @@ window.addEventListener('DOMContentLoaded', function() {
         new go.Binding("width", "key", function(key) {
           return key === 0 ? NaN : 120;
         }),
-        { margin: 8 }
+        new go.Binding("stroke", "key", function(key) {
+          return key === 0 ? "#FFFFFF" : "#34495E";
+        })
       ),
       {
         doubleClick: (e, node) => {
@@ -71,7 +84,7 @@ window.addEventListener('DOMContentLoaded', function() {
     );
 
   /* リンクライン */
-  diagram.linkTemplate = $(go.Link, $(go.Shape));
+  diagram.linkTemplate = $(go.Link, $(go.Shape, { stroke: "#95A5A6", strokeWidth: 2 }));
 
   /* 子ノードの追加 */
   function addChild(node) {
