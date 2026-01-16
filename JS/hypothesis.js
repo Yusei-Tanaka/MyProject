@@ -87,9 +87,6 @@ function addHypothesisEntry(nodeIds) {
   wrapper.appendChild(entry);
   enableScamperOnEntry(entry);
   entry.scrollIntoView({ behavior: "smooth" });
-
-  // ここを追加：
-  enableScamperOnEntry(entry);
 }
 
 // 表示されている仮説の番号を更新
@@ -235,6 +232,9 @@ function addNodeToNetwork(entry, sourceTextarea) {
   const textArea = document.createElement("textarea");
   textArea.style.width = "100%";
   textArea.style.minHeight = "80px";
+  textArea.readOnly = true;
+  textArea.style.background = "#f7f7f7";
+  textArea.style.cursor = "not-allowed";
   textArea.value = candidateText;
   dialog.appendChild(textArea);
 
@@ -350,6 +350,10 @@ function applyScamperToEntry(entry, option, parentContainer = null) {
   // 修正後の仮説入力ボックスに右クリックでSCAMPERメニューを表示
   editBox.addEventListener("contextmenu", function (e) {
     e.preventDefault();
+    if (!editBox.value.trim()) {
+      alert("仮説を入力してください。");
+      return;
+    }
     updateHypothesisContextFromEntry(entry, editBox.value, option.label);
     createScamperMenu(e.clientX, e.clientY, entry, editBox, tagContainer);
   });
@@ -449,6 +453,10 @@ function enableScamperOnEntry(entry) {
   if (hypothesisBox) {
     hypothesisBox.addEventListener("contextmenu", function (e) {
       e.preventDefault();
+      if (!hypothesisBox.value.trim()) {
+        alert("仮説を入力してください。");
+        return;
+      }
       updateHypothesisContextFromEntry(entry);
       createScamperMenu(e.clientX, e.clientY, entry, hypothesisBox);
     });
