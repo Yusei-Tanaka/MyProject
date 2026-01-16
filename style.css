@@ -71,6 +71,22 @@ body {
     background: #f9f9f9;
     height: 36px;
     width: 100%;
+    position: relative;
+}
+.user-name-display {
+    position: absolute;
+    left: 12px;
+    top: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    padding: 2px 10px;
+    border-radius: 12px;
+    background: #e6f0ff;
+    border: 1px solid #c2d7ff;
+    min-width: 80px;
+    text-align: center;
+    box-sizing: border-box;
 }
 .header span { margin-right: 10px; }
 .header input, #myTitle {

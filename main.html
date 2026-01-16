@@ -14,6 +14,7 @@
     </head>
   <body>
     <div class="header">
+      <div id="userNameDisplay" class="user-name-display"></div>
       <input id="myTitle" type="text" placeholder="探索テーマを入力">
           <script>
               <!-- localStorageからmyTitleに値をセットするJSは外部ファイル化 -->
@@ -90,7 +91,7 @@
     </div>
     
 
-    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <script src="JS/vendor/vis-network.min.js"></script>
     <script src="JS/network.js"></script>
     <script src="JS/hypothesis.js"></script>
     <script src="JS/log.js"></script>
@@ -102,7 +103,7 @@
     <script src="JS/search.js"></script>
     <script src="JS/keywords.js"></script>
     <script src="JS/main.js"></script>
-    <script src="https://unpkg.com/gojs/release/go.js"></script>
+    <script src="JS/vendor/go.js"></script>
     <script src="JS/mindmap.js"></script>
     <script src="JS/set-title.js"></script>
     <script src="JS/keywords_O(1).js"></script>

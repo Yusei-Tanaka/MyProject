@@ -1,0 +1,389 @@
+// キーワードをクリックした際にノードを追加
+function handleKeywordClick(keyword) {
+    console.log(`クリックされたキーワード: ${keyword}`); // クリックされたキーワードを確認
+
+    // ノードが既に存在するかチェック（ラベルで重複を避ける）
+    let existingNode = nodes.get({
+        filter: function(node) {
+            return node.label === keyword;
+        }
+    });
+
+    if (existingNode.length === 0) {
+        // ネットワークの中心座標を取得
+        var center = network.getViewPosition();
+        // 新しいノードを作成
+        var newNode = {
+            id: nodes.length + 1, // IDを自動生成
+            label: keyword,
+            x: center.x,
+            y: center.y
+        };
+        nodes.add(newNode); // ノードを追加
+        console.log(`キーワード "${keyword}" をノードとして追加しました。`);
+    } else {
+        console.log(`キーワード "${keyword}" のノードは既に存在しています。`);
+    }
+}
+
+// output内のキーワード群を基にAPIへ問い合わせる
+async function requestKeywordsFromOutput(keywords) {
+    const uniqueKeywords = [...new Set(keywords.map(k => k.trim()).filter(Boolean))];
+
+    if (uniqueKeywords.length === 0) {
+        console.log("APIリクエスト用のキーワードがありません。");
+        return;
+    }
+
+    const { validKeywords, missingKeywords } = await filterKeywordsByWikidata(uniqueKeywords);
+
+    if (missingKeywords.length > 0) {
+        console.warn("Wikidataに存在しないキーワード:", missingKeywords);
+    }
+
+    if (validKeywords.length === 0) {
+        alert("Wikidataに存在するキーワードがありません。");
+        return;
+    }
+
+    const themeValue = (window.theme || document.querySelector("#myTitle")?.value || "未設定のテーマ").trim();
+    const relationPerspectives = [
+        "背景",
+        "課題",
+        "影響",
+        "対策",
+        "要因",
+        "評価",
+        "持続可能性",
+        "技術",
+        "経済",
+        "国際比較",
+        "行動",
+        "環境負荷"
+    ];
+
+    const aiResponses = [];
+    const KEYWORDS_PER_REQUEST = 1; // 1件ずつAIへ問い合わせて出力欠損を防ぐ
+    const MAX_PROMPT_RETRIES = 3;
+    const failedChunks = [];
+
+    const keywordChunks = [];
+    for (let i = 0; i < validKeywords.length; i += KEYWORDS_PER_REQUEST) {
+        keywordChunks.push(validKeywords.slice(i, i + KEYWORDS_PER_REQUEST));
+    }
+
+    // APIにプロンプトを送信する共通処理
+    const postPrompt = async (prompt, chunkLabel) => {
+        let lastError = null;
+
+        for (let attempt = 1; attempt <= MAX_PROMPT_RETRIES; attempt++) {
+            try {
+                const response = await fetch(`${apiBaseUrl}/api`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ prompt })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTPエラー: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log("outputキーワードAPIの結果 (対象キーワード一覧):", data.result);
+
+                const parsedResult = parseJsonFromAiResponse(data.result);
+                if (parsedResult) {
+                    aiResponses.push(parsedResult);
+                    return true;
+                }
+
+                console.warn(`AIレスポンスの解析に失敗しました (試行${attempt}/${MAX_PROMPT_RETRIES}):`, chunkLabel);
+            } catch (error) {
+                lastError = error;
+                console.error(`outputキーワードAPI呼び出しでエラー (試行${attempt}/${MAX_PROMPT_RETRIES}):`, error);
+            }
+
+            if (attempt < MAX_PROMPT_RETRIES) {
+                await delay(500 * attempt); // 軽いリトライ待機
+            }
+        }
+
+        if (lastError) {
+            console.warn(`AIレスポンス取得に失敗しました: ${chunkLabel}`, lastError);
+        }
+        return false;
+    };
+    
+    for (const chunk of keywordChunks) {
+        const prompt = `
+        ##タスク
+        ・総合的な探究の時間における，学習者の活動を⽀援するシステム
+
+        ##背景・文脈
+        ・学習者は[${themeValue}]を目標に探究活動を行っている
+
+        ##入力
+        ・対象キーワード一覧:
+        ${chunk.map(k => `・${k}`).join("\n")}
+
+        ・観点一覧:
+        ${relationPerspectives.map(p => `・${p}`).join("\n")}
+
+        ・あなたは，上記すべての「対象キーワード」それぞれについて，
+		上記すべての「観点」ごとに，
+		関係のありそうなキーワードを10個程度提示してください
+
+        ##条件
+        ・提示するキーワードは必ずしも10個に満たなくても良い
+        ・関係のありそうなキーワードが存在しないと判断された場合尾
+        ・提示する全てのキーワードはWikidataに項目が存在するものに限り，
+		存在確認を行った上で回答してください
+
+        ##出力形式
+        ・以下の JSON 形式のみで出力せよ（その他の記述は不要）
+
+        {
+            "対象キーワード": {
+                "観点": ["キーワード1", "キーワード2", "..."]
+            }
+        }
+        `;
+
+        const chunkLabel = chunk.join(", ");
+        console.log("生成されたプロンプト(output部分):", prompt);
+        const success = await postPrompt(prompt, chunkLabel);
+        if (!success) {
+            failedChunks.push(chunkLabel);
+        }
+    }
+
+    if (failedChunks.length > 0) {
+        console.warn("AI生成に失敗したキーワード:", failedChunks);
+    }
+
+    console.log("generate (outputキーワードの全結果):", aiResponses);
+    return aiResponses;
+}
+
+async function filterKeywordsByWikidata(keywords) {
+    const checks = await Promise.all(keywords.map(async keyword => {
+        try {
+            const entityId = await getWikidataEntityId(keyword);
+            return { keyword, entityId };
+        } catch (error) {
+            console.error(`Wikidata検索でエラーが発生しました (${keyword})`, error);
+            return { keyword, entityId: null };
+        }
+    }));
+
+    const validKeywords = checks.filter(item => item.entityId).map(item => item.keyword);
+    const missingKeywords = checks.filter(item => !item.entityId).map(item => item.keyword);
+
+    return { validKeywords, missingKeywords };
+}
+
+// AIレスポンスに含まれるJSON文字列を安全に抽出・解析する
+function parseJsonFromAiResponse(aiOutput) {
+    if (!aiOutput) {
+        return null;
+    }
+
+    if (typeof aiOutput === "object") {
+        return aiOutput;
+    }
+
+    let content = String(aiOutput).trim();
+
+    const candidates = new Set();
+    const pushCandidate = (text) => {
+        if (text && text.length > 0) {
+            candidates.add(text);
+        }
+    };
+
+    pushCandidate(content);
+
+    const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (codeBlockMatch) {
+        pushCandidate(codeBlockMatch[1].trim());
+    }
+
+    if (content.startsWith("```") && content.endsWith("```")) {
+        pushCandidate(content.slice(3, -3).trim());
+    }
+
+    const braceCaptured = content.replace(/^[^{]*({[\s\S]*})[^}]*$/, "$1");
+    if (braceCaptured && braceCaptured.startsWith("{")) {
+        pushCandidate(braceCaptured.trim());
+    }
+
+    const balancedJson = extractBalancedJson(content);
+    if (balancedJson) {
+        pushCandidate(balancedJson);
+    }
+
+    const fenceStripped = content.replace(/```(?:json)?/gi, "").replace(/```/g, "").trim();
+    if (fenceStripped !== content) {
+        pushCandidate(fenceStripped);
+    }
+
+    const normalizedCandidates = new Set();
+    candidates.forEach(candidate => {
+        normalizedCandidates.add(candidate);
+        const balanced = balanceJsonBraces(candidate);
+        const trimmedCommas = stripTrailingCommas(candidate);
+        if (balanced !== candidate) {
+            normalizedCandidates.add(balanced);
+            const balancedTrimmed = stripTrailingCommas(balanced);
+            if (balancedTrimmed !== balanced) {
+                normalizedCandidates.add(balancedTrimmed);
+            }
+        }
+        if (trimmedCommas !== candidate) {
+            normalizedCandidates.add(trimmedCommas);
+        }
+    });
+
+    for (const candidate of normalizedCandidates) {
+        try {
+            return JSON.parse(candidate);
+        } catch (error) {
+            continue;
+        }
+    }
+
+    console.error("AIレスポンスのJSON解析に失敗しました", content);
+    return null;
+}
+
+function balanceJsonBraces(text) {
+    const openCount = (text.match(/{/g) || []).length;
+    const closeCount = (text.match(/}/g) || []).length;
+    if (openCount > closeCount) {
+        return text + "}".repeat(openCount - closeCount);
+    }
+    return text;
+}
+
+function stripTrailingCommas(text) {
+    return text.replace(/,(?=\s*[}\]])/g, "");
+}
+
+function extractBalancedJson(text) {
+    const start = text.indexOf("{");
+    if (start === -1) {
+        return null;
+    }
+
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+
+    for (let i = start; i < text.length; i++) {
+        const char = text[i];
+
+        if (inString) {
+            if (escaped) {
+                escaped = false;
+            } else if (char === "\\") {
+                escaped = true;
+            } else if (char === "\"") {
+                inString = false;
+            }
+            continue;
+        }
+
+        if (char === "\"") {
+            inString = true;
+            continue;
+        }
+
+        if (char === "{") {
+            depth++;
+        } else if (char === "}") {
+            depth--;
+            if (depth === 0) {
+                return text.slice(start, i + 1);
+            }
+        }
+    }
+
+    return null;
+}
+
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function renderAiKeywords(resultBox, aiResponses) {
+    aiResponses.forEach(response => {
+        Object.entries(response || {}).forEach(([targetKeyword, perspectives]) => {
+            const targetContainer = document.createElement("div");
+
+            const targetTitle = document.createElement("div");
+            targetTitle.innerHTML = `<strong>${targetKeyword} に関連するキーワード</strong>`;
+            targetContainer.appendChild(targetTitle);
+
+            Object.entries(perspectives || {}).forEach(([perspective, keywords]) => {
+                if (!Array.isArray(keywords) || keywords.length === 0) {
+                    return;
+                }
+
+                const perspectiveLabel = document.createElement("div");
+                perspectiveLabel.textContent = `観点: ${perspective}`;
+                targetContainer.appendChild(perspectiveLabel);
+
+                const list = document.createElement("ul");
+                keywords.forEach(relatedWord => {
+                    const listItem = document.createElement("li");
+                    listItem.textContent = relatedWord;
+                    listItem.style.cursor = "pointer";
+                    listItem.addEventListener("click", () => {
+                        console.log(`生成キーワード "${relatedWord}" がクリックされました`);
+                        handleKeywordClick(relatedWord);
+                    });
+                    list.appendChild(listItem);
+                });
+                targetContainer.appendChild(list);
+            });
+
+            resultBox.appendChild(targetContainer);
+        });
+    });
+}
+
+// キーワード生成の処理
+document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("keywordCreationBtn").addEventListener("click", async function () {
+        let outputElement = document.getElementById("output");
+        let text = outputElement.innerText.trim();
+
+        //【修正】全角→半角変換 & 句読点・スペースを削除
+        text = text.replace(/[、，\s]+/g, " ");  // 句読点・スペースを統一
+        text = text.replace(/[Ａ-Ｚａ-ｚ０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0)); // 全角→半角
+
+        let keywords = text.split(" ")
+            .map(k => k.replace(/^[,、\s]+|[,、\s]+$/g, "")) // 先頭・末尾のカンマやスペースを削除
+            .filter(k => k.length > 0); // 空のキーワードを除外
+
+        console.log("処理後のキーワード:", keywords);
+
+        //【追加】ログエリアにキーワードを表示
+        displayKeywordsLog(keywords);
+
+        // outputのキーワードを使ってAPIに問い合わせ
+        const aiResponses = await requestKeywordsFromOutput(keywords) || [];
+
+        let resultBox = document.getElementById("resultBox");
+        resultBox.innerHTML = "<strong><u>生成されたキーワード</u></strong><br>"; // 初期化
+
+        if (aiResponses.length === 0) {
+            resultBox.innerHTML += "<p>生成AIからキーワードを取得できませんでした。</p>";
+            return;
+        }
+
+        renderAiKeywords(resultBox, aiResponses);
+    });
+});
