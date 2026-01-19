@@ -2,6 +2,10 @@
 <ConceptMap>
   <Nodes>
     <Node id="1" label="New Node" />
+    <Node id="2" label="問題" />
+    <Node id="3" label="結果" />
+    <Node id="4" label="課題" />
+    <Node id="5" label="理由" />
   </Nodes>
   <Edges>
   </Edges>

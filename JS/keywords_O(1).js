@@ -164,8 +164,6 @@ async function requestKeywordsFromOutput(keywords) {
         return false;
     };
     
-    showKeywordLoading();
-
     const chunkTasks = keywordChunks.map(chunk => {
         const chunkLabel = chunk.join(", ");
         const prompt = `
@@ -207,14 +205,40 @@ async function requestKeywordsFromOutput(keywords) {
         }
     });
 
-    removeKeywordLoading();
-
     if (failedChunks.length > 0) {
         console.warn("AI生成に失敗したキーワード:", failedChunks);
     }
 
     console.log("generate (outputキーワードの全結果):", aiResponses);
     return aiResponses;
+}
+
+// 複数キーワードのエンティティIDから共通関連語を取得（Wikidata）
+async function requestCommonKeywordsFromEntities(keywords) {
+    const uniqueKeywords = [...new Set(keywords.map(k => k.trim()).filter(Boolean))];
+    if (uniqueKeywords.length === 0) {
+        return [];
+    }
+
+    const entityIds = [];
+    for (const keyword of uniqueKeywords) {
+        const entityId = await getWikidataEntityId(keyword);
+        if (entityId) {
+            entityIds.push(entityId);
+        }
+    }
+
+    if (entityIds.length === 0) {
+        return [];
+    }
+
+    const sparqlQuery = generateSparqlQueryForEntities(entityIds);
+    const results = await queryWikidata(sparqlQuery);
+    if (!Array.isArray(results) || results.length === 0) {
+        return [];
+    }
+
+    return Array.from(new Set(results.map(binding => binding.commonLabel?.value).filter(Boolean)));
 }
 
 async function filterKeywordsByWikidata(keywords) {
@@ -420,6 +444,54 @@ function renderAiKeywords(resultBox, aiResponses) {
     resultBox.appendChild(list);
 }
 
+function collectAiKeywords(aiResponses) {
+    const collected = [];
+    aiResponses.forEach(response => {
+        Object.values(response || {}).forEach(perspectives => {
+            Object.values(perspectives || {}).forEach(keywords => {
+                if (!Array.isArray(keywords) || keywords.length === 0) {
+                    return;
+                }
+                keywords.forEach(word => {
+                    if (word) collected.push(word);
+                });
+            });
+        });
+    });
+    return collected;
+}
+
+function renderUnifiedKeywords(resultBox, unifiedKeywords) {
+    if (!Array.isArray(unifiedKeywords) || unifiedKeywords.length === 0) {
+        resultBox.innerHTML += "<p>キーワードを取得できませんでした。</p>";
+        return;
+    }
+
+    const list = document.createElement("ul");
+    unifiedKeywords.forEach(label => {
+        const listItem = document.createElement("li");
+        listItem.textContent = label;
+        listItem.style.cursor = "pointer";
+        listItem.addEventListener("click", () => {
+            console.log(`キーワード \"${label}\" がクリックされました`);
+            handleKeywordClick(label);
+        });
+        list.appendChild(listItem);
+    });
+
+    list.style.textAlign = "left";
+    resultBox.appendChild(list);
+}
+
+function shuffleArray(items) {
+    const array = items.slice();
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
 // キーワード生成の処理
 document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("keywordCreationBtn").addEventListener("click", async function () {
@@ -439,17 +511,34 @@ document.addEventListener("DOMContentLoaded", function () {
         //【追加】ログエリアにキーワードを表示
         displayKeywordsLog(keywords);
 
-        // outputのキーワードを使ってAPIに問い合わせ
-        const aiResponses = await requestKeywordsFromOutput(keywords) || [];
-
         let resultBox = document.getElementById("resultBox");
-        resultBox.innerHTML = "<strong><u>生成されたキーワード</u></strong><br>"; // 初期化
+        resultBox.innerHTML = ""; // 初期化
 
-        if (aiResponses.length === 0) {
-            resultBox.innerHTML += "<p>生成AIからキーワードを取得できませんでした。</p>";
-            return;
+        showKeywordLoading();
+
+        let aiResponses = [];
+        let commonKeywords = [];
+
+        try {
+            const results = await Promise.all([
+                requestKeywordsFromOutput(keywords),
+                requestCommonKeywordsFromEntities(keywords)
+            ]);
+            aiResponses = results[0] || [];
+            commonKeywords = results[1] || [];
+        } catch (error) {
+            console.error("キーワード生成処理でエラーが発生しました:", error);
+        } finally {
+            removeKeywordLoading();
         }
 
-        renderAiKeywords(resultBox, aiResponses);
+        resultBox.innerHTML = "<strong><u>生成されたキーワード</u></strong><br>";
+
+        const unified = Array.from(new Set([
+            ...collectAiKeywords(aiResponses),
+            ...(commonKeywords || [])
+        ]));
+        const shuffled = shuffleArray(unified);
+        renderUnifiedKeywords(resultBox, shuffled);
     });
 });
