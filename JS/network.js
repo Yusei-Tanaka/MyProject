@@ -57,6 +57,12 @@ const saveXmlBaseUrl = `http://${host}:3000`;
 // 最後に選択された2つのノードを保存
 var selectedNodes = []; // 選択されたノードIDを保存
 
+function logAction(message) {
+  if (typeof window.addSystemLog === "function") {
+    window.addSystemLog(message);
+  }
+}
+
 // ノードの選択イベント
 network.on("selectNode", function (event) {
   if (event.nodes.length > 0) {
@@ -137,19 +143,23 @@ network.on("doubleClick", function (event) {
     // ノードの編集
     var nodeId = event.nodes[0];
     var nodeData = nodes.get(nodeId);
+    var oldLabel = nodeData ? nodeData.label : "";
     var newLabel = prompt("ノードのラベルを変更", nodeData.label);
-    if (newLabel !== null) {
+    if (newLabel !== null && newLabel !== oldLabel) {
       nodeData.label = newLabel;
       nodes.update(nodeData); // ノードデータを更新
+      logAction(`キーワードマップ: ノード編集 id=${nodeId} "${oldLabel}" → "${newLabel}"`);
     }
   } else if (event.edges.length > 0) {
     // エッジの編集
     var edgeId = event.edges[0];
     var edgeData = edges.get(edgeId);
+    var oldEdgeLabel = edgeData ? edgeData.label : "";
     var newLabel = prompt("エッジのラベルを変更", edgeData.label);
-    if (newLabel !== null) {
+    if (newLabel !== null && newLabel !== oldEdgeLabel) {
       edgeData.label = newLabel;
       edges.update(edgeData); // エッジデータを更新
+      logAction(`キーワードマップ: リンク編集 id=${edgeId} "${oldEdgeLabel}" → "${newLabel}"`);
     }
   }
 });
@@ -173,14 +183,19 @@ document.getElementById("addNodeBtn").addEventListener("click", function () {
     }
   };
   nodes.add(newNode); // 新しいノードを追加
+  logAction(`キーワードマップ: ノード追加 id=${newNode.id} label="${newNode.label}"`);
 });
 
 // ノード削除ボタン
 document.getElementById("deleteNodeBtn").addEventListener("click", function () {
   if (selectedNodes.length === 1) {
     var nodeId = selectedNodes[0];
+    var nodeData = nodes.get(nodeId);
     nodes.remove({ id: nodeId }); // 選択されたノードを削除
     selectedNodes = []; // 選択リセット
+    if (nodeData) {
+      logAction(`キーワードマップ: ノード削除 id=${nodeId} label="${nodeData.label}"`);
+    }
   } else {
     alert("削除するノードを選択してください。");
   }
@@ -198,6 +213,7 @@ document.getElementById("addEdgeBtn").addEventListener("click", function () {
     };
     try {
       edges.add(newEdge); // エッジを追加
+      logAction(`キーワードマップ: リンク追加 from=${newEdge.from} to=${newEdge.to} label="${newEdge.label}" arrows=${newEdge.arrows || "none"}`);
       //alert("エッジを追加しました。");
     } catch (error) {
       console.error("エッジの追加に失敗しました:", error);
@@ -228,6 +244,7 @@ document.getElementById("deleteEdgeBtn").addEventListener("click", function () {
       edgesToDelete.forEach(function (edge) {
         edges.remove(edge.id);
       });
+      logAction(`キーワードマップ: リンク削除 from=${fromNode} to=${toNode} count=${edgesToDelete.length}`);
       //alert("エッジを削除しました。");
     } else {
       alert("選択されたノード間にエッジが存在しません。");

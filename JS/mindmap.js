@@ -6,6 +6,12 @@ window.addEventListener('DOMContentLoaded', function() {
     allowInsert: false
   });
 
+  function logMindmapAction(message) {
+    if (typeof window.addSystemLog === "function") {
+      window.addSystemLog(message);
+    }
+  }
+
   /* ツリーレイアウト */
   diagram.layout = $(go.TreeLayout, {
     angle: 90,
@@ -65,6 +71,7 @@ window.addEventListener('DOMContentLoaded', function() {
             diagram.startTransaction("edit text");
             diagram.model.set(node.data, "text", newText);
             diagram.commitTransaction("edit text");
+            logMindmapAction(`マインドマップ: ノード編集 key=${node.data.key} "${oldText}" → "${newText}"`);
           }
         }
       },
@@ -92,6 +99,7 @@ window.addEventListener('DOMContentLoaded', function() {
     const newNodeData = { text: "新しいノード", parent: node.data.key };
     diagram.model.addNodeData(newNodeData);
     diagram.commitTransaction("add child");
+    logMindmapAction(`マインドマップ: 子ノード追加 parent=${node.data.key} "${node.data.text}"`);
   }
 
   /* ノードの削除 */
@@ -101,10 +109,13 @@ window.addEventListener('DOMContentLoaded', function() {
       alert("タイトルノードは削除できません。");
       return;
     }
+    const removedKey = node.data && node.data.key !== undefined ? node.data.key : "";
+    const removedText = node.data && node.data.text ? node.data.text : "";
     diagram.startTransaction("remove subtree");
     var subtree = node.findTreeParts();
     diagram.removeParts(subtree, false);
     diagram.commitTransaction("remove subtree");
+    logMindmapAction(`マインドマップ: ノード削除 key=${removedKey} "${removedText}"`);
   }
 
   /* 初期データをmyTitleから取得 */
@@ -112,6 +123,7 @@ window.addEventListener('DOMContentLoaded', function() {
   var searchTitle = localStorage.getItem('searchTitle');
   var titleInput = document.getElementById('myTitle');
   var initialText = searchTitle || (titleInput && titleInput.value) || "新しいマインドマップ";
+  var lastTitleText = initialText;
   diagram.model = new go.TreeModel([
     { key: 0, text: initialText, loc: "0 -200" }
   ]);
@@ -120,6 +132,13 @@ window.addEventListener('DOMContentLoaded', function() {
   if (titleInput) {
     titleInput.addEventListener('input', function() {
       diagram.model.set(diagram.model.nodeDataArray[0], "text", titleInput.value || "新しいマインドマップ");
+    });
+    titleInput.addEventListener('change', function() {
+      const newTitle = titleInput.value || "新しいマインドマップ";
+      if (newTitle !== lastTitleText) {
+        logMindmapAction(`マインドマップ: タイトル変更 "${lastTitleText}" → "${newTitle}"`);
+        lastTitleText = newTitle;
+      }
     });
   }
 
@@ -152,6 +171,7 @@ window.addEventListener('DOMContentLoaded', function() {
     diagram.model.addNodeData(newNodeData);
     diagram.commitTransaction("add mindmap child");
     diagram.select(diagram.findNodeForData(newNodeData));
+    logMindmapAction(`マインドマップ: 子ノード追加 parent=${parentNode.data.key} "${parentNode.data.text}" text="${text.trim()}"`);
     return true;
   };
 });

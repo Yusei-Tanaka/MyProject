@@ -86,6 +86,12 @@ container.getElement().append( content );
 // 4. レイアウトの初期化と起動
 myLayout.init();
 
+function logLayoutAction(message) {
+    if (typeof window.addSystemLog === "function") {
+        window.addSystemLog(message);
+    }
+}
+
 // 5. ボタン押下で左20%・右80%に変更
 $(function(){
     var row = null;
@@ -110,5 +116,6 @@ $(function(){
         // サイズ再計算を下位要素に伝播
         row.callDownwards('setSize');
         $('#createHypothesisBtn').removeAttr('hidden').removeClass('is-hidden');
+        logLayoutAction("画面: 左サイドビュー表示");
     });
 });

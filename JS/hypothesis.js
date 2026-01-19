@@ -34,6 +34,12 @@ function ensureHypothesisContainer() {
   return container;
 }
 
+function logHypothesisAction(message) {
+  if (typeof window.addSystemLog === "function") {
+    window.addSystemLog(message);
+  }
+}
+
 // 仮説エントリを追加する（選択キーワードを基に1エントリ追加）
 function addHypothesisEntry(nodeIds) {
   var container = ensureHypothesisContainer();
@@ -80,6 +86,7 @@ function addHypothesisEntry(nodeIds) {
   delBtn.addEventListener("click", function () {
     wrapper.removeChild(entry);
     updateHypothesisNumbers(wrapper);
+    logHypothesisAction("仮説: 削除");
   });
   controls.appendChild(delBtn);
   entry.appendChild(controls);
@@ -87,6 +94,7 @@ function addHypothesisEntry(nodeIds) {
   wrapper.appendChild(entry);
   enableScamperOnEntry(entry);
   entry.scrollIntoView({ behavior: "smooth" });
+  logHypothesisAction(`仮説: 追加 (基づくキーワード: ${keywordLabels.join("、")})`);
 }
 
 // 表示されている仮説の番号を更新
@@ -273,6 +281,8 @@ function addNodeToNetwork(entry, sourceTextarea) {
       return;
     }
 
+    logHypothesisAction(`仮説: マインドマップへノード追加 parent=${parentNode.key} "${parentNode.text || ""}" text="${trimmed}"`);
+
     document.body.removeChild(overlay);
   });
 
@@ -455,10 +465,12 @@ function createScamperMenu(x, y, entry, targetBox, parentContainer = null, ancho
       ev.stopPropagation();
       if (opt.key === "AddNode") {
         addNodeToNetwork(entry, targetBox); // 「ノードを追加」選択時の処理
+        logHypothesisAction("仮説: SCAMPERでノード追加を選択");
       } else {
         var newTag = applyScamperToEntry(entry, opt, parentContainer);
         if (newTag) {
           triggerScamperQuestion(newTag, opt.label);
+          logHypothesisAction(`仮説: SCAMPER選択 ${opt.label}`);
         }
       }
       removeScamperMenu();
@@ -517,6 +529,7 @@ function handleKeywordClick(keyword) {
             label: keyword,
         };
         nodes.add(newNode); // ノードを追加
+      logHypothesisAction(`キーワード: ノード追加 label="${keyword}"`);
         console.log(`キーワード "${keyword}" をノードとして追加しました。`);
     } else {
         console.log(`キーワード "${keyword}" のノードは既に存在しています。`);
@@ -545,6 +558,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // 入力フィールドの変更を監視
     titleInput.addEventListener("input", (event) => {
       console.log("入力されたタイトル:", event.target.value); // 入力されたタイトルをコンソールに出力
+    });
+    titleInput.addEventListener("change", (event) => {
+      if (typeof window.addSystemLog === "function") {
+        window.addSystemLog(`タイトル変更: "${event.target.value}"`);
+      }
     });
   } else {
     console.log("タイトル入力フィールドが見つかりませんでした。");

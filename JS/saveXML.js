@@ -29,10 +29,20 @@ app.use(cors(corsOptions)); // この行でCORSを有効化
 app.options("/save-xml", cors(corsOptions)); // preflight
 
 const xmlDir = path.join(__dirname, "XML");
+const logDir = path.join(__dirname, "..", "log");
+
+const sanitizeFileName = (name) => {
+  if (typeof name !== "string") return "";
+  return name.trim().replace(/[\\/:*?"<>|]/g, "_");
+};
 
 // ディレクトリが存在しない場合は作成
 if (!fs.existsSync(xmlDir)) {
   fs.mkdirSync(xmlDir, { recursive: true });
+}
+
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir, { recursive: true });
 }
 
 // XMLファイルを保存するエンドポイント
@@ -52,6 +62,31 @@ app.post("/save-xml", (req, res) => {
     }
     console.log(`XMLファイルが保存されました: ${filePath}`);
     res.send("ファイルが保存されました");
+  });
+});
+
+app.options("/save-log", cors(corsOptions)); // preflight
+
+// ログを保存するエンドポイント
+app.post("/save-log", (req, res) => {
+  const { userName, logText } = req.body;
+  const safeName = sanitizeFileName(userName);
+  if (!safeName || typeof logText !== "string") {
+    console.error("ユーザー名またはログ内容がありません");
+    return res.status(400).send("ユーザー名とログ内容が必要です");
+  }
+
+  const fileName = `${safeName}_log`;
+  const filePath = path.join(logDir, fileName);
+  const line = logText.endsWith("\n") ? logText : `${logText}\n`;
+
+  fs.appendFile(filePath, line, "utf-8", (writeErr) => {
+    if (writeErr) {
+      console.error("ログの保存に失敗しました:", writeErr);
+      return res.status(500).send("ログの保存に失敗しました");
+    }
+    console.log(`ログが保存されました: ${filePath}`);
+    res.send("ログが保存されました");
   });
 });
 

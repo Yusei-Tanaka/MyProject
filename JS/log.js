@@ -1,29 +1,60 @@
-function displayKeywordsLog(keywords) {
-    let logBox = document.getElementById("logBox");
+const saveLogHost = window.location.hostname || "localhost";
+
+const saveUserLog = async (logText) => {
+    const userName = localStorage.getItem("userName");
+    if (!userName) return;
+
+    try {
+        const res = await fetch(`http://${saveLogHost}:3000/save-log`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userName, logText }),
+        });
+
+        if (!res.ok) {
+            console.error("ログの保存に失敗しました");
+        }
+    } catch (error) {
+        console.error("ログ送信中にエラーが発生しました:", error);
+    }
+};
+
+function addSystemLog(message) {
+    const logBox = document.getElementById("logBox");
+    if (!logBox || !message) return;
 
     // タイムスタンプを取得
-    let timestamp = new Date().toLocaleString();
+    const timestamp = new Date().toLocaleString();
 
-    // 生成されたログテキスト
-    let logText = `      [${timestamp}] 生成されたキーワードの組み合わせ: ${keywords.join(", ")}`;
-    
+    // ログテキスト
+    const logText = `      [${timestamp}] ${message}`;
+
     // 新しいログエントリを作成
-    let logItem = document.createElement("div");
+    const logItem = document.createElement("div");
     logItem.innerText = logText;
 
     // 新しいログアイテムを強調するためのスタイル
-    logItem.style.backgroundColor = "#f0f8ff"; // 新しいログを青色で強調
-    logItem.style.fontWeight = "bold"; // 新しいログは太字
+    logItem.style.backgroundColor = "#f0f8ff";
+    logItem.style.fontWeight = "bold";
 
     // ログボックスの一番上に新しいログを追加
     logBox.insertBefore(logItem, logBox.firstChild);
 
+    // サーバーにログを保存
+    saveUserLog(logText);
+
     // 古いログのスタイルをリセット
-    let logItems = logBox.querySelectorAll('div');
+    const logItems = logBox.querySelectorAll("div");
     logItems.forEach((item, index) => {
-        if (index !== 0) { // 最初のログ以外は普通の色に戻す
-            item.style.backgroundColor = ""; // 背景色をリセット
-            item.style.fontWeight = ""; // フォントを通常に戻す
+        if (index !== 0) {
+            item.style.backgroundColor = "";
+            item.style.fontWeight = "";
         }
     });
 }
+
+function displayKeywordsLog(keywords) {
+    addSystemLog(`生成されたキーワードの組み合わせ: ${keywords.join(", ")}`);
+}
+
+window.addSystemLog = addSystemLog;
