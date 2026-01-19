@@ -192,8 +192,6 @@ body {
 
 .left-navi .h3,
 .right-navi .h3 {
-    background: var(--color-heading-bg);
-    color: var(--color-heading-text);
     padding: 6px 12px;
     border-radius: 8px;
     font-weight: 600;
@@ -202,6 +200,15 @@ body {
     align-items: center;
     justify-content: space-between;
     gap: 8px;
+}
+.left-navi .h3 {
+    background: var(--color-heading-bg);
+    color: var(--color-heading-text);
+}
+.right-navi .h3 {
+    background: var(--color-hypothesis-border);
+    color: var(--color-hypothesis-heading);
+    border: 1px solid var(--color-hypothesis-border);
 }
 .left-navi .h3 #keywordCreationBtn {
     margin-left: auto;
