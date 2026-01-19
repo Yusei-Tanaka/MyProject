@@ -26,6 +26,50 @@ function handleKeywordClick(keyword) {
     }
 }
 
+function showKeywordLoading() {
+    const existing = document.querySelector(".keyword-loading-overlay");
+    if (existing) return existing;
+
+    const container = document.querySelector(".left-navi") || document.getElementById("left-navi-content") || document.body;
+    if (container && container.style.position !== "relative" && container.style.position !== "absolute") {
+        container.style.position = "relative";
+    }
+
+    const overlay = document.createElement("div");
+    overlay.className = "keyword-loading-overlay";
+    overlay.style.position = "absolute";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.right = "0";
+    overlay.style.bottom = "0";
+    overlay.style.background = "rgba(0, 0, 0, 0.25)";
+    overlay.style.zIndex = "20";
+    overlay.style.display = "flex";
+    overlay.style.alignItems = "center";
+    overlay.style.justifyContent = "center";
+
+    const message = document.createElement("div");
+    message.className = "keyword-loading";
+    message.textContent = "思考中...";
+    message.style.background = "#eef6ff";
+    message.style.border = "1px solid #b7d5f2";
+    message.style.padding = "16px 28px";
+    message.style.borderRadius = "12px";
+    message.style.fontSize = "1.4em";
+    message.style.fontWeight = "bold";
+    message.style.color = "#1f4b74";
+    message.style.boxShadow = "0 10px 30px rgba(0,0,0,0.2)";
+
+    overlay.appendChild(message);
+    container.appendChild(overlay);
+    return overlay;
+}
+
+function removeKeywordLoading() {
+    const existing = document.querySelector(".keyword-loading-overlay");
+    if (existing) existing.remove();
+}
+
 // output内のキーワード群を基にAPIへ問い合わせる
 async function requestKeywordsFromOutput(keywords) {
     const uniqueKeywords = [...new Set(keywords.map(k => k.trim()).filter(Boolean))];
@@ -120,6 +164,8 @@ async function requestKeywordsFromOutput(keywords) {
         return false;
     };
     
+    showKeywordLoading();
+
     const chunkTasks = keywordChunks.map(chunk => {
         const chunkLabel = chunk.join(", ");
         const prompt = `
@@ -160,6 +206,8 @@ async function requestKeywordsFromOutput(keywords) {
             console.warn("観点生成タスクで予期せぬ拒否が発生", result.reason);
         }
     });
+
+    removeKeywordLoading();
 
     if (failedChunks.length > 0) {
         console.warn("AI生成に失敗したキーワード:", failedChunks);
