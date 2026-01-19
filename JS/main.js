@@ -92,6 +92,16 @@ function logLayoutAction(message) {
     }
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+    if (typeof window.addSystemLog === "function") {
+        const userName = (localStorage.getItem("userName") || "").trim() || "未設定";
+        const titleFromStorage = (localStorage.getItem("searchTitle") || "").trim();
+        const titleFromInput = (document.getElementById("myTitle")?.value || "").trim();
+        const title = titleFromInput || titleFromStorage || "未設定";
+        window.addSystemLog(`システム起動: main.html を開きました (ユーザ: ${userName}, タイトル: ${title})`);
+    }
+});
+
 // 5. ボタン押下で左20%・右80%に変更
 $(function(){
     var row = null;

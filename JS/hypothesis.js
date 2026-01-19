@@ -74,6 +74,25 @@ function addHypothesisEntry(nodeIds) {
   ta.className = "hypothesis-text";
   ta.placeholder = "ここに仮説を入力";
   ta.value = ""; // 初期は空白
+  ta.dataset.lastLoggedValue = "";
+  let logTimer = null;
+  ta.addEventListener("input", function () {
+    if (logTimer) clearTimeout(logTimer);
+    logTimer = setTimeout(function () {
+      const current = ta.value.trim();
+      if (current && current !== ta.dataset.lastLoggedValue) {
+        logHypothesisAction(`仮説: 入力 "${current}"`);
+        ta.dataset.lastLoggedValue = current;
+      }
+    }, 500);
+  });
+  ta.addEventListener("blur", function () {
+    const current = ta.value.trim();
+    if (current && current !== ta.dataset.lastLoggedValue) {
+      logHypothesisAction(`仮説: 入力 "${current}"`);
+      ta.dataset.lastLoggedValue = current;
+    }
+  });
   body.appendChild(ta);
   entry.appendChild(body);
 
@@ -409,6 +428,25 @@ function applyScamperToEntry(entry, option, parentContainer = null) {
   var editBox = document.createElement("textarea");
   editBox.className = "scamper-edit-box";
   editBox.placeholder = "発散させた仮説を記入してください";
+  editBox.dataset.lastLoggedValue = "";
+  let editLogTimer = null;
+  editBox.addEventListener("input", function () {
+    if (editLogTimer) clearTimeout(editLogTimer);
+    editLogTimer = setTimeout(function () {
+      const current = editBox.value.trim();
+      if (current && current !== editBox.dataset.lastLoggedValue) {
+        logHypothesisAction(`仮説: SCAMPER入力 (${option.label}) "${current}"`);
+        editBox.dataset.lastLoggedValue = current;
+      }
+    }, 500);
+  });
+  editBox.addEventListener("blur", function () {
+    const current = editBox.value.trim();
+    if (current && current !== editBox.dataset.lastLoggedValue) {
+      logHypothesisAction(`仮説: SCAMPER入力 (${option.label}) "${current}"`);
+      editBox.dataset.lastLoggedValue = current;
+    }
+  });
 
   // 右クリックで削除確認ダイアログを表示
   tagLabel.addEventListener("contextmenu", function (e) {
@@ -702,6 +740,10 @@ function triggerScamperQuestion(targetTag, scamperLabel) {
         return;
       }
       console.log(data.result);
+      const questionTexts = items.map((li) => li.textContent).filter(Boolean);
+      if (questionTexts.length > 0) {
+        logHypothesisAction(`仮説: 生成質問一覧 [${questionTexts.join(" / ")}]`);
+      }
 
       const dialog = document.createElement("div");
       dialog.className = "question-dialog";
@@ -769,6 +811,7 @@ function triggerScamperQuestion(targetTag, scamperLabel) {
           span.style.borderRadius = "6px";
           span.style.fontSize = "0.95em";
           targetTag.insertAdjacentElement("afterend", span);
+          logHypothesisAction(`仮説: 生成質問を選択 "${li.textContent}"`);
           document.body.removeChild(dialog);
         };
         dialogBody.appendChild(btn);

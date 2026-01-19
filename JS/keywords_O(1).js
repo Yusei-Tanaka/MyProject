@@ -20,6 +20,9 @@ function handleKeywordClick(keyword) {
             y: center.y
         };
         nodes.add(newNode); // ノードを追加
+        if (typeof window.addSystemLog === "function") {
+            window.addSystemLog(`生成キーワード: ノード追加 label="${keyword}"`);
+        }
         console.log(`キーワード "${keyword}" をノードとして追加しました。`);
     } else {
         console.log(`キーワード "${keyword}" のノードは既に存在しています。`);
