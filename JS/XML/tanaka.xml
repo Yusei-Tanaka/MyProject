@@ -1,1 +1,9 @@
-<root></root>
+<?xml version="1.0" encoding="UTF-8"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="New Node" />
+    <Node id="2" label="要因" />
+  </Nodes>
+  <Edges>
+  </Edges>
+</ConceptMap>

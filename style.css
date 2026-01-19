@@ -15,10 +15,10 @@
     --color-main-button-text: #7F8C8D;
     --color-canvas-bg: #FFFFFF;
     --color-canvas-grid: #F1F5F9;
-    --color-hypothesis-bg: #FFFBEB;
-    --color-hypothesis-border: #FDE68A;
-    --color-hypothesis-heading: #92400E;
-    --color-hypothesis-button: #3498DB;
+    --color-hypothesis-bg: #EFF6FF;
+    --color-hypothesis-border: #BFDBFE;
+    --color-hypothesis-heading: #1E3A8A;
+    --color-hypothesis-button: #1D4ED8;
     --color-extra-bg: #F1F5F9;
     --color-extra-border: #CBD5E1;
     --color-button-primary: #3498DB;
@@ -474,6 +474,7 @@ button#keywordCreationBtn:hover,
     color: #fff;
     padding: 12px 16px;
     font-weight: 600;
+    -webkit-user-select: none;
     cursor: move;
     user-select: none;
 }

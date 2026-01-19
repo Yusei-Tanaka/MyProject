@@ -97,7 +97,7 @@ $(function(){
         }
     });
 
-    // 左 20%・右 80% に切替するボタン
+    // 左 30%・右 70% に切替するボタン
     $('#showLeftBtn').on('click', function(){
         if (!row) {
             row = myLayout.root.contentItems[0];
@@ -105,8 +105,8 @@ $(function(){
         if (!row || row.contentItems.length < 2) return;
         var leftCol = row.contentItems[0];
         var rightCol = row.contentItems[1];
-        leftCol.config.width = 20;
-        rightCol.config.width = 80;
+        leftCol.config.width = 30;
+        rightCol.config.width = 70;
         // サイズ再計算を下位要素に伝播
         row.callDownwards('setSize');
         $('#createHypothesisBtn').removeAttr('hidden').removeClass('is-hidden');
