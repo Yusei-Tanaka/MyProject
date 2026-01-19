@@ -590,9 +590,50 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // SCAMPERタグをクリックした際にその情報をコンソールに出力
+function showScamperLoading() {
+  const existing = document.querySelector(".scamper-loading-overlay");
+  if (existing) return existing;
+
+  const overlay = document.createElement("div");
+  overlay.className = "scamper-loading-overlay";
+  overlay.style.position = "fixed";
+  overlay.style.top = "0";
+  overlay.style.left = "0";
+  overlay.style.right = "0";
+  overlay.style.bottom = "0";
+  overlay.style.background = "rgba(0, 0, 0, 0.35)";
+  overlay.style.zIndex = "10000";
+  overlay.style.display = "flex";
+  overlay.style.alignItems = "center";
+  overlay.style.justifyContent = "center";
+
+  const message = document.createElement("div");
+  message.className = "scamper-loading";
+  message.textContent = "思考中...";
+  message.style.background = "#eef6ff";
+  message.style.border = "1px solid #b7d5f2";
+  message.style.padding = "16px 28px";
+  message.style.borderRadius = "12px";
+  message.style.fontSize = "1.4em";
+  message.style.fontWeight = "bold";
+  message.style.color = "#1f4b74";
+  message.style.boxShadow = "0 10px 30px rgba(0,0,0,0.2)";
+
+  overlay.appendChild(message);
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
+function removeScamperLoading() {
+  const existing = document.querySelector(".scamper-loading-overlay");
+  if (existing) existing.remove();
+}
+
 function triggerScamperQuestion(targetTag, scamperLabel) {
   selectedScamper = scamperLabel;
   console.log("選択されたSCAMPERタグ:", scamperLabel);
+
+  showScamperLoading();
 
   // SCAMPER選択時に毎回最新のタイトル値を取得
   window.theme = document.querySelector("#myTitle")?.value || "";
@@ -634,6 +675,7 @@ function triggerScamperQuestion(targetTag, scamperLabel) {
       return response.json();
     })
     .then((data) => {
+      removeScamperLoading();
       const tempDiv = document.createElement("div");
       tempDiv.innerHTML = data.result;
       const items = Array.from(tempDiv.querySelectorAll("li"));
@@ -725,6 +767,7 @@ function triggerScamperQuestion(targetTag, scamperLabel) {
       document.body.appendChild(dialog);
     })
     .catch((error) => {
+      removeScamperLoading();
       alert("API呼び出し中にエラーが発生しました: " + error.message);
     });
 }
