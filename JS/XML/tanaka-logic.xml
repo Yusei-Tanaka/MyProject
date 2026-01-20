@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ConceptMap>
   <Nodes>
-    <Node id="1" label="New Node" />
+    <Node id="1" label="走る" />
+    <Node id="2" label="ストライド" />
+    <Node id="3" label="ピッチ" />
   </Nodes>
   <Edges>
+    <Edge from="1" to="2" label="要素" />
+    <Edge from="1" to="3" label="要素" />
   </Edges>
 </ConceptMap>

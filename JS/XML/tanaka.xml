@@ -1,7 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ConceptMap>
   <Nodes>
-    <Node id="1" label="視点" />
+    <Node id="1" label="クリーンエネルギー技術" />
+    <Node id="2" label="環境影響" />
+    <Node id="3" label="炭素循環" />
+    <Node id="4" label="過剰排出" />
+    <Node id="5" label="観察" />
+    <Node id="6" label="問題提起" />
+    <Node id="7" label="環境問題" />
+    <Node id="8" label="交通事故" />
+    <Node id="9" label="結果" />
+    <Node id="10" label="環境負荷低減" />
+    <Node id="11" label="技術革新" />
+    <Node id="12" label="測定単位" />
+    <Node id="13" label="削減の必要性" />
+    <Node id="14" label="バス" />
+    <Node id="15" label="指標" />
+    <Node id="16" label="見解" />
+    <Node id="17" label="革新" />
+    <Node id="18" label="目的" />
+    <Node id="19" label="自動車産業" />
+    <Node id="20" label="イタリア" />
+    <Node id="21" label="パリ協定" />
+    <Node id="22" label="意識調査" />
+    <Node id="23" label="ライフサイクルアセスメント" />
+    <Node id="24" label="資源管理" />
+    <Node id="25" label="軽量化技術" />
+    <Node id="26" label="課題設定" />
+    <Node id="27" label="影響" />
+    <Node id="28" label="炭素" />
+    <Node id="29" label="データ解析技術" />
+    <Node id="30" label="行動変容" />
+    <Node id="31" label="持続可能な開発" />
+    <Node id="32" label="環境影響評価" />
+    <Node id="33" label="都市化" />
+    <Node id="34" label="化石燃料" />
+    <Node id="35" label="原因" />
+    <Node id="36" label="燃料電池車" />
+    <Node id="37" label="課題" />
+    <Node id="38" label="持続可能な交通" />
+    <Node id="39" label="気候変動対策" />
+    <Node id="40" label="充電インフラ" />
+    <Node id="41" label="酸素" />
+    <Node id="42" label="概念" />
   </Nodes>
   <Edges>
   </Edges>
