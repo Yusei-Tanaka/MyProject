@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="コンサルティング事業" />
+    <Node id="2" label="業務管理システム" />
+    <Node id="3" label="ビジネスアプリケーション" />
+    <Node id="4" label="ITの力で業務を統合管理するアプリケーション" />
+    <Node id="5" label="業務の効率化" />
+    <Node id="6" label="顧客管理（CRM)" />
+    <Node id="7" label="会計" />
+    <Node id="8" label="人事管理" />
+    <Node id="9" label="プロジェクト管理" />
+    <Node id="10" label="コミュニケーション" />
+    <Node id="11" label="タスク管理" />
+    <Node id="12" label="Google cloud" />
+    <Node id="13" label="問題定義" />
+    <Node id="14" label="ソリューションの提案" />
+    <Node id="15" label="アフターフォロー" />
+    <Node id="16" label="アイデンティティ" />
+    <Node id="17" label="クリエイティブ職" />
+    <Node id="18" label="国際的アイデンティティ" />
+  </Nodes>
+  <Edges>
+    <Edge from="2" to="3" label="言い換え" />
+    <Edge from="4" to="5" label="影響" />
+    <Edge from="3" to="4" label="説明" />
+    <Edge from="4" to="11" label="種類" />
+    <Edge from="4" to="8" label="種類" />
+    <Edge from="4" to="7" label="種類" />
+    <Edge from="4" to="6" label="種類" />
+    <Edge from="4" to="10" label="種類" />
+    <Edge from="4" to="9" label="種類" />
+    <Edge from="4" to="12" label="具体的ツール" />
+    <Edge from="1" to="2" label="事業内容" />
+    <Edge from="1" to="13" label="業務プロセス" />
+    <Edge from="14" to="15" label="その後" />
+    <Edge from="13" to="14" label="その後" />
+    <Edge from="16" to="1" label="要素" />
+    <Edge from="17" to="16" label="要素" />
+    <Edge from="17" to="1" label="種類" />
+    <Edge from="16" to="18" label="種類" />
+  </Edges>
+</ConceptMap>

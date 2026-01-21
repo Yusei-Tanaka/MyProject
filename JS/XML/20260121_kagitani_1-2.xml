@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="バイオマス発電" />
+    <Node id="2" label="木質燃料" />
+    <Node id="3" label="発酵を通してバイオマスをガス化" />
+    <Node id="4" label="バイオガス" />
+    <Node id="5" label="直接燃料方式" />
+    <Node id="6" label="熱分解ガス化方式" />
+    <Node id="7" label="生物化学的ガス化方式" />
+    <Node id="8" label="バイオマスを直接燃焼" />
+    <Node id="9" label="バイオマスを高音で熱処理することでガス化" />
+    <Node id="10" label="安定した発電量" />
+    <Node id="11" label="カーボンニュートラル" />
+    <Node id="12" label="温室効果ガスの排出量と吸収量が均衡して差し引きゼロの状態" />
+    <Node id="13" label="資源循環性" />
+    <Node id="14" label="原料調達コスト" />
+    <Node id="15" label="低い発電効率" />
+    <Node id="16" label="バイオガスにおける廃液処理" />
+    <Node id="17" label="再生可能エネルギー" />
+    <Node id="18" label="動植物由来の有機資源を燃料として電気を作る" />
+    <Node id="19" label="燃料の投入→熱エネルギーの発生→蒸気タービンの回転→発電" />
+    <Node id="20" label="国際比較" />
+    <Node id="21" label="技術進歩" />
+    <Node id="22" label="New Node" />
+    <Node id="23" label="エネルギー政策比較" />
+    <Node id="24" label="エネルギー市場" />
+    <Node id="25" label="技術普及" />
+  </Nodes>
+  <Edges>
+    <Edge from="1" to="2" label="燃料" />
+    <Edge from="4" to="1" label="燃料" />
+    <Edge from="1" to="5" label="発電方式" />
+    <Edge from="1" to="6" label="発電方式" />
+    <Edge from="1" to="7" label="発電方式" />
+    <Edge from="5" to="8" label="説明" />
+    <Edge from="6" to="9" label="説明" />
+    <Edge from="7" to="3" label="説明" />
+    <Edge from="11" to="12" label="説明" />
+    <Edge from="1" to="11" label="メリット" />
+    <Edge from="1" to="10" label="メリット" />
+    <Edge from="13" to="1" label="メリット" />
+    <Edge from="1" to="15" label="デメリット" />
+    <Edge from="1" to="14" label="デメリット" />
+    <Edge from="1" to="16" label="デメリット" />
+    <Edge from="18" to="1" label="説明" />
+    <Edge from="1" to="17" label="種類" />
+    <Edge from="1" to="19" label="仕組み" />
+    <Edge from="17" to="20" label="アイデア" />
+    <Edge from="17" to="23" label="アイデア" />
+    <Edge from="23" to="21" label="比較対象" />
+    <Edge from="20" to="21" label="比較対象" />
+    <Edge from="24" to="23" label="比較対象" />
+    <Edge from="24" to="20" label="比較対象" />
+    <Edge from="25" to="17" label="アイデア" />
+  </Edges>
+</ConceptMap>
