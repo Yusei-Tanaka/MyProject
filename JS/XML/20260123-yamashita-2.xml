@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="SNS" />
+    <Node id="2" label="人間関係" />
+    <Node id="3" label="多様な情報" />
+    <Node id="4" label="顔が見えない" />
+    <Node id="5" label="遠い場所でも仲間を探せる" />
+    <Node id="6" label="誹謗中傷" />
+    <Node id="7" label="盲目的に信じてしまう" />
+    <Node id="8" label="いろんな情報を知ることができる" />
+    <Node id="9" label="暇つぶし" />
+    <Node id="10" label="海外旅行" />
+    <Node id="11" label="ニュースアプリ" />
+    <Node id="12" label="人の価値観" />
+    <Node id="13" label="娯楽ではない" />
+    <Node id="14" label="娯楽" />
+    <Node id="15" label="楽" />
+    <Node id="16" label="労力が大きい" />
+    <Node id="17" label="顔が見える" />
+    <Node id="18" label="偏向報道" />
+    <Node id="19" label="フェイクニュース" />
+  </Nodes>
+  <Edges>
+    <Edge from="3" to="1" label="存在" />
+    <Edge from="2" to="1" label="特徴" />
+    <Edge from="4" to="2" label="特徴" />
+    <Edge from="4" to="5" label="メリット" />
+    <Edge from="4" to="6" label="デメリット" />
+    <Edge from="3" to="7" label="デメリット" />
+    <Edge from="3" to="8" label="メリット" />
+    <Edge from="1" to="9" label="手段" />
+    <Edge from="5" to="10" label="メリット" />
+    <Edge from="8" to="11" label="メリット" />
+    <Edge from="12" to="1" label="存在" />
+    <Edge from="11" to="12" label="あまり存在しない" />
+    <Edge from="11" to="13" label="デメリット" />
+    <Edge from="9" to="14" label="New Edge" />
+    <Edge from="15" to="1" label="メリット" />
+    <Edge from="10" to="16" label="デメリット" />
+    <Edge from="4" to="17" label="対象" />
+    <Edge from="18" to="3" label="存在" />
+    <Edge from="1" to="19" label="存在" />
+  </Edges>
+</ConceptMap>

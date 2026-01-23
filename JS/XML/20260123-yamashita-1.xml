@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="エネルギー" />
+    <Node id="2" label="原子力発電" />
+    <Node id="3" label="火力発電" />
+    <Node id="4" label="風力発電" />
+    <Node id="5" label="太陽光発電" />
+    <Node id="6" label="持続可能なエネルギー" />
+    <Node id="7" label="CO2排出が多い" />
+    <Node id="8" label="福島の事故" />
+    <Node id="9" label="森林伐採" />
+    <Node id="10" label="安定した電力供給" />
+    <Node id="11" label="CO2排出が少ない" />
+    <Node id="12" label="水力発電" />
+    <Node id="13" label="地球温暖化" />
+    <Node id="14" label="不安定な電力供給" />
+    <Node id="15" label="停電" />
+    <Node id="16" label="夜間はできない" />
+    <Node id="17" label="化石燃料" />
+    <Node id="18" label="電力の効率化" />
+    <Node id="19" label="世界の動向" />
+  </Nodes>
+  <Edges>
+    <Edge from="5" to="1" label="手段" />
+    <Edge from="4" to="1" label="手段" />
+    <Edge from="1" to="3" label="手段" />
+    <Edge from="1" to="2" label="手段" />
+    <Edge from="4" to="6" label="メリット" />
+    <Edge from="5" to="6" label="メリット" />
+    <Edge from="3" to="7" label="デメリット" />
+    <Edge from="2" to="8" label="デメリット" />
+    <Edge from="9" to="5" label="デメリット" />
+    <Edge from="10" to="3" label="メリット" />
+    <Edge from="2" to="10" label="メリット" />
+    <Edge from="1" to="12" label="手段" />
+    <Edge from="12" to="10" label="メリット" />
+    <Edge from="12" to="11" label="メリット" />
+    <Edge from="2" to="11" label="メリット" />
+    <Edge from="4" to="11" label="メリット" />
+    <Edge from="5" to="11" label="メリット" />
+    <Edge from="12" to="9" label="デメリット" />
+    <Edge from="7" to="13" label="つながる" />
+    <Edge from="9" to="13" label="つながる" />
+    <Edge from="5" to="14" label="デメリット" />
+    <Edge from="4" to="14" label="デメリット" />
+    <Edge from="14" to="15" label="起きる" />
+    <Edge from="16" to="5" label="デメリット" />
+    <Edge from="17" to="3" label="必要" />
+    <Edge from="1" to="18" label="重要" />
+    <Edge from="6" to="19" label="増加傾向" />
+  </Edges>
+</ConceptMap>
