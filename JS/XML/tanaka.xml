@@ -1,13 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ConceptMap>
-  <Nodes>
-    <Node id="1" label="New Node" />
-    <Node id="2" label="New Node" />
-    <Node id="3" label="New Node" />
-    <Node id="4" label="大気汚染" />
-    <Node id="5" label="エネルギー不足" />
-    <Node id="6" label="環境経済学" />
-  </Nodes>
-  <Edges>
-  </Edges>
-</ConceptMap>
+<root></root>
