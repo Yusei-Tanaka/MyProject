@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="再生可能エネルギー" />
+    <Node id="2" label="太陽光" />
+    <Node id="3" label="風力" />
+    <Node id="4" label="地熱" />
+    <Node id="5" label="バイオマス" />
+    <Node id="6" label="水力" />
+    <Node id="7" label="熱利用分野" />
+    <Node id="8" label="発電分野" />
+    <Node id="9" label="温度差" />
+    <Node id="10" label="雪氷" />
+    <Node id="11" label="燃料分野" />
+    <Node id="12" label="大規模水力" />
+    <Node id="13" label="革新的なエネルギー高度利用技術" />
+    <Node id="14" label="新エネルギー（広義）" />
+    <Node id="15" label="グリーンエネルギー自動車" />
+    <Node id="16" label="天然ガスコージェネレーション" />
+    <Node id="17" label="燃料電池" />
+    <Node id="18" label="廃棄系" />
+    <Node id="19" label="未利用系" />
+    <Node id="20" label="資源作物" />
+    <Node id="21" label="食品廃棄物" />
+    <Node id="22" label="家畜糞尿" />
+    <Node id="23" label="下水汚泥" />
+    <Node id="24" label="農業残渣" />
+    <Node id="25" label="木質系廃棄物" />
+    <Node id="26" label="生ゴミ" />
+    <Node id="27" label="廃棄油" />
+    <Node id="28" label="BDF" />
+    <Node id="29" label="食品加工残渣" />
+    <Node id="30" label="エステル交換反応" />
+    <Node id="31" label="下水熱エネルギー" />
+  </Nodes>
+  <Edges>
+    <Edge from="1" to="8" label="分類" />
+    <Edge from="7" to="1" label="分類" />
+    <Edge from="9" to="7" label="利用" />
+    <Edge from="7" to="5" label="利用" />
+    <Edge from="7" to="10" label="利用" />
+    <Edge from="2" to="7" label="利用" />
+    <Edge from="5" to="8" label="エネルギー源" />
+    <Edge from="2" to="8" label="エネルギー源" />
+    <Edge from="3" to="8" label="エネルギー源" />
+    <Edge from="4" to="8" label="エネルギー源" />
+    <Edge from="6" to="8" label="エネルギー源" />
+    <Edge from="11" to="1" label="分類" />
+    <Edge from="11" to="5" label="原料" />
+    <Edge from="1" to="12" label="分類" />
+    <Edge from="14" to="13" label="分類" />
+    <Edge from="14" to="1" label="分類" />
+    <Edge from="13" to="16" label="分類" />
+    <Edge from="13" to="15" label="分類" />
+    <Edge from="17" to="13" label="分類" />
+    <Edge from="20" to="5" label="分類" />
+    <Edge from="5" to="19" label="分類" />
+    <Edge from="18" to="5" label="分類" />
+    <Edge from="18" to="25" label="分類" />
+    <Edge from="24" to="18" label="分類" />
+    <Edge from="23" to="18" label="分類" />
+    <Edge from="21" to="18" label="分類" />
+    <Edge from="22" to="18" label="分類" />
+    <Edge from="28" to="27" label="原料" />
+    <Edge from="27" to="21" label="分類" />
+    <Edge from="26" to="21" label="分類" />
+    <Edge from="29" to="21" label="分類" />
+    <Edge from="28" to="30" label="作成方法" />
+    <Edge from="23" to="31" label="活用" />
+  </Edges>
+</ConceptMap>
