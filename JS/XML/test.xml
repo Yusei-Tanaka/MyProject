@@ -1,40 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ConceptMap>
   <Nodes>
-    <Node id="1" label="二酸化炭素" />
-    <Node id="2" label="自動車" />
-    <Node id="3" label="温室効果ガス" />
-    <Node id="4" label="持続可能なエネルギー" />
-    <Node id="5" label="エコカー" />
-    <Node id="6" label="気候変動対策" />
-    <Node id="7" label="環境問題" />
-    <Node id="8" label="地球温暖化" />
-    <Node id="9" label="カーボンニュートラル" />
-    <Node id="10" label="クリーンエネルギー" />
-    <Node id="11" label="電気自動車" />
-    <Node id="12" label="排出権取引" />
-    <Node id="13" label="公共交通機関" />
-    <Node id="14" label="バス" />
-    <Node id="15" label="鉄道" />
-    <Node id="16" label="タクシー" />
+    <Node id="1" label="排出権取引" />
+    <Node id="2" label="費用対効果" />
+    <Node id="3" label="国際自動車市場" />
   </Nodes>
   <Edges>
-    <Edge from="2" to="5" label="種類" />
-    <Edge from="2" to="1" label="排出" />
-    <Edge from="1" to="3" label="要素" />
-    <Edge from="5" to="4" label="燃料" />
-    <Edge from="4" to="6" label="目的" />
-    <Edge from="7" to="6" label="対策" />
-    <Edge from="7" to="8" label="具体例" />
-    <Edge from="4" to="9" label="目的" />
-    <Edge from="4" to="10" label="New Edge" />
-    <Edge from="5" to="10" label="燃料" />
-    <Edge from="11" to="5" label="要素" />
-    <Edge from="7" to="12" label="対策" />
-    <Edge from="12" to="6" label="対策" />
-    <Edge from="13" to="14" label="要素" />
-    <Edge from="13" to="15" label="要素" />
-    <Edge from="2" to="14" label="要素" />
-    <Edge from="13" to="16" label="要素" />
   </Edges>
 </ConceptMap>
