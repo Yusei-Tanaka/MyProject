@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="就職活動" />
+    <Node id="2" label="大学生" />
+    <Node id="3" label="授業" />
+    <Node id="4" label="面接，インターン，説明会" />
+    <Node id="5" label="企業" />
+    <Node id="6" label="早期化" />
+    <Node id="7" label="バイト" />
+    <Node id="8" label="教授" />
+    <Node id="9" label="知識，技術" />
+    <Node id="10" label="優秀な人材" />
+    <Node id="11" label="サークル，部活" />
+    <Node id="12" label="解禁日" />
+    <Node id="13" label="企業のニーズ" />
+    <Node id="14" label="AI採用" />
+    <Node id="15" label="労働力不足" />
+    <Node id="16" label="教育制度" />
+    <Node id="17" label="優秀ではない人材" />
+  </Nodes>
+  <Edges>
+    <Edge from="6" to="1" label="現状" />
+    <Edge from="1" to="4" label="要素" />
+    <Edge from="2" to="1" label="行う" />
+    <Edge from="2" to="3" label="受ける" />
+    <Edge from="2" to="7" label="働く" />
+    <Edge from="7" to="5" label="募集" />
+    <Edge from="8" to="3" label="講義" />
+    <Edge from="8" to="2" label="出て欲しい" />
+    <Edge from="1" to="3" label="同時に行けない" />
+    <Edge from="6" to="3" label="疎かになる" />
+    <Edge from="6" to="5" label="促進" />
+    <Edge from="3" to="9" label="得る" />
+    <Edge from="7" to="9" label="得る" />
+    <Edge from="9" to="10" label="生まれる" />
+    <Edge from="11" to="2" label="参加" />
+    <Edge from="11" to="9" label="得る" />
+    <Edge from="5" to="10" label="欲しい" />
+    <Edge from="2" to="5" label="採用" />
+    <Edge from="1" to="12" label="ルール" />
+    <Edge from="12" to="5" label="無視" />
+    <Edge from="6" to="12" label="無視" />
+    <Edge from="9" to="13" label="合致" />
+    <Edge from="14" to="13" label="判断" />
+    <Edge from="10" to="14" label="判断" />
+    <Edge from="5" to="15" label="陥る" />
+    <Edge from="16" to="10" label="生まれる" />
+    <Edge from="17" to="16" label="適用" />
+    <Edge from="15" to="17" label="貢献" />
+    <Edge from="5" to="17" label="欲しくない" />
+  </Edges>
+</ConceptMap>

@@ -1,9 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ConceptMap>
   <Nodes>
-    <Node id="1" label="New Node" />
-    <Node id="2" label="エコドライブ" />
+    <Node id="1" label="エネルギー" />
+    <Node id="2" label="枯渇性エネルギー" />
+    <Node id="3" label="再生可能エネルギー" />
+    <Node id="4" label="水力発電" />
+    <Node id="5" label="太陽光発電" />
+    <Node id="6" label="バイオマス発電" />
+    <Node id="7" label="原子力発電" />
+    <Node id="8" label="火力発電" />
+    <Node id="9" label="安定性" />
   </Nodes>
   <Edges>
+    <Edge from="1" to="3" label="種類" />
+    <Edge from="1" to="2" label="種類" />
+    <Edge from="3" to="6" label="要素" />
+    <Edge from="3" to="5" label="要素" />
+    <Edge from="3" to="4" label="要素" />
+    <Edge from="2" to="7" label="要素" />
+    <Edge from="2" to="8" label="要素" />
+    <Edge from="1" to="9" label="観点" />
+    <Edge from="9" to="7" label="高い" />
+    <Edge from="6" to="9" label="低い" />
+    <Edge from="5" to="9" label="低い" />
+    <Edge from="4" to="9" label="低い" />
+    <Edge from="9" to="8" label="高い" />
   </Edges>
 </ConceptMap>
