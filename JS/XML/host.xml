@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="エネルギー" />
+    <Node id="2" label="光エネルギー" />
+    <Node id="3" label="音エネルギー" />
+    <Node id="4" label="運動エネルギー" />
+    <Node id="5" label="位置エネルギー" />
+    <Node id="6" label="原子力エネルギー" />
+    <Node id="7" label="熱エネルギー" />
+    <Node id="8" label="火力発電" />
+    <Node id="9" label="原子力発電" />
+    <Node id="10" label="電気エネルギー" />
+    <Node id="11" label="バイオマス発電" />
+    <Node id="12" label="太陽熱発電" />
+    <Node id="13" label="再生可能エネルギー" />
+    <Node id="14" label="水力発電" />
+    <Node id="15" label="海洋エネルギー発電" />
+    <Node id="16" label="回転エネルギー" />
+  </Nodes>
+  <Edges>
+    <Edge from="1" to="2" label="種類" />
+    <Edge from="1" to="3" label="種類" />
+    <Edge from="1" to="4" label="種類" />
+    <Edge from="1" to="5" label="種類" />
+    <Edge from="1" to="6" label="種類" />
+    <Edge from="1" to="7" label="種類" />
+    <Edge from="7" to="8" label="発電方法" />
+    <Edge from="9" to="6" label="発電方法" />
+    <Edge from="10" to="7" label="発電方法" />
+    <Edge from="11" to="7" label="発電方法" />
+    <Edge from="16" to="10" label="変換" />
+    <Edge from="12" to="10" label="発電方法" />
+    <Edge from="14" to="16" label="発電方法" />
+    <Edge from="13" to="14" label="種類" />
+    <Edge from="13" to="12" label="種類" />
+    <Edge from="13" to="11" label="種類" />
+    <Edge from="13" to="15" label="種類" />
+  </Edges>
+</ConceptMap>
