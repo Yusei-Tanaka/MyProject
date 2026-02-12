@@ -13,8 +13,12 @@ function handleKeywordClick(keyword) {
         // ネットワークの中心座標を取得
         var center = network.getViewPosition();
         // 新しいノードを作成
+        var newId = nodes.length + 1;
+        while (nodes.get(newId)) {
+            newId++;
+        }
         var newNode = {
-            id: nodes.length + 1, // IDを自動生成
+            id: newId,
             label: keyword,
             x: center.x,
             y: center.y

@@ -48,21 +48,32 @@ if (!fs.existsSync(logDir)) {
 // XMLファイルを保存するエンドポイント
 app.use(express.json());
 app.post("/save-xml", (req, res) => {
-  const { filename, content } = req.body;
-  if (!filename || typeof content !== "string") {
-    console.error("ファイル名または内容がありません");
-    return res.status(400).send("ファイル名と内容が必要です");
-  }
-
-  const filePath = path.join(xmlDir, filename);
-  fs.writeFile(filePath, content, "utf-8", (writeErr) => {
-    if (writeErr) {
-      console.error("XMLファイルの保存に失敗しました:", writeErr);
-      return res.status(500).send("ファイルの保存に失敗しました");
+  try {
+    const { filename, content } = req.body;
+    if (!filename || typeof content !== "string") {
+      console.error("ファイル名または内容がありません");
+      return res.status(400).send("ファイル名と内容が必要です");
     }
-    console.log(`XMLファイルが保存されました: ${filePath}`);
-    res.send("ファイルが保存されました");
-  });
+
+    const safeName = sanitizeFileName(filename);
+    if (!safeName) {
+      console.error("不正なファイル名です:", filename);
+      return res.status(400).send("不正なファイル名です");
+    }
+
+    const filePath = path.join(xmlDir, safeName);
+    fs.writeFile(filePath, content, "utf-8", (writeErr) => {
+      if (writeErr) {
+        console.error("XMLファイルの保存に失敗しました:", writeErr);
+        return res.status(500).send("ファイルの保存に失敗しました: " + writeErr.message);
+      }
+      console.log(`XMLファイルが保存されました: ${filePath}`);
+      res.send("ファイルが保存されました");
+    });
+  } catch (e) {
+    console.error("予期しないエラー:", e);
+    res.status(500).send("サーバー内部エラー: " + e.message);
+  }
 });
 
 app.options("/save-log", cors(corsOptions)); // preflight

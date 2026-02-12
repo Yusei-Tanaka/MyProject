@@ -562,8 +562,12 @@ function handleKeywordClick(keyword) {
 
     if (existingNode.length === 0) {
         // 新しいノードを作成
+      var newId = nodes.length + 1;
+      while (nodes.get(newId)) {
+        newId++;
+      }
         var newNode = {
-            id: nodes.length + 1, // IDを自動生成
+        id: newId,
             label: keyword,
         };
         nodes.add(newNode); // ノードを追加
