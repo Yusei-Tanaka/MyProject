@@ -7,7 +7,8 @@ const updateUserIdInput = document.getElementById("updateUserId");
 const updatePasswordInput = document.getElementById("updatePassword");
 const updateBtn = document.getElementById("updateBtn");
 const reloadBtn = document.getElementById("reloadBtn");
-const userList = document.getElementById("userList");
+const userTableBody = document.getElementById("userTableBody");
+const userCount = document.getElementById("userCount");
 const statusArea = document.getElementById("status");
 const USER_ID_PATTERN = /^[a-zA-Z0-9_-]{3,32}$/;
 
@@ -15,8 +16,8 @@ const validateInputs = (id, password) => {
   if (!USER_ID_PATTERN.test(id)) {
     return "ユーザIDは3〜32文字、英数字・_・-のみ使えます";
   }
-  if (password.length < 8 || password.length > 128) {
-    return "パスワードは8〜128文字で入力してください";
+  if (password.length === 0) {
+    return "パスワードを入力してください";
   }
   return "";
 };
@@ -26,25 +27,41 @@ const setStatus = (message, isError = false) => {
   statusArea.setAttribute("data-error", isError ? "1" : "0");
 };
 
+const renderEmptyRow = (message) => {
+  userTableBody.innerHTML = "";
+  const tr = document.createElement("tr");
+  const td = document.createElement("td");
+  td.colSpan = 2;
+  td.textContent = message;
+  tr.appendChild(td);
+  userTableBody.appendChild(tr);
+  userCount.textContent = "0件";
+};
+
 const loadUsers = async () => {
   try {
     const res = await fetch(`${API_BASE}/users`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const users = await res.json();
-    userList.innerHTML = "";
+    userTableBody.innerHTML = "";
 
     if (!Array.isArray(users) || users.length === 0) {
-      const li = document.createElement("li");
-      li.textContent = "ユーザがまだ登録されていません";
-      userList.appendChild(li);
+      renderEmptyRow("ユーザがまだ登録されていません");
       return;
     }
 
+    userCount.textContent = `${users.length}件`;
+
     users.forEach((user) => {
-      const li = document.createElement("li");
+      const tr = document.createElement("tr");
+
+      const userTd = document.createElement("td");
       const label = document.createElement("span");
       label.textContent = user.id;
+      userTd.appendChild(label);
+
+      const actionTd = document.createElement("td");
 
       const deleteBtn = document.createElement("button");
       deleteBtn.type = "button";
@@ -66,14 +83,15 @@ const loadUsers = async () => {
         }
       });
 
-      li.appendChild(label);
-      li.appendChild(document.createTextNode(" "));
-      li.appendChild(deleteBtn);
-      userList.appendChild(li);
+      actionTd.appendChild(deleteBtn);
+      tr.appendChild(userTd);
+      tr.appendChild(actionTd);
+      userTableBody.appendChild(tr);
     });
   } catch (error) {
     console.error(error);
     setStatus("ユーザ一覧の取得に失敗しました", true);
+    renderEmptyRow("ユーザ一覧の取得に失敗しました");
   }
 };
 
@@ -150,4 +168,5 @@ createBtn.addEventListener("click", createUser);
 updateBtn.addEventListener("click", updateUserPassword);
 reloadBtn.addEventListener("click", loadUsers);
 
+setStatus("準備完了", false);
 loadUsers();

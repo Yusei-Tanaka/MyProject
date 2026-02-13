@@ -114,7 +114,7 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:3000/auth/login" -ContentT
 
 ## 8. 仕様メモ
 - ユーザID: 3〜32文字（英数字・`_`・`-`）
-- パスワード: 8〜128文字
+- パスワード: 1文字以上（長さ上限なし）
 - `users.password_hash` はサーバー側で SHA-256 ハッシュ化して保存
 - サーバー起動時に必要テーブルを自動作成/補完
 

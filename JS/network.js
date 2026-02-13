@@ -186,6 +186,26 @@ document.getElementById("addNodeBtn").addEventListener("click", function () {
   logAction(`キーワードマップ: ノード追加 id=${newNode.id} label="${newNode.label}"`);
 });
 
+// マップを中央表示するボタン
+document.getElementById("recenterMapBtn").addEventListener("click", function () {
+  const allNodes = nodes.get();
+  if (!allNodes || allNodes.length === 0) {
+    network.moveTo({
+      position: { x: 0, y: 0 },
+      scale: 1,
+      animation: { duration: 300, easingFunction: "easeInOutQuad" }
+    });
+    logAction("キーワードマップ: 中央表示（ノードなし）");
+    return;
+  }
+
+  network.fit({
+    nodes: allNodes.map((n) => n.id),
+    animation: { duration: 400, easingFunction: "easeInOutQuad" }
+  });
+  logAction("キーワードマップ: 中央表示");
+});
+
 // ノード削除ボタン
 document.getElementById("deleteNodeBtn").addEventListener("click", function () {
   if (selectedNodes.length === 1) {
@@ -268,6 +288,21 @@ function updateCopiedContent(nodeIds) {
   copiedContentElement.innerText = selectedContent;
 }
 
+function escapeXml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+function getCurrentTitleText() {
+  const titleInput = document.getElementById("myTitle");
+  const inputValue = titleInput ? titleInput.value.trim() : "";
+  return inputValue || localStorage.getItem("searchTitle") || "";
+}
+
 // ネットワークのクリックイベント
 network.on("click", function (event) {
   if (event.nodes.length === 0 && event.edges.length === 0) {
@@ -281,19 +316,25 @@ network.on("click", function (event) {
 // ノードとエッジのデータをXML形式に変換する関数
 function generateXML(nodes, edges) {
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+  xml += `<?meta title="${escapeXml(getCurrentTitleText())}"?>\n`;
   xml += "<ConceptMap>\n";
+
+  const nodePositions = network.getPositions(nodes.map((node) => node.id));
 
   // ノード情報を追加
   xml += "  <Nodes>\n";
   nodes.forEach(function (node) {
-    xml += `    <Node id="${node.id}" label="${node.label}" />\n`;
+    const pos = nodePositions[node.id] || {};
+    const x = Number.isFinite(pos.x) ? pos.x : node.x;
+    const y = Number.isFinite(pos.y) ? pos.y : node.y;
+    xml += `    <Node id="${escapeXml(node.id)}" label="${escapeXml(node.label || "")}" x="${escapeXml(x ?? "")}" y="${escapeXml(y ?? "")}" />\n`;
   });
   xml += "  </Nodes>\n";
 
   // エッジ情報を追加
   xml += "  <Edges>\n";
   edges.forEach(function (edge) {
-    xml += `    <Edge from="${edge.from}" to="${edge.to}" label="${edge.label || ""}" />\n`;
+    xml += `    <Edge id="${escapeXml(edge.id ?? "")}" from="${escapeXml(edge.from)}" to="${escapeXml(edge.to)}" label="${escapeXml(edge.label || "")}" arrows="${escapeXml(edge.arrows || "")}" />\n`;
   });
   xml += "  </Edges>\n";
 
@@ -314,6 +355,111 @@ function getUserXmlFilename() {
   const storedName = localStorage.getItem("userName");
   const trimmed = storedName ? storedName.trim() : "";
   return `${trimmed || "user_map"}.xml`;
+}
+
+function parseNodeId(value) {
+  const n = Number(value);
+  return Number.isNaN(n) ? value : n;
+}
+
+function parseMetaTitle(xmlText) {
+  const matched = xmlText.match(/<\?meta\s+title="([\s\S]*?)"\?>/);
+  if (!matched) return "";
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(`<x v="${matched[1]}"/>`, "application/xml");
+  const el = doc.querySelector("x");
+  return el ? (el.getAttribute("v") || "") : "";
+}
+
+function loadConceptMapFromXml(xmlText) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xmlText, "application/xml");
+  if (doc.querySelector("parsererror")) {
+    throw new Error("XML parse error");
+  }
+
+  const restoredTitle = parseMetaTitle(xmlText).trim();
+  if (restoredTitle) {
+    localStorage.setItem("searchTitle", restoredTitle);
+    const titleInput = document.getElementById("myTitle");
+    if (titleInput) titleInput.value = restoredTitle;
+  }
+
+  const loadedNodes = [];
+  const nodeMap = new Set();
+  doc.querySelectorAll("Nodes > Node").forEach((el) => {
+    const idRaw = el.getAttribute("id");
+    const label = el.getAttribute("label") || "";
+    const xRaw = el.getAttribute("x");
+    const yRaw = el.getAttribute("y");
+    if (!idRaw) return;
+    const id = parseNodeId(idRaw);
+    const x = xRaw === null || xRaw === "" ? null : Number(xRaw);
+    const y = yRaw === null || yRaw === "" ? null : Number(yRaw);
+    nodeMap.add(String(id));
+    const restoredNode = {
+      id,
+      label,
+      color: {
+        background: "#FFFFFF",
+        border: "#3498DB"
+      },
+      borderWidth: 2,
+      font: {
+        color: "#34495E",
+        size: 16,
+        face: "Arial"
+      }
+    };
+    if (Number.isFinite(x) && Number.isFinite(y)) {
+      restoredNode.x = x;
+      restoredNode.y = y;
+    }
+    loadedNodes.push(restoredNode);
+  });
+
+  const loadedEdges = [];
+  doc.querySelectorAll("Edges > Edge").forEach((el, idx) => {
+    const fromRaw = el.getAttribute("from");
+    const toRaw = el.getAttribute("to");
+    if (!fromRaw || !toRaw) return;
+    const from = parseNodeId(fromRaw);
+    const to = parseNodeId(toRaw);
+    if (!nodeMap.has(String(from)) || !nodeMap.has(String(to))) return;
+    loadedEdges.push({
+      id: el.getAttribute("id") || `e${idx + 1}`,
+      from,
+      to,
+      label: el.getAttribute("label") || "",
+      arrows: el.getAttribute("arrows") || ""
+    });
+  });
+
+  nodes.clear();
+  edges.clear();
+  if (loadedNodes.length > 0) nodes.add(loadedNodes);
+  if (loadedEdges.length > 0) edges.add(loadedEdges);
+  updateCopiedContent([]);
+  selectedNodes = [];
+}
+
+async function restoreUserConceptMap() {
+  const filename = getUserXmlFilename();
+  const xmlPath = `JS/XML/${filename}`;
+
+  try {
+    const res = await fetch(xmlPath, { cache: "no-store" });
+    if (!res.ok) {
+      if (res.status === 404) return;
+      throw new Error(`HTTP ${res.status}`);
+    }
+    const xmlText = await res.text();
+    if (!xmlText || xmlText.trim().length === 0) return;
+    loadConceptMapFromXml(xmlText);
+    logAction(`キーワードマップ: 復元しました (${filename})`);
+  } catch (error) {
+    console.error("概念マップの復元に失敗しました:", error);
+  }
 }
 
 async function sendConceptMapToServer(content) {
@@ -343,6 +489,10 @@ function exportConceptMap() {
 // ノードやエッジが追加・削除されたときにXMLを出力
 nodes.on("*", exportConceptMap);
 edges.on("*", exportConceptMap);
+
+document.addEventListener("DOMContentLoaded", () => {
+  restoreUserConceptMap();
+});
 
 // ここにAPI呼び出しのコードを追加
 async function callApi(payload) {

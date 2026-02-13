@@ -7,45 +7,144 @@
     <link rel="stylesheet" href="style.css" />
     <style>
       body { padding: 24px; }
-      .panel { max-width: 640px; margin: 0 auto; }
-      .row { display: flex; gap: 8px; margin-bottom: 12px; }
-      input { flex: 1; padding: 8px; }
-      button { padding: 8px 12px; }
-      .status { margin: 8px 0 16px; }
-      ul { padding-left: 20px; }
+      .panel {
+        max-width: 900px;
+        margin: 0 auto;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 20px;
+      }
+      .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+      .panel-header h1 {
+        margin: 0;
+        font-size: 24px;
+      }
+      .api-label {
+        color: #6b7280;
+        font-size: 13px;
+      }
+      .section-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .card {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 14px;
+        background: #fafafa;
+      }
+      .card h2 {
+        margin: 0 0 10px;
+        font-size: 17px;
+      }
+      .row { display: flex; gap: 8px; margin-bottom: 10px; }
+      input { flex: 1; padding: 9px 10px; border: 1px solid #d1d5db; border-radius: 8px; }
+      button { padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; cursor: pointer; }
+      .status {
+        margin: 8px 0 16px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: #ecfeff;
+        border: 1px solid #a5f3fc;
+        color: #0f766e;
+      }
+      .status[data-error="1"] {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #b91c1c;
+      }
+      .table-wrap {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #fff;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      thead {
+        background: #f3f4f6;
+      }
+      th, td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #e5e7eb;
+        text-align: left;
+      }
+      th:last-child, td:last-child {
+        text-align: right;
+      }
+      .meta-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+      @media (max-width: 760px) {
+        .section-grid { grid-template-columns: 1fr; }
+      }
     </style>
   </head>
   <body>
     <main class="panel">
-      <h1>ユーザ管理</h1>
-      <p>API: http://127.0.0.1:3000</p>
+      <div class="panel-header">
+        <h1>ユーザ管理</h1>
+        <span class="api-label">API: http://127.0.0.1:3000</span>
+      </div>
 
-      <section>
-        <h2>ユーザ追加</h2>
-        <div class="row">
-          <input id="userId" type="text" placeholder="ユーザID" />
-          <input id="password" type="password" placeholder="パスワード" />
+      <div id="status" class="status"></div>
+
+      <div class="section-grid">
+        <section class="card">
+          <h2>ユーザ追加</h2>
+          <div class="row">
+            <input id="userId" type="text" placeholder="ユーザID" />
+            <input id="password" type="password" placeholder="パスワード" />
+          </div>
           <button id="createBtn" type="button">追加</button>
-        </div>
-        <div id="status" class="status"></div>
-      </section>
+        </section>
 
-      <section>
-        <h2>パスワード更新</h2>
-        <div class="row">
-          <input id="updateUserId" type="text" placeholder="更新対象ユーザID" />
-          <input id="updatePassword" type="password" placeholder="新しいパスワード" />
+        <section class="card">
+          <h2>パスワード更新</h2>
+          <div class="row">
+            <input id="updateUserId" type="text" placeholder="更新対象ユーザID" />
+            <input id="updatePassword" type="password" placeholder="新しいパスワード" />
+          </div>
           <button id="updateBtn" type="button">更新</button>
-        </div>
-      </section>
+        </section>
+      </div>
 
       <section>
-        <h2>ユーザ一覧</h2>
-        <div class="row">
-          <button id="reloadBtn" type="button">再読み込み</button>
+        <div class="meta-row">
+          <h2>ユーザ一覧</h2>
+          <div>
+            <span id="userCount">0件</span>
+            <button id="reloadBtn" type="button">再読み込み</button>
+          </div>
         </div>
-        <p>一覧の「削除」ボタンでユーザを削除できます。</p>
-        <ul id="userList"></ul>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ユーザID</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="userTableBody">
+              <tr>
+                <td colspan="2">読み込み中...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
     </main>
 

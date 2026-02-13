@@ -38,7 +38,7 @@ const normalizeUserId = (value) => String(value || "").trim();
 const normalizePassword = (value) => String(value || "").trim();
 
 const isValidUserId = (id) => USER_ID_PATTERN.test(id);
-const isValidPassword = (password) => password.length >= 8 && password.length <= 128;
+const isValidPassword = (password) => password.length >= 1;
 
 const hashPassword = (password) => crypto.createHash("sha256").update(password).digest("hex");
 const adminPanelPassword = process.env.ADMIN_PANEL_PASSWORD || "change-me-admin-password";
@@ -79,7 +79,7 @@ app.post("/users", async (req, res) => {
     return res.status(400).json({ error: "invalid id format" });
   }
   if (!isValidPassword(password)) {
-    return res.status(400).json({ error: "password must be 8-128 chars" });
+    return res.status(400).json({ error: "password is required" });
   }
   try {
     const passwordHash = hashPassword(password);
@@ -138,7 +138,7 @@ app.put("/users/:id", async (req, res) => {
     return res.status(400).json({ error: "invalid id format" });
   }
   if (!isValidPassword(password)) {
-    return res.status(400).json({ error: "password must be 8-128 chars" });
+    return res.status(400).json({ error: "password is required" });
   }
   try {
     const passwordHash = hashPassword(password);
@@ -158,7 +158,7 @@ app.put("/users/:id", async (req, res) => {
 
 app.post("/auth/login", async (req, res) => {
   const id = normalizeUserId(req.body.id);
-  const password = normalizePassword(req.body.passwordHash);
+  const password = normalizePassword(req.body.password ?? req.body.passwordHash);
   if (!id || !password) {
     return res.status(400).json({ error: "missing fields" });
   }

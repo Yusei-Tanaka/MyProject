@@ -1,0 +1,7 @@
+{ "class": "TreeModel",
+  "nodeDataArray": [
+{"key":0,"text":"\u81ea\u52d5\u8eca\u306e\u89b3\u70b9\u304b\u3089\u898b\u305f\u4e8c\u9178\u5316\u70ad\u7d20\u6392\u51fa\u91cf\u524a\u6e1b\u306e\u305f\u3081\u306e\u5bfe\u7b56\u3092\u8003\u3048\u308b","loc":"0 -200"},
+{"text":"ggg","parent":0,"key":-2,"loc":"196.998046875 -109.05918375169205"},
+{"text":"aaaa","parent":-2,"key":-3,"loc":"157.51787312584602 -18.11836750338412"},
+{"text":"kkkk","parent":-2,"key":-4,"loc":"231.17353312415392 -18.11836750338412"}
+]}

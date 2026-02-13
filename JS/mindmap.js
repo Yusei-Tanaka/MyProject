@@ -1,5 +1,68 @@
 window.addEventListener('DOMContentLoaded', function() {
   const $ = go.GraphObject.make;
+  const host = window.location.hostname || "localhost";
+  const saveApiBaseUrl = `http://${host}:3005`;
+
+  function getMindmapFileName() {
+    const storedName = localStorage.getItem("userName");
+    const trimmed = storedName ? storedName.trim() : "";
+    return `${trimmed || "user_map"}.mindmap.json`;
+  }
+
+  async function saveMindmapState() {
+    try {
+      const modelJson = diagram.model.toJson();
+      const response = await fetch(`${saveApiBaseUrl}/save-xml`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          filename: getMindmapFileName(),
+          content: modelJson,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+    } catch (error) {
+      console.error("マインドマップ保存に失敗しました:", error);
+    }
+  }
+
+  async function restoreMindmapState(defaultTitle) {
+    const fileName = getMindmapFileName();
+    const statePath = `JS/XML/${fileName}`;
+
+    try {
+      const response = await fetch(statePath, { cache: "no-store" });
+      if (!response.ok) {
+        if (response.status === 404) return false;
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const modelJson = await response.text();
+      if (!modelJson || !modelJson.trim()) return false;
+
+      const model = go.Model.fromJson(modelJson);
+      diagram.model = model;
+      const root = diagram.findNodeForKey(0);
+      if (!root && model.nodeDataArray && model.nodeDataArray.length === 0) {
+        diagram.model = new go.TreeModel([{ key: 0, text: defaultTitle, loc: "0 -200" }]);
+      }
+
+      const rootData = diagram.model.nodeDataArray.find((n) => n.key === 0);
+      if (rootData && rootData.text) {
+        const titleInput = document.getElementById("myTitle");
+        if (titleInput) titleInput.value = rootData.text;
+        localStorage.setItem("searchTitle", rootData.text);
+      }
+
+      logMindmapAction(`マインドマップ: 復元しました (${fileName})`);
+      return true;
+    } catch (error) {
+      console.error("マインドマップ復元に失敗しました:", error);
+      return false;
+    }
+  }
 
   const diagram = $(go.Diagram, "myDiagramDiv", {
     "undoManager.isEnabled": true,
@@ -128,19 +191,33 @@ window.addEventListener('DOMContentLoaded', function() {
     { key: 0, text: initialText, loc: "0 -200" }
   ]);
 
+  restoreMindmapState(initialText).then((restored) => {
+    if (!restored) {
+      saveMindmapState();
+    }
+  });
+
   // myTitleの値が変更されたらルートノードも更新
   if (titleInput) {
     titleInput.addEventListener('input', function() {
       diagram.model.set(diagram.model.nodeDataArray[0], "text", titleInput.value || "新しいマインドマップ");
+      localStorage.setItem('searchTitle', titleInput.value || "新しいマインドマップ");
     });
     titleInput.addEventListener('change', function() {
       const newTitle = titleInput.value || "新しいマインドマップ";
       if (newTitle !== lastTitleText) {
         logMindmapAction(`マインドマップ: タイトル変更 "${lastTitleText}" → "${newTitle}"`);
         lastTitleText = newTitle;
+        saveMindmapState();
       }
     });
   }
+
+  diagram.addModelChangedListener(function(e) {
+    if (e.isTransactionFinished) {
+      saveMindmapState();
+    }
+  });
 
   // 外部スクリプトから参照できるようヘルパーを公開
   window.getMindmapNodes = function () {
@@ -172,6 +249,7 @@ window.addEventListener('DOMContentLoaded', function() {
     diagram.commitTransaction("add mindmap child");
     diagram.select(diagram.findNodeForData(newNodeData));
     logMindmapAction(`マインドマップ: 子ノード追加 parent=${parentNode.data.key} "${parentNode.data.text}" text="${text.trim()}"`);
+    saveMindmapState();
     return true;
   };
 });

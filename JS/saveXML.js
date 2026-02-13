@@ -28,6 +28,16 @@ const corsOptions = {
 app.use(cors(corsOptions)); // この行でCORSを有効化
 app.options("/save-xml", cors(corsOptions)); // preflight
 
+app.get("/xml-exists", (req, res) => {
+  const safeName = sanitizeFileName(req.query.filename || "");
+  if (!safeName) {
+    return res.status(400).json({ error: "filename is required" });
+  }
+  const filePath = path.join(xmlDir, safeName);
+  const exists = fs.existsSync(filePath);
+  return res.json({ exists });
+});
+
 const xmlDir = path.join(__dirname, "XML");
 const logDir = path.join(__dirname, "..", "log");
 
