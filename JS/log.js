@@ -1,11 +1,12 @@
 const saveLogHost = window.location.hostname || "localhost";
+const saveLogPort = 3005;
 
 const saveUserLog = async (logText) => {
     const userName = localStorage.getItem("userName");
     if (!userName) return;
 
     try {
-        const res = await fetch(`http://${saveLogHost}:3000/save-log`, {
+        const res = await fetch(`http://${saveLogHost}:${saveLogPort}/save-log`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ userName, logText }),

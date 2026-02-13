@@ -7,14 +7,16 @@ $pidFile = Join-Path $root ".start-all.pids"
 $ids = @()
 if (Test-Path $pidFile) {
     $data = Get-Content -Path $pidFile -Raw | ConvertFrom-Json
-    $ids += @($data.http, $data.api, $data.node)
+    $ids += @($data.http, $data.api, $data.node, $data.backend)
 }
 
 # Fallback: find matching processes by command line if pid file missing/stale.
 $procs = Get-CimInstance Win32_Process | Where-Object {
     $_.CommandLine -like "*http.server*8008*" -or
     $_.CommandLine -like "*api.py*" -or
-    $_.CommandLine -like "*saveXML.js*"
+    $_.CommandLine -like "*saveXML.js*" -or
+    $_.CommandLine -like "*JS\\server.js*" -or
+    $_.CommandLine -like "*JS/server.js*"
 }
 $ids += $procs.ProcessId
 

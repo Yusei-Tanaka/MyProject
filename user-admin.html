@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ユーザ管理</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      body { padding: 24px; }
+      .panel { max-width: 640px; margin: 0 auto; }
+      .row { display: flex; gap: 8px; margin-bottom: 12px; }
+      input { flex: 1; padding: 8px; }
+      button { padding: 8px 12px; }
+      .status { margin: 8px 0 16px; }
+      ul { padding-left: 20px; }
+    </style>
+  </head>
+  <body>
+    <main class="panel">
+      <h1>ユーザ管理</h1>
+      <p>API: http://127.0.0.1:3000</p>
+
+      <section>
+        <h2>ユーザ追加</h2>
+        <div class="row">
+          <input id="userId" type="text" placeholder="ユーザID" />
+          <input id="password" type="password" placeholder="パスワード" />
+          <button id="createBtn" type="button">追加</button>
+        </div>
+        <div id="status" class="status"></div>
+      </section>
+
+      <section>
+        <h2>パスワード更新</h2>
+        <div class="row">
+          <input id="updateUserId" type="text" placeholder="更新対象ユーザID" />
+          <input id="updatePassword" type="password" placeholder="新しいパスワード" />
+          <button id="updateBtn" type="button">更新</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>ユーザ一覧</h2>
+        <div class="row">
+          <button id="reloadBtn" type="button">再読み込み</button>
+        </div>
+        <p>一覧の「削除」ボタンでユーザを削除できます。</p>
+        <ul id="userList"></ul>
+      </section>
+    </main>
+
+    <script src="JS/user-admin.js"></script>
+  </body>
+</html>

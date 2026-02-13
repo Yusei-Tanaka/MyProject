@@ -3,8 +3,9 @@ const titleInput = document.getElementById("titleInput");
 const usernameInput = document.getElementById("username");
 
 const saveXmlHost = window.location.hostname || "localhost";
+const saveXmlPort = 3005;
 const saveUserXml = async (name) => {
-  const res = await fetch(`http://${saveXmlHost}:3000/save-xml`, {
+  const res = await fetch(`http://${saveXmlHost}:${saveXmlPort}/save-xml`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

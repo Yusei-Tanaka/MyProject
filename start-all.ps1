@@ -1,4 +1,4 @@
-# Starts the HTTP server, Flask API, and Node saver in separate background processes.
+# Starts the HTTP server, Flask API, Node saver, and Node backend API in separate background processes.
 $ErrorActionPreference = 'Stop'
 
 $root = "C:\Users\yuuse\MyProject"
@@ -15,5 +15,8 @@ Start-Process -FilePath $python -ArgumentList "api.py" -WorkingDirectory $root -
 # Node saveXML
 Start-Process -FilePath $node -ArgumentList ".\saveXML.js" -WorkingDirectory $jsDir -WindowStyle Minimized
 
-Write-Host "Started: http.server on 8008, api.py, and JS/saveXML.js (each in its own window)."
+# Node backend API
+Start-Process -FilePath $node -ArgumentList ".\JS\server.js" -WorkingDirectory $root -WindowStyle Minimized
+
+Write-Host "Started: http.server on 8008, api.py, JS/saveXML.js, and JS/server.js (each in its own window)."
 Write-Host "To stop them, close the spawned windows or run 'Stop-Process -Name python,node' carefully."

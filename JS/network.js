@@ -52,7 +52,7 @@ var network = new vis.Network(container, data, options);
 
 const host = window.location.hostname;
 const apiBaseUrl = `http://${host}:8000`;
-const saveXmlBaseUrl = `http://${host}:3000`;
+const saveXmlBaseUrl = `http://${host}:3005`;
 
 // 最後に選択された2つのノードを保存
 var selectedNodes = []; // 選択されたノードIDを保存

@@ -4,7 +4,7 @@ const express = require("express");
 const cors = require("cors");
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.SAVE_XML_PORT || 3005);
 const HOST = "0.0.0.0";
 
 // CORSを有効化
