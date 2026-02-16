@@ -54,6 +54,11 @@ const host = window.location.hostname;
 const apiBaseUrl = `http://${host}:8000`;
 const saveXmlBaseUrl = `http://${host}:3005`;
 
+let isRestoringConceptMap = false;
+let conceptMapSaveTimer = null;
+let conceptMapSaveInFlight = false;
+let conceptMapSaveQueued = false;
+
 // 最後に選択された2つのノードを保存
 var selectedNodes = []; // 選択されたノードIDを保存
 
@@ -455,10 +460,13 @@ async function restoreUserConceptMap() {
     }
     const xmlText = await res.text();
     if (!xmlText || xmlText.trim().length === 0) return;
+    isRestoringConceptMap = true;
     loadConceptMapFromXml(xmlText);
     logAction(`キーワードマップ: 復元しました (${filename})`);
   } catch (error) {
     console.error("概念マップの復元に失敗しました:", error);
+  } finally {
+    isRestoringConceptMap = false;
   }
 }
 
@@ -476,19 +484,46 @@ async function sendConceptMapToServer(content) {
   return response.text();
 }
 
-// ネットワークが更新されるたびにXMLを出力
-function exportConceptMap() {
-  const allNodes = nodes.get(); // すべてのノードを取得
-  const allEdges = edges.get(); // すべてのエッジを取得
-  const xmlContent = generateXML(allNodes, allEdges);
-  sendConceptMapToServer(xmlContent).catch((error) => {
+async function flushConceptMapSave() {
+  if (isRestoringConceptMap) return;
+  if (conceptMapSaveInFlight) {
+    conceptMapSaveQueued = true;
+    return;
+  }
+
+  conceptMapSaveInFlight = true;
+  try {
+    const allNodes = nodes.get();
+    const allEdges = edges.get();
+    const xmlContent = generateXML(allNodes, allEdges);
+    await sendConceptMapToServer(xmlContent);
+  } catch (error) {
     console.error("概念マップの保存に失敗しました:", error);
-  });
+  } finally {
+    conceptMapSaveInFlight = false;
+    if (conceptMapSaveQueued) {
+      conceptMapSaveQueued = false;
+      flushConceptMapSave();
+    }
+  }
 }
 
-// ノードやエッジが追加・削除されたときにXMLを出力
-nodes.on("*", exportConceptMap);
-edges.on("*", exportConceptMap);
+function scheduleConceptMapSave() {
+  if (isRestoringConceptMap) return;
+  if (conceptMapSaveTimer) clearTimeout(conceptMapSaveTimer);
+  conceptMapSaveTimer = setTimeout(() => {
+    flushConceptMapSave();
+  }, 300);
+}
+
+// ノードやエッジ更新時はデバウンス保存
+nodes.on("*", scheduleConceptMapSave);
+edges.on("*", scheduleConceptMapSave);
+
+// ノード移動後にも保存（座標の取りこぼし防止）
+network.on("dragEnd", function () {
+  scheduleConceptMapSave();
+});
 
 document.addEventListener("DOMContentLoaded", () => {
   restoreUserConceptMap();

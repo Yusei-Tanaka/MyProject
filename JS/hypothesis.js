@@ -40,6 +40,183 @@ function logHypothesisAction(message) {
   }
 }
 
+const hypothesisHost = window.location.hostname || "localhost";
+const hypothesisSaveBaseUrl = `http://${hypothesisHost}:3005`;
+let hypothesisSaveTimer = null;
+
+function getHypothesisStateFilename() {
+  const storedName = localStorage.getItem("userName");
+  const trimmed = storedName ? storedName.trim() : "";
+  return `${trimmed || "user_map"}.hypothesis.json`;
+}
+
+function scheduleHypothesisSave() {
+  if (hypothesisSaveTimer) clearTimeout(hypothesisSaveTimer);
+  hypothesisSaveTimer = setTimeout(function () {
+    saveHypothesisState();
+  }, 400);
+}
+
+function serializeHypothesisWrapper(wrapper) {
+  const clone = wrapper.cloneNode(true);
+  clone.querySelectorAll("textarea").forEach(function (ta) {
+    ta.textContent = ta.value;
+  });
+  return clone.innerHTML;
+}
+
+async function saveHypothesisState() {
+  try {
+    const container = ensureHypothesisContainer();
+    const wrapper = container.querySelector("#hypothesisWrapper");
+    if (!wrapper) return;
+
+    const payload = {
+      filename: getHypothesisStateFilename(),
+      content: JSON.stringify({ html: serializeHypothesisWrapper(wrapper) }),
+    };
+
+    const res = await fetch(`${hypothesisSaveBaseUrl}/save-xml`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+  } catch (error) {
+    console.error("仮説発散エリアの保存に失敗しました:", error);
+  }
+}
+
+function attachHypothesisTextareaLogging(textarea, createMessage) {
+  if (!textarea || textarea.dataset.loggingBound === "true") return;
+
+  textarea.dataset.lastLoggedValue = textarea.value.trim();
+  let logTimer = null;
+
+  textarea.addEventListener("input", function () {
+    scheduleHypothesisSave();
+    if (logTimer) clearTimeout(logTimer);
+    logTimer = setTimeout(function () {
+      const current = textarea.value.trim();
+      if (current && current !== textarea.dataset.lastLoggedValue) {
+        logHypothesisAction(createMessage(current));
+        textarea.dataset.lastLoggedValue = current;
+      }
+    }, 500);
+  });
+
+  textarea.addEventListener("blur", function () {
+    scheduleHypothesisSave();
+    const current = textarea.value.trim();
+    if (current && current !== textarea.dataset.lastLoggedValue) {
+      logHypothesisAction(createMessage(current));
+      textarea.dataset.lastLoggedValue = current;
+    }
+  });
+
+  textarea.dataset.loggingBound = "true";
+}
+
+function bindDeleteButton(entry, wrapper) {
+  const delBtn = entry.querySelector(".hypothesis-delete-btn");
+  if (!delBtn || delBtn.dataset.boundDelete === "true") return;
+  delBtn.addEventListener("click", function () {
+    wrapper.removeChild(entry);
+    updateHypothesisNumbers(wrapper);
+    logHypothesisAction("仮説: 削除");
+    scheduleHypothesisSave();
+  });
+  delBtn.dataset.boundDelete = "true";
+}
+
+function bindScamperTagDelete(tagLabel, tagContainer) {
+  if (!tagLabel || tagLabel.dataset.boundContext === "true") return;
+  tagLabel.addEventListener("contextmenu", function (e) {
+    e.preventDefault();
+    var confirmDelete = confirm(`「${tagLabel.innerText}」タグを削除しますか？`);
+    if (confirmDelete && tagContainer.parentNode) {
+      tagContainer.parentNode.removeChild(tagContainer);
+      scheduleHypothesisSave();
+    }
+  });
+  tagLabel.dataset.boundContext = "true";
+}
+
+function rebindHypothesisEntry(entry) {
+  entry.querySelectorAll(".hypothesis-action-bar").forEach(function (bar) {
+    bar.remove();
+  });
+
+  var mainTextarea = entry.querySelector("textarea.hypothesis-text");
+  if (mainTextarea) {
+    mainTextarea.value = mainTextarea.value || mainTextarea.textContent || "";
+    mainTextarea.dataset.hasActionBar = "";
+    attachHypothesisTextareaLogging(mainTextarea, function (value) {
+      return `仮説: 入力 "${value}"`;
+    });
+    attachHypothesisActions(mainTextarea, entry);
+  }
+
+  entry.querySelectorAll(".scamper-tag-container").forEach(function (tagContainer) {
+    var tagLabel = tagContainer.querySelector(".scamper-tag");
+    var optionLabel = tagLabel ? tagLabel.innerText : "SCAMPER";
+    var editBox = tagContainer.querySelector("textarea.scamper-edit-box");
+
+    if (editBox) {
+      editBox.value = editBox.value || editBox.textContent || "";
+      editBox.dataset.hasActionBar = "";
+      attachHypothesisTextareaLogging(editBox, function (value) {
+        return `仮説: SCAMPER入力 (${optionLabel}) "${value}"`;
+      });
+      attachHypothesisActions(editBox, entry, tagContainer, optionLabel);
+    }
+
+    bindScamperTagDelete(tagLabel, tagContainer);
+  });
+}
+
+async function restoreHypothesisState() {
+  try {
+    const container = ensureHypothesisContainer();
+    const wrapper = container.querySelector("#hypothesisWrapper");
+    if (!wrapper) return;
+
+    const filePath = `JS/XML/${getHypothesisStateFilename()}`;
+    const res = await fetch(filePath, { cache: "no-store" });
+    if (!res.ok) {
+      if (res.status === 404) return;
+      throw new Error(`HTTP ${res.status}`);
+    }
+
+    const raw = await res.text();
+    if (!raw || !raw.trim()) return;
+
+    let parsed = null;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (_e) {
+      parsed = { html: "" };
+    }
+
+    if (!parsed.html || typeof parsed.html !== "string") return;
+
+    wrapper.innerHTML = parsed.html;
+    wrapper.querySelectorAll(".hypothesis-box").forEach(function (entry) {
+      rebindHypothesisEntry(entry);
+      bindDeleteButton(entry, wrapper);
+    });
+
+    updateHypothesisNumbers(wrapper);
+    if (wrapper.children.length > 0) {
+      logHypothesisAction("仮説: 復元しました");
+    }
+  } catch (error) {
+    console.error("仮説発散エリアの復元に失敗しました:", error);
+  }
+}
+
 // 仮説エントリを追加する（選択キーワードを基に1エントリ追加）
 function addHypothesisEntry(nodeIds) {
   var container = ensureHypothesisContainer();
@@ -74,24 +251,8 @@ function addHypothesisEntry(nodeIds) {
   ta.className = "hypothesis-text";
   ta.placeholder = "ここに仮説を入力";
   ta.value = ""; // 初期は空白
-  ta.dataset.lastLoggedValue = "";
-  let logTimer = null;
-  ta.addEventListener("input", function () {
-    if (logTimer) clearTimeout(logTimer);
-    logTimer = setTimeout(function () {
-      const current = ta.value.trim();
-      if (current && current !== ta.dataset.lastLoggedValue) {
-        logHypothesisAction(`仮説: 入力 "${current}"`);
-        ta.dataset.lastLoggedValue = current;
-      }
-    }, 500);
-  });
-  ta.addEventListener("blur", function () {
-    const current = ta.value.trim();
-    if (current && current !== ta.dataset.lastLoggedValue) {
-      logHypothesisAction(`仮説: 入力 "${current}"`);
-      ta.dataset.lastLoggedValue = current;
-    }
+  attachHypothesisTextareaLogging(ta, function (current) {
+    return `仮説: 入力 "${current}"`;
   });
   body.appendChild(ta);
   entry.appendChild(body);
@@ -102,18 +263,16 @@ function addHypothesisEntry(nodeIds) {
   var delBtn = document.createElement("button");
   delBtn.type = "button";
   delBtn.innerText = "削除";
-  delBtn.addEventListener("click", function () {
-    wrapper.removeChild(entry);
-    updateHypothesisNumbers(wrapper);
-    logHypothesisAction("仮説: 削除");
-  });
+  delBtn.className = "hypothesis-delete-btn";
   controls.appendChild(delBtn);
   entry.appendChild(controls);
+  bindDeleteButton(entry, wrapper);
 
   wrapper.appendChild(entry);
   enableScamperOnEntry(entry);
   entry.scrollIntoView({ behavior: "smooth" });
   logHypothesisAction(`仮説: 追加 (基づくキーワード: ${keywordLabels.join("、")})`);
+  scheduleHypothesisSave();
 }
 
 // 表示されている仮説の番号を更新
@@ -127,6 +286,7 @@ function updateHypothesisNumbers(wrapper) {
 // DOM が読み込まれたら仮説コンテナを初期化し，ボタンにリスナを登録する
 document.addEventListener("DOMContentLoaded", function () {
   ensureHypothesisContainer();
+  restoreHypothesisState();
 
   var createBtnDom = document.getElementById("createHypothesisBtn");
   if (createBtnDom) {
@@ -428,34 +588,12 @@ function applyScamperToEntry(entry, option, parentContainer = null) {
   var editBox = document.createElement("textarea");
   editBox.className = "scamper-edit-box";
   editBox.placeholder = "発散させた仮説を記入してください";
-  editBox.dataset.lastLoggedValue = "";
-  let editLogTimer = null;
-  editBox.addEventListener("input", function () {
-    if (editLogTimer) clearTimeout(editLogTimer);
-    editLogTimer = setTimeout(function () {
-      const current = editBox.value.trim();
-      if (current && current !== editBox.dataset.lastLoggedValue) {
-        logHypothesisAction(`仮説: SCAMPER入力 (${option.label}) "${current}"`);
-        editBox.dataset.lastLoggedValue = current;
-      }
-    }, 500);
-  });
-  editBox.addEventListener("blur", function () {
-    const current = editBox.value.trim();
-    if (current && current !== editBox.dataset.lastLoggedValue) {
-      logHypothesisAction(`仮説: SCAMPER入力 (${option.label}) "${current}"`);
-      editBox.dataset.lastLoggedValue = current;
-    }
+  attachHypothesisTextareaLogging(editBox, function (current) {
+    return `仮説: SCAMPER入力 (${option.label}) "${current}"`;
   });
 
   // 右クリックで削除確認ダイアログを表示
-  tagLabel.addEventListener("contextmenu", function (e) {
-    e.preventDefault();
-    var confirmDelete = confirm(`「${option.label}」タグを削除しますか？`);
-    if (confirmDelete) {
-      tagWrap.removeChild(tagContainer);
-    }
-  });
+  bindScamperTagDelete(tagLabel, tagContainer);
 
   tagContainer.appendChild(tagLabel);
   tagContainer.appendChild(editBox);
@@ -464,6 +602,7 @@ function applyScamperToEntry(entry, option, parentContainer = null) {
 
   // メニューを削除（選択後に必ず閉じる）
   removeScamperMenu();
+  scheduleHypothesisSave();
 
   return tagLabel;
 }
