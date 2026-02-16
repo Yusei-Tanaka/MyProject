@@ -41,7 +41,6 @@ const isValidUserId = (id) => USER_ID_PATTERN.test(id);
 const isValidPassword = (password) => password.length >= 1;
 
 const hashPassword = (password) => crypto.createHash("sha256").update(password).digest("hex");
-const adminPanelPassword = process.env.ADMIN_PANEL_PASSWORD || "change-me-admin-password";
 
 const ensureSchema = async () => {
   await pool.execute(
@@ -177,21 +176,6 @@ app.post("/auth/login", async (req, res) => {
     console.error("login failed", err);
     res.status(500).json({ error: "db error" });
   }
-});
-
-app.post("/auth/admin-access", async (req, res) => {
-  const password = normalizePassword(req.body.password);
-  if (!password) {
-    return res.status(400).json({ error: "missing password" });
-  }
-
-  const inputHash = hashPassword(password);
-  const expectedHash = hashPassword(adminPanelPassword);
-  if (inputHash !== expectedHash) {
-    return res.status(401).json({ error: "invalid admin password" });
-  }
-
-  res.json({ ok: true });
 });
 
 app.get("/health", async (_req, res) => {

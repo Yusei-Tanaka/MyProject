@@ -18,7 +18,6 @@ DB_NAME=myapp
 PORT=3000
 DB_CONN_LIMIT=10
 SAVE_XML_PORT=3005
-ADMIN_PANEL_PASSWORD=change-this-password
 ```
 
 ## 3. MariaDB 初期準備
@@ -100,17 +99,11 @@ $body = @{ id = "user1"; passwordHash = "newPassword123" } | ConvertTo-Json
 Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:3000/auth/login" -ContentType "application/json" -Body $body
 ```
 
-## 7. 管理画面
+## 7. DB管理画面
 ブラウザで以下を開く:
-- `user-admin.html`
+- `http://localhost/phpmyadmin/`
 
-※ `index.html` / `main.html` から遷移する場合は、管理画面用パスワード入力が必要です（`ADMIN_PANEL_PASSWORD`）。
-
-機能:
-- ユーザ追加
-- パスワード更新
-- ユーザ削除
-- ユーザ一覧取得
+`index.html` / `main.html` のボタンからも同URLを開けます。
 
 ## 8. 仕様メモ
 - ユーザID: 3〜32文字（英数字・`_`・`-`）
