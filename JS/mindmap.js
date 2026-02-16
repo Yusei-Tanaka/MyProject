@@ -2,6 +2,13 @@ window.addEventListener('DOMContentLoaded', function() {
   const $ = go.GraphObject.make;
   const host = window.location.hostname || "localhost";
   const saveApiBaseUrl = `http://${host}:3005`;
+  let isRestoringMindmap = false;
+  let isMindmapReady = false;
+  let mindmapSaveTimer = null;
+  let mindmapSaveInFlight = false;
+  let mindmapSaveQueued = false;
+  let shouldApplyInitialOffset = true;
+  let initialOffsetApplied = false;
 
   function getMindmapFileName() {
     const storedName = localStorage.getItem("userName");
@@ -10,6 +17,13 @@ window.addEventListener('DOMContentLoaded', function() {
   }
 
   async function saveMindmapState() {
+    if (!isMindmapReady || isRestoringMindmap) return;
+    if (mindmapSaveInFlight) {
+      mindmapSaveQueued = true;
+      return;
+    }
+
+    mindmapSaveInFlight = true;
     try {
       const modelJson = diagram.model.toJson();
       const response = await fetch(`${saveApiBaseUrl}/save-xml`, {
@@ -25,12 +39,27 @@ window.addEventListener('DOMContentLoaded', function() {
       }
     } catch (error) {
       console.error("マインドマップ保存に失敗しました:", error);
+    } finally {
+      mindmapSaveInFlight = false;
+      if (mindmapSaveQueued) {
+        mindmapSaveQueued = false;
+        saveMindmapState();
+      }
     }
+  }
+
+  function scheduleMindmapSave() {
+    if (!isMindmapReady || isRestoringMindmap) return;
+    if (mindmapSaveTimer) clearTimeout(mindmapSaveTimer);
+    mindmapSaveTimer = setTimeout(function() {
+      saveMindmapState();
+    }, 300);
   }
 
   async function restoreMindmapState(defaultTitle) {
     const fileName = getMindmapFileName();
     const statePath = `JS/XML/${fileName}`;
+    isRestoringMindmap = true;
 
     try {
       const response = await fetch(statePath, { cache: "no-store" });
@@ -44,6 +73,8 @@ window.addEventListener('DOMContentLoaded', function() {
 
       const model = go.Model.fromJson(modelJson);
       diagram.model = model;
+      shouldApplyInitialOffset = false;
+      initialOffsetApplied = true;
       const root = diagram.findNodeForKey(0);
       if (!root && model.nodeDataArray && model.nodeDataArray.length === 0) {
         diagram.model = new go.TreeModel([{ key: 0, text: defaultTitle, loc: "0 -200" }]);
@@ -61,6 +92,8 @@ window.addEventListener('DOMContentLoaded', function() {
     } catch (error) {
       console.error("マインドマップ復元に失敗しました:", error);
       return false;
+    } finally {
+      isRestoringMindmap = false;
     }
   }
 
@@ -82,8 +115,10 @@ window.addEventListener('DOMContentLoaded', function() {
     nodeSpacing: 20
   });
 
-  // レイアウト完了後に全ノードを一括で上方に平行移動
+  // レイアウト完了後に初回のみ全ノードを上方へ平行移動（復元時は無効）
   diagram.addDiagramListener("LayoutCompleted", function(e) {
+    if (!shouldApplyInitialOffset || initialOffsetApplied) return;
+    initialOffsetApplied = true;
     // ずらす量（Y方向）
     var offsetY = -200;
     diagram.nodes.each(function(node) {
@@ -192,8 +227,9 @@ window.addEventListener('DOMContentLoaded', function() {
   ]);
 
   restoreMindmapState(initialText).then((restored) => {
+    isMindmapReady = true;
     if (!restored) {
-      saveMindmapState();
+      scheduleMindmapSave();
     }
   });
 
@@ -208,14 +244,14 @@ window.addEventListener('DOMContentLoaded', function() {
       if (newTitle !== lastTitleText) {
         logMindmapAction(`マインドマップ: タイトル変更 "${lastTitleText}" → "${newTitle}"`);
         lastTitleText = newTitle;
-        saveMindmapState();
+        scheduleMindmapSave();
       }
     });
   }
 
   diagram.addModelChangedListener(function(e) {
     if (e.isTransactionFinished) {
-      saveMindmapState();
+      scheduleMindmapSave();
     }
   });
 
@@ -249,7 +285,6 @@ window.addEventListener('DOMContentLoaded', function() {
     diagram.commitTransaction("add mindmap child");
     diagram.select(diagram.findNodeForData(newNodeData));
     logMindmapAction(`マインドマップ: 子ノード追加 parent=${parentNode.data.key} "${parentNode.data.text}" text="${text.trim()}"`);
-    saveMindmapState();
     return true;
   };
 });
