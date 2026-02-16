@@ -1,6 +1,18 @@
 const userAdminHost = window.location.hostname || "127.0.0.1";
 const userAdminApiPort = 3000;
 const userAdminBaseUrl = `http://${userAdminHost}:${userAdminApiPort}`;
+const USER_ADMIN_ACCESS_PASSWORD = "kslabkslab";
+const normalizeAdminPasswordInput = (value) =>
+  String(value || "")
+    .normalize("NFKC")
+    .replace(/\s+/g, "")
+    .toLowerCase();
+
+const userAdminAuthPage = document.getElementById("userAdminAuthPage");
+const userAdminProtectedPage = document.getElementById("userAdminProtectedPage");
+const userAdminLoginForm = document.getElementById("userAdminLoginForm");
+const adminPasswordInput = document.getElementById("adminPassword");
+const userAdminAuthMessage = document.getElementById("userAdminAuthMessage");
 
 const userCreateForm = document.getElementById("userCreateForm");
 const passwordUpdateForm = document.getElementById("passwordUpdateForm");
@@ -13,12 +25,20 @@ const refreshUsersBtn = document.getElementById("refreshUsersBtn");
 const userList = document.getElementById("userList");
 const userAdminMessage = document.getElementById("userAdminMessage");
 
+const setAuthMessage = (message, isError = false) => {
+  if (!userAdminAuthMessage) return;
+  userAdminAuthMessage.textContent = message;
+  userAdminAuthMessage.classList.toggle("is-error", Boolean(isError));
+};
+
 const setMessage = (message, isError = false) => {
+  if (!userAdminMessage) return;
   userAdminMessage.textContent = message;
   userAdminMessage.classList.toggle("is-error", Boolean(isError));
 };
 
 const renderUsers = (users) => {
+  if (!userList) return;
   userList.innerHTML = "";
   if (!Array.isArray(users) || users.length === 0) {
     const empty = document.createElement("li");
@@ -118,12 +138,70 @@ const updatePassword = async (event) => {
   }
 };
 
-userCreateForm.addEventListener("submit", createUser);
-passwordUpdateForm.addEventListener("submit", updatePassword);
-refreshUsersBtn.addEventListener("click", fetchUsers);
+const unlockAdminPage = async () => {
+  if (userAdminAuthPage) {
+    userAdminAuthPage.hidden = true;
+    userAdminAuthPage.style.display = "none";
+  }
+  if (userAdminProtectedPage) {
+    userAdminProtectedPage.hidden = false;
+    userAdminProtectedPage.style.display = "flex";
+  }
+  await fetchUsers();
+};
+
+const loginForAdminPage = async (event) => {
+  event.preventDefault();
+
+  if (!adminPasswordInput) return;
+
+  const password = adminPasswordInput.value;
+  if (!password) {
+    setAuthMessage("パスワードを入力してください。", true);
+    return;
+  }
+
+  setAuthMessage("認証中...");
+
+  const normalizedInput = normalizeAdminPasswordInput(password);
+  const normalizedExpected = normalizeAdminPasswordInput(USER_ADMIN_ACCESS_PASSWORD);
+
+  if (normalizedInput !== normalizedExpected) {
+    setAuthMessage("パスワードが正しくありません。", true);
+    return;
+  }
+
+  setAuthMessage("");
+  adminPasswordInput.value = "";
+  await unlockAdminPage();
+};
 
 const initializeAdmin = async () => {
-  await fetchUsers();
+  if (userAdminAuthPage) {
+    userAdminAuthPage.hidden = false;
+    userAdminAuthPage.style.display = "flex";
+  }
+  if (userAdminProtectedPage) {
+    userAdminProtectedPage.hidden = true;
+    userAdminProtectedPage.style.display = "none";
+  }
+
+  if (userAdminLoginForm) {
+    userAdminLoginForm.addEventListener("submit", loginForAdminPage);
+  }
+  if (adminPasswordInput) {
+    adminPasswordInput.focus();
+  }
+
+  if (userCreateForm) {
+    userCreateForm.addEventListener("submit", createUser);
+  }
+  if (passwordUpdateForm) {
+    passwordUpdateForm.addEventListener("submit", updatePassword);
+  }
+  if (refreshUsersBtn) {
+    refreshUsersBtn.addEventListener("click", fetchUsers);
+  }
 };
 
 initializeAdmin();

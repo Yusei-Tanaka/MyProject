@@ -332,6 +332,10 @@ body {
     margin: 0 0 12px;
     color: #202124;
 }
+.user-admin-auth-description {
+    margin: 0 0 12px;
+    color: #5f6368;
+}
 .user-admin-form {
     display: grid;
     grid-template-columns: 1fr;

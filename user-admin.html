@@ -8,7 +8,25 @@
     <link rel="icon" type="image/svg+xml" href="./img/favicon.svg">
   </head>
   <body>
-    <div class="user-admin-page">
+    <div id="userAdminAuthPage" class="user-admin-page">
+      <div class="user-admin-card user-admin-auth-card">
+        <h1>ユーザ管理画面</h1>
+        <p class="user-admin-auth-description">アクセスするにはパスワードを入力してください。</p>
+
+        <form id="userAdminLoginForm" class="user-admin-form">
+          <input id="adminPassword" type="password" placeholder="パスワード" required />
+          <button id="openUserAdminBtn" type="submit">管理画面に入る</button>
+        </form>
+
+        <div class="user-admin-actions">
+          <a class="user-admin-back" href="index.html">ログイン画面へ戻る</a>
+        </div>
+
+        <div id="userAdminAuthMessage" class="user-admin-message" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <div id="userAdminProtectedPage" class="user-admin-page" hidden>
       <div class="user-admin-card">
         <h1>ユーザ管理</h1>
 
@@ -17,7 +35,7 @@
           <input id="newUserPassword" type="password" placeholder="パスワード" required />
           <button id="createUserBtn" type="submit">ユーザ登録</button>
         </form>
-
+        <br />
         <form id="passwordUpdateForm" class="user-admin-form">
           <input id="passwordTargetUserId" type="text" placeholder="変更対象ユーザID" required />
           <input id="currentPassword" type="password" placeholder="現在のパスワード" required />
