@@ -50,8 +50,79 @@ const renderUsers = (users) => {
   users.forEach((user) => {
     const item = document.createElement("li");
     item.textContent = user.id;
+    item.title = "右クリックで削除";
     userList.appendChild(item);
   });
+};
+
+const deleteUserById = async (id) => {
+  const userId = String(id || "").trim();
+  if (!userId) return;
+
+  setMessage(`ユーザ「${userId}」を削除中...`);
+
+  try {
+    const response = await fetch(`${userAdminBaseUrl}/users/${encodeURIComponent(userId)}`, {
+      method: "DELETE",
+    });
+    const body = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(body.error || "ユーザ削除に失敗しました。");
+    }
+
+    setMessage(`ユーザ「${userId}」を削除しました。`);
+    await fetchUsers();
+  } catch (error) {
+    setMessage(error.message || "ユーザ削除に失敗しました。", true);
+  }
+};
+
+const handleUserListContextMenu = async (event) => {
+  const targetItem = event.target.closest("li");
+  if (!targetItem || !userList || !userList.contains(targetItem)) return;
+
+  event.preventDefault();
+
+  const userId = String(targetItem.textContent || "").trim();
+  if (!userId || userId === "ユーザが登録されていません。") return;
+
+  const shouldDelete = window.confirm(`ユーザ「${userId}」を削除します。\nよろしいですか？`);
+  if (!shouldDelete) return;
+
+  await deleteUserById(userId);
+};
+
+const syncPasswordTargetUsersFromList = () => {
+  if (!passwordTargetUserIdInput || !userList) return;
+
+  const previousValue = passwordTargetUserIdInput.value;
+  passwordTargetUserIdInput.innerHTML = "";
+
+  const placeholderOption = document.createElement("option");
+  placeholderOption.value = "";
+  placeholderOption.textContent = "変更対象ユーザIDを選択";
+  passwordTargetUserIdInput.appendChild(placeholderOption);
+
+  const listItems = Array.from(userList.querySelectorAll("li"));
+  if (listItems.length === 0) {
+    passwordTargetUserIdInput.value = "";
+    return;
+  }
+
+  listItems.forEach((item) => {
+    const id = String(item.textContent || "").trim();
+    if (!id || id === "ユーザが登録されていません。") return;
+    if (id === "undefined" || id === "null") return;
+    if (!id) return;
+    const option = document.createElement("option");
+    option.value = id;
+    option.textContent = id;
+    passwordTargetUserIdInput.appendChild(option);
+  });
+
+  const hasPrevious = Array.from(passwordTargetUserIdInput.options).some((option) => option.value === previousValue);
+  passwordTargetUserIdInput.value = hasPrevious ? previousValue : "";
 };
 
 const fetchUsers = async () => {
@@ -64,10 +135,13 @@ const fetchUsers = async () => {
       throw new Error(body.error || "ユーザ一覧の取得に失敗しました。");
     }
 
-    renderUsers(body);
-    setMessage(`ユーザ一覧を更新しました（${body.length}件）。`);
+    const users = Array.isArray(body) ? body : [];
+    renderUsers(users);
+    syncPasswordTargetUsersFromList();
+    setMessage(`ユーザ一覧を更新しました（${users.length}件）。`);
   } catch (error) {
     renderUsers([]);
+    syncPasswordTargetUsersFromList();
     setMessage(error.message || "ユーザ一覧の取得に失敗しました。", true);
   }
 };
@@ -97,6 +171,7 @@ const createUser = async (event) => {
     }
 
     setMessage(`ユーザ「${body.id}」を登録しました。`);
+    newUserIdInput.value = "";
     newUserPasswordInput.value = "";
     await fetchUsers();
   } catch (error) {
@@ -130,6 +205,7 @@ const updatePassword = async (event) => {
     }
 
     setMessage(`ユーザ「${id}」のパスワードを変更しました。`);
+    passwordTargetUserIdInput.value = "";
     currentPasswordInput.value = "";
     updatedPasswordInput.value = "";
     await fetchUsers();
@@ -201,6 +277,9 @@ const initializeAdmin = async () => {
   }
   if (refreshUsersBtn) {
     refreshUsersBtn.addEventListener("click", fetchUsers);
+  }
+  if (userList) {
+    userList.addEventListener("contextmenu", handleUserListContextMenu);
   }
 };
 

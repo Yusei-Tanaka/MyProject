@@ -341,7 +341,8 @@ body {
     grid-template-columns: 1fr;
     gap: 10px;
 }
-.user-admin-form input {
+.user-admin-form input,
+.user-admin-form select {
     padding: 10px 12px;
     border-radius: 8px;
     border: 1px solid #dfe1e5;

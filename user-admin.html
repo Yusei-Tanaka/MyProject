@@ -37,7 +37,9 @@
         </form>
         <br />
         <form id="passwordUpdateForm" class="user-admin-form">
-          <input id="passwordTargetUserId" type="text" placeholder="変更対象ユーザID" required />
+          <select id="passwordTargetUserId" required>
+            <option value="">変更対象ユーザIDを選択</option>
+          </select>
           <input id="currentPassword" type="password" placeholder="現在のパスワード" required />
           <input id="updatedPassword" type="password" placeholder="新しいパスワード" required />
           <button id="updatePasswordBtn" type="submit">パスワード変更</button>
@@ -51,6 +53,7 @@
         <div id="userAdminMessage" class="user-admin-message" aria-live="polite"></div>
 
         <h2>登録済みユーザ一覧</h2>
+        <p class="user-admin-auth-description">※ユーザIDを右クリックするとアカウントを削除できます。</p>
         <ul id="userList" class="user-list"></ul>
       </div>
     </div>
