@@ -1,7 +1,7 @@
 const startSearchBtn = document.getElementById("startSearchBtn");
 const titleInput = document.getElementById("titleInput");
 const themeHistoryContainer = document.getElementById("themeHistoryContainer");
-const themeHistorySelect = document.getElementById("themeHistorySelect");
+const themeHistoryList = document.getElementById("themeHistoryList");
 const deleteSelectedThemeBtn = document.getElementById("deleteSelectedThemeBtn");
 const clearThemeHistoryBtn = document.getElementById("clearThemeHistoryBtn");
 
@@ -19,6 +19,7 @@ const normalizeThemeName = (value) => String(value || "").trim();
 const themeApiBase = `http://${apiHost}:${authApiPort}`;
 const saveXmlBase = `http://${apiHost}:${saveXmlPort}`;
 let cachedThemes = [];
+let selectedThemeName = "";
 const MAX_FILE_PART_LENGTH = 24;
 
 const hashString8 = (value) => {
@@ -128,16 +129,32 @@ const clearThemes = async (userName) => {
   }
 };
 
+const setSelectedTheme = (themeName) => {
+  selectedThemeName = normalizeThemeName(themeName);
+  const items = themeHistoryList.querySelectorAll(".theme-history-item");
+  items.forEach((item) => {
+    const isSelected = item.dataset.themeName === selectedThemeName;
+    item.classList.toggle("is-selected", isSelected);
+    item.setAttribute("aria-selected", isSelected ? "true" : "false");
+  });
+};
+
 const renderThemeHistory = (list) => {
-  while (themeHistorySelect.options.length > 1) {
-    themeHistorySelect.remove(1);
-  }
+  themeHistoryList.innerHTML = "";
 
   list.forEach((themeEntry) => {
-    const option = document.createElement("option");
-    option.value = themeEntry.name;
-    option.textContent = themeEntry.name;
-    themeHistorySelect.appendChild(option);
+    const itemButton = document.createElement("button");
+    itemButton.type = "button";
+    itemButton.className = "theme-history-item";
+    itemButton.dataset.themeName = themeEntry.name;
+    itemButton.setAttribute("role", "option");
+    itemButton.setAttribute("aria-selected", "false");
+    itemButton.textContent = `○ ${themeEntry.name}`;
+    itemButton.addEventListener("click", () => {
+      setSelectedTheme(themeEntry.name);
+      titleInput.value = themeEntry.name;
+    });
+    themeHistoryList.appendChild(itemButton);
   });
 
   const hasHistory = list.length > 0;
@@ -151,21 +168,20 @@ const syncHistoryView = (nextTitle) => {
 
   if (nextTitle) {
     titleInput.value = nextTitle;
-    themeHistorySelect.value = nextTitle;
+    setSelectedTheme(nextTitle);
     return;
   }
 
   if (cachedThemes.length > 0) {
     titleInput.value = cachedThemes[0].name;
-    themeHistorySelect.value = cachedThemes[0].name;
+    setSelectedTheme(cachedThemes[0].name);
   } else {
     titleInput.value = "";
-    themeHistorySelect.value = "";
+    setSelectedTheme("");
   }
 };
 
 const initialize = async () => {
-  const savedTitle = (localStorage.getItem("searchTitle") || "").trim();
   try {
     cachedThemes = await fetchThemeHistory(currentUser);
     renderThemeHistory(cachedThemes);
@@ -176,13 +192,8 @@ const initialize = async () => {
     renderThemeHistory(cachedThemes);
   }
 
-  if (savedTitle) {
-    titleInput.value = savedTitle;
-    themeHistorySelect.value = savedTitle;
-  } else if (cachedThemes.length > 0) {
-    titleInput.value = cachedThemes[0].name;
-    themeHistorySelect.value = cachedThemes[0].name;
-  }
+  titleInput.value = "";
+  setSelectedTheme("");
 };
 
 const startSearch = async () => {
@@ -207,7 +218,7 @@ const startSearch = async () => {
 };
 
 const deleteSelectedTheme = async () => {
-  const selectedTheme = normalizeThemeName(themeHistorySelect.value);
+  const selectedTheme = normalizeThemeName(selectedThemeName || titleInput.value);
   if (!selectedTheme) {
     alert("削除するテーマを選択してください。");
     return;
@@ -249,10 +260,10 @@ const clearAllThemeHistory = async () => {
   syncHistoryView("");
 };
 
-themeHistorySelect.addEventListener("change", (event) => {
-  const selectedTheme = normalizeThemeName(event.target.value);
-  if (!selectedTheme) return;
-  titleInput.value = selectedTheme;
+titleInput.addEventListener("input", () => {
+  const currentInputTheme = normalizeThemeName(titleInput.value);
+  const matched = cachedThemes.find((entry) => entry.name === currentInputTheme);
+  setSelectedTheme(matched ? matched.name : "");
 });
 
 startSearchBtn.addEventListener("click", startSearch);

@@ -9,18 +9,20 @@
   </head>
   <body>
     <div class="title-input-container">
-      <h1>取り組むテーマを選択してください</h1>
-      <div id="themeHistoryContainer" class="theme-history-container" hidden>
-        <label for="themeHistorySelect">これまでのテーマ</label>
-        <select id="themeHistorySelect">
-          <option value="">選択してください</option>
-        </select>
+      <h1>取り組むテーマを入力または選択してください</h1>
+      <div id="themeHistoryContainer" class="theme-history-container">
+        <label>これまでのテーマ一覧</label>
+        <div id="themeHistoryList" class="theme-history-list" role="listbox" aria-label="これまでのテーマ一覧"></div>
         <div class="theme-history-actions">
           <button id="deleteSelectedThemeBtn" type="button">選択テーマ削除</button>
           <button id="clearThemeHistoryBtn" type="button">履歴全削除</button>
         </div>
       </div>
-      <input id="titleInput" type="text" placeholder="探索テーマを入力" required>
+
+      <div class="new-theme-container">
+        <label for="titleInput">新規テーマ</label>
+        <input id="titleInput" type="text" placeholder="新しい探索テーマを入力" required>
+      </div>
       <button id="startSearchBtn">探索スタート!</button>
     </div>
 
