@@ -43,11 +43,61 @@ function logHypothesisAction(message) {
 const hypothesisHost = window.location.hostname || "localhost";
 const hypothesisSaveBaseUrl = `http://${hypothesisHost}:3005`;
 let hypothesisSaveTimer = null;
+const MAX_FILE_PART_LENGTH = 24;
+
+function sanitizeFilePart(value) {
+  return String(value || "")
+    .trim()
+    .replace(/[\\/:*?"<>|]/g, "_")
+    .replace(/\s+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+function hashString8(value) {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < value.length; i += 1) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash.toString(16).padStart(8, "0");
+}
+
+function toShortFilePart(value, fallback) {
+  const normalized = sanitizeFilePart(value) || fallback;
+  if (normalized.length <= MAX_FILE_PART_LENGTH) {
+    return normalized;
+  }
+  const headLength = MAX_FILE_PART_LENGTH - 9;
+  const head = normalized.slice(0, headLength);
+  return `${head}_${hashString8(normalized)}`;
+}
+
+function getUserThemeParts(useShort = true) {
+  const storedName = localStorage.getItem("userName");
+  const storedTheme = localStorage.getItem("searchTitle");
+  const user = storedName ? storedName.trim() : "";
+  const theme = storedTheme ? storedTheme.trim() : "";
+  if (!useShort) {
+    return {
+      user: sanitizeFilePart(user) || "user_map",
+      theme: sanitizeFilePart(theme) || "untitled",
+    };
+  }
+  return {
+    user: toShortFilePart(user, "user_map"),
+    theme: toShortFilePart(theme, "untitled"),
+  };
+}
 
 function getHypothesisStateFilename() {
-  const storedName = localStorage.getItem("userName");
-  const trimmed = storedName ? storedName.trim() : "";
-  return `${trimmed || "user_map"}.hypothesis.json`;
+  const parts = getUserThemeParts(true);
+  return `${parts.user}__${parts.theme}.hypothesis.json`;
+}
+
+function getLegacyHypothesisStateFilename() {
+  const parts = getUserThemeParts(false);
+  return `${parts.user}__${parts.theme}.hypothesis.json`;
 }
 
 function scheduleHypothesisSave() {
@@ -183,8 +233,14 @@ async function restoreHypothesisState() {
     const wrapper = container.querySelector("#hypothesisWrapper");
     if (!wrapper) return;
 
-    const filePath = `JS/XML/${getHypothesisStateFilename()}`;
-    const res = await fetch(filePath, { cache: "no-store" });
+    const preferredPath = `JS/XML/${getHypothesisStateFilename()}`;
+    let res = await fetch(preferredPath, { cache: "no-store" });
+    if (!res.ok && res.status === 404) {
+      const legacyPath = `JS/XML/${getLegacyHypothesisStateFilename()}`;
+      if (legacyPath !== preferredPath) {
+        res = await fetch(legacyPath, { cache: "no-store" });
+      }
+    }
     if (!res.ok) {
       if (res.status === 404) return;
       throw new Error(`HTTP ${res.status}`);
@@ -725,9 +781,8 @@ document.querySelectorAll('.keyword').forEach(function(elem) {
 });
 
 function getUserXmlRelativePath() {
-  const storedName = localStorage.getItem("userName");
-  const trimmed = storedName ? storedName.trim() : "";
-  const filename = `${trimmed || "user_map"}.xml`;
+  const parts = getUserThemeParts(true);
+  const filename = `${parts.user}__${parts.theme}.xml`;
   return `JS/XML/${filename}`;
 }
 

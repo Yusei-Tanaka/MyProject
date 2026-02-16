@@ -59,6 +59,72 @@
     margin-bottom: 24px;
     transition: border-color 0.2s;
 }
+.login-form {
+    width: 360px;
+    max-width: 90vw;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+.login-form input {
+    padding: 12px 16px;
+    font-size: 1rem;
+    border: 1px solid #dfe1e5;
+    border-radius: 24px;
+    outline: none;
+    box-shadow: 0 1px 6px rgba(32,33,36,0.12);
+}
+.login-form input:focus {
+    border-color: #4285f4;
+}
+.theme-history-container {
+    width: 480px;
+    max-width: 90vw;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+.theme-history-container label {
+    color: #5f6368;
+    font-size: 0.95rem;
+    padding-right: 0;
+}
+.theme-history-container select {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 1rem;
+    border: 1px solid #dfe1e5;
+    border-radius: 24px;
+    outline: none;
+    background: #fff;
+}
+.theme-history-container select:focus {
+    border-color: #4285f4;
+}
+.theme-history-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+.theme-history-actions button {
+    flex: 1 1 0;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    border: 1px solid #dfe1e5;
+    border-radius: 16px;
+    background: #fff;
+    color: #5f6368;
+    cursor: pointer;
+}
+.theme-history-actions button:hover {
+    background: #f1f3f4;
+}
+.theme-history-actions button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
 #titleInput:focus {
     border-color: #4285f4;
 }

@@ -2,10 +2,10 @@
 <?meta title="自動車の観点から見た二酸化炭素排出量削減のための対策を考える"?>
 <ConceptMap>
   <Nodes>
-    <Node id="1" label="New Node" x="935" y="152" />
-    <Node id="2" label="New Node" x="1070" y="37" />
+    <Node id="1" label="い" x="935" y="159" />
+    <Node id="2" label="あ" x="781" y="191" />
   </Nodes>
   <Edges>
-    <Edge id="ade5f325-1adc-4d75-80e2-04e82c0648b3" from="1" to="2" label="New Edge" arrows="" />
+    <Edge id="d564b223-af3e-402a-ae90-5c41287a851c" from="2" to="1" label="う" arrows="" />
   </Edges>
 </ConceptMap>

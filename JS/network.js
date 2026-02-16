@@ -52,12 +52,14 @@ var network = new vis.Network(container, data, options);
 
 const host = window.location.hostname;
 const apiBaseUrl = `http://${host}:8000`;
+const themeApiBaseUrl = `http://${host}:3000`;
 const saveXmlBaseUrl = `http://${host}:3005`;
 
 let isRestoringConceptMap = false;
 let conceptMapSaveTimer = null;
 let conceptMapSaveInFlight = false;
 let conceptMapSaveQueued = false;
+const MAX_FILE_PART_LENGTH = 24;
 
 // 最後に選択された2つのノードを保存
 var selectedNodes = []; // 選択されたノードIDを保存
@@ -293,19 +295,52 @@ function updateCopiedContent(nodeIds) {
   copiedContentElement.innerText = selectedContent;
 }
 
-function escapeXml(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
-
 function getCurrentTitleText() {
   const titleInput = document.getElementById("myTitle");
   const inputValue = titleInput ? titleInput.value.trim() : "";
   return inputValue || localStorage.getItem("searchTitle") || "";
+}
+
+function getCurrentUserId() {
+  return (localStorage.getItem("userName") || "").trim();
+}
+
+function getCurrentThemeName() {
+  return getCurrentTitleText().trim();
+}
+
+function sanitizeFilePart(value) {
+  return String(value || "")
+    .trim()
+    .replace(/[\\/:*?"<>|]/g, "_")
+    .replace(/\s+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+function hashString8(value) {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < value.length; i += 1) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash.toString(16).padStart(8, "0");
+}
+
+function toShortFilePart(value, fallback) {
+  const normalized = sanitizeFilePart(value) || fallback;
+  if (normalized.length <= MAX_FILE_PART_LENGTH) {
+    return normalized;
+  }
+  const headLength = MAX_FILE_PART_LENGTH - 9;
+  const head = normalized.slice(0, headLength);
+  return `${head}_${hashString8(normalized)}`;
+}
+
+function getThemeScopedXmlFilename() {
+  const userId = toShortFilePart(getCurrentUserId(), "user");
+  const themeName = toShortFilePart(getCurrentThemeName(), "theme");
+  return `${userId}__${themeName}.xml`;
 }
 
 // ネットワークのクリックイベント
@@ -318,93 +353,81 @@ network.on("click", function (event) {
   }
 });
 
-// ノードとエッジのデータをXML形式に変換する関数
-function generateXML(nodes, edges) {
-  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
-  xml += `<?meta title="${escapeXml(getCurrentTitleText())}"?>\n`;
-  xml += "<ConceptMap>\n";
-
-  const nodePositions = network.getPositions(nodes.map((node) => node.id));
-
-  // ノード情報を追加
-  xml += "  <Nodes>\n";
-  nodes.forEach(function (node) {
-    const pos = nodePositions[node.id] || {};
-    const x = Number.isFinite(pos.x) ? pos.x : node.x;
-    const y = Number.isFinite(pos.y) ? pos.y : node.y;
-    xml += `    <Node id="${escapeXml(node.id)}" label="${escapeXml(node.label || "")}" x="${escapeXml(x ?? "")}" y="${escapeXml(y ?? "")}" />\n`;
-  });
-  xml += "  </Nodes>\n";
-
-  // エッジ情報を追加
-  xml += "  <Edges>\n";
-  edges.forEach(function (edge) {
-    xml += `    <Edge id="${escapeXml(edge.id ?? "")}" from="${escapeXml(edge.from)}" to="${escapeXml(edge.to)}" label="${escapeXml(edge.label || "")}" arrows="${escapeXml(edge.arrows || "")}" />\n`;
-  });
-  xml += "  </Edges>\n";
-
-  xml += "</ConceptMap>";
-  return xml;
-}
-
-// XMLファイルを保存する関数
-function saveXMLFile(content, filename) {
-  const blob = new Blob([content], { type: "application/xml" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
-}
-
-function getUserXmlFilename() {
-  const storedName = localStorage.getItem("userName");
-  const trimmed = storedName ? storedName.trim() : "";
-  return `${trimmed || "user_map"}.xml`;
-}
-
 function parseNodeId(value) {
   const n = Number(value);
   return Number.isNaN(n) ? value : n;
 }
 
-function parseMetaTitle(xmlText) {
-  const matched = xmlText.match(/<\?meta\s+title="([\s\S]*?)"\?>/);
-  if (!matched) return "";
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(`<x v="${matched[1]}"/>`, "application/xml");
-  const el = doc.querySelector("x");
-  return el ? (el.getAttribute("v") || "") : "";
+function buildConceptMapPayload() {
+  const currentNodes = nodes.get();
+  const currentEdges = edges.get();
+  const nodePositions = network.getPositions(currentNodes.map((node) => node.id));
+
+  return {
+    title: getCurrentThemeName(),
+    nodes: currentNodes.map((node) => {
+      const pos = nodePositions[node.id] || {};
+      return {
+        id: node.id,
+        label: node.label || "",
+        x: Number.isFinite(pos.x) ? pos.x : node.x,
+        y: Number.isFinite(pos.y) ? pos.y : node.y,
+      };
+    }),
+    edges: currentEdges.map((edge) => ({
+      id: edge.id ?? "",
+      from: edge.from,
+      to: edge.to,
+      label: edge.label || "",
+      arrows: edge.arrows || "",
+    })),
+    savedAt: new Date().toISOString(),
+  };
 }
 
-function loadConceptMapFromXml(xmlText) {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(xmlText, "application/xml");
-  if (doc.querySelector("parsererror")) {
-    throw new Error("XML parse error");
-  }
+function escapeXml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
 
-  const restoredTitle = parseMetaTitle(xmlText).trim();
-  if (restoredTitle) {
-    localStorage.setItem("searchTitle", restoredTitle);
-    const titleInput = document.getElementById("myTitle");
-    if (titleInput) titleInput.value = restoredTitle;
-  }
+function convertConceptMapPayloadToXml(payload) {
+  const title = payload?.title || "";
+  const nodesArray = Array.isArray(payload?.nodes) ? payload.nodes : [];
+  const edgesArray = Array.isArray(payload?.edges) ? payload.edges : [];
 
+  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+  xml += `<?meta title="${escapeXml(title)}"?>\n`;
+  xml += "<ConceptMap>\n";
+  xml += "  <Nodes>\n";
+  nodesArray.forEach((node) => {
+    xml += `    <Node id="${escapeXml(node.id)}" label="${escapeXml(node.label || "")}" x="${escapeXml(node.x ?? "")}" y="${escapeXml(node.y ?? "")}" />\n`;
+  });
+  xml += "  </Nodes>\n";
+  xml += "  <Edges>\n";
+  edgesArray.forEach((edge) => {
+    xml += `    <Edge id="${escapeXml(edge.id ?? "")}" from="${escapeXml(edge.from)}" to="${escapeXml(edge.to)}" label="${escapeXml(edge.label || "")}" arrows="${escapeXml(edge.arrows || "")}" />\n`;
+  });
+  xml += "  </Edges>\n";
+  xml += "</ConceptMap>";
+  return xml;
+}
+
+function applyConceptMapPayload(payload) {
   const loadedNodes = [];
   const nodeMap = new Set();
-  doc.querySelectorAll("Nodes > Node").forEach((el) => {
-    const idRaw = el.getAttribute("id");
-    const label = el.getAttribute("label") || "";
-    const xRaw = el.getAttribute("x");
-    const yRaw = el.getAttribute("y");
-    if (!idRaw) return;
-    const id = parseNodeId(idRaw);
-    const x = xRaw === null || xRaw === "" ? null : Number(xRaw);
-    const y = yRaw === null || yRaw === "" ? null : Number(yRaw);
+  const payloadNodes = Array.isArray(payload?.nodes) ? payload.nodes : [];
+  payloadNodes.forEach((node) => {
+    const id = parseNodeId(node.id);
+    if (id === null || id === undefined || id === "") return;
     nodeMap.add(String(id));
+
     const restoredNode = {
       id,
-      label,
+      label: String(node.label || ""),
       color: {
         background: "#FFFFFF",
         border: "#3498DB"
@@ -416,27 +439,25 @@ function loadConceptMapFromXml(xmlText) {
         face: "Arial"
       }
     };
-    if (Number.isFinite(x) && Number.isFinite(y)) {
-      restoredNode.x = x;
-      restoredNode.y = y;
+    if (Number.isFinite(Number(node.x)) && Number.isFinite(Number(node.y))) {
+      restoredNode.x = Number(node.x);
+      restoredNode.y = Number(node.y);
     }
     loadedNodes.push(restoredNode);
   });
 
   const loadedEdges = [];
-  doc.querySelectorAll("Edges > Edge").forEach((el, idx) => {
-    const fromRaw = el.getAttribute("from");
-    const toRaw = el.getAttribute("to");
-    if (!fromRaw || !toRaw) return;
-    const from = parseNodeId(fromRaw);
-    const to = parseNodeId(toRaw);
+  const payloadEdges = Array.isArray(payload?.edges) ? payload.edges : [];
+  payloadEdges.forEach((edge, idx) => {
+    const from = parseNodeId(edge.from);
+    const to = parseNodeId(edge.to);
     if (!nodeMap.has(String(from)) || !nodeMap.has(String(to))) return;
     loadedEdges.push({
-      id: el.getAttribute("id") || `e${idx + 1}`,
+      id: edge.id || `e${idx + 1}`,
       from,
       to,
-      label: el.getAttribute("label") || "",
-      arrows: el.getAttribute("arrows") || ""
+      label: String(edge.label || ""),
+      arrows: String(edge.arrows || "")
     });
   });
 
@@ -449,20 +470,26 @@ function loadConceptMapFromXml(xmlText) {
 }
 
 async function restoreUserConceptMap() {
-  const filename = getUserXmlFilename();
-  const xmlPath = `JS/XML/${filename}`;
+  const userId = getCurrentUserId();
+  const themeName = getCurrentThemeName();
+  if (!userId || !themeName) return;
 
   try {
-    const res = await fetch(xmlPath, { cache: "no-store" });
+    const res = await fetch(
+      `${themeApiBaseUrl}/users/${encodeURIComponent(userId)}/themes/${encodeURIComponent(themeName)}`,
+      { cache: "no-store" }
+    );
     if (!res.ok) {
       if (res.status === 404) return;
       throw new Error(`HTTP ${res.status}`);
     }
-    const xmlText = await res.text();
-    if (!xmlText || xmlText.trim().length === 0) return;
+    const themeRecord = await res.json();
+    const content = themeRecord?.content;
+    if (!content || typeof content !== "object") return;
+
     isRestoringConceptMap = true;
-    loadConceptMapFromXml(xmlText);
-    logAction(`キーワードマップ: 復元しました (${filename})`);
+    applyConceptMapPayload(content);
+    logAction(`キーワードマップ: DBから復元しました (theme=${themeName})`);
   } catch (error) {
     console.error("概念マップの復元に失敗しました:", error);
   } finally {
@@ -471,17 +498,32 @@ async function restoreUserConceptMap() {
 }
 
 async function sendConceptMapToServer(content) {
+  const userId = getCurrentUserId();
+  const themeName = getCurrentThemeName();
+  if (!userId || !themeName) return;
+
   const payload = {
-    filename: getUserXmlFilename(),
+    themeName,
     content,
   };
-  const response = await fetch(`${saveXmlBaseUrl}/save-xml`, {
-    method: "POST",
+  const response = await fetch(`${themeApiBaseUrl}/users/${encodeURIComponent(userId)}/themes`, {
+    method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  return response.text();
+  const xmlPayload = {
+    filename: getThemeScopedXmlFilename(),
+    content: convertConceptMapPayloadToXml(content),
+  };
+  const xmlResponse = await fetch(`${saveXmlBaseUrl}/save-xml`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(xmlPayload),
+  });
+  if (!xmlResponse.ok) throw new Error(`HTTP ${xmlResponse.status}`);
+
+  return response.json();
 }
 
 async function flushConceptMapSave() {
@@ -493,10 +535,8 @@ async function flushConceptMapSave() {
 
   conceptMapSaveInFlight = true;
   try {
-    const allNodes = nodes.get();
-    const allEdges = edges.get();
-    const xmlContent = generateXML(allNodes, allEdges);
-    await sendConceptMapToServer(xmlContent);
+    const mapPayload = buildConceptMapPayload();
+    await sendConceptMapToServer(mapPayload);
   } catch (error) {
     console.error("概念マップの保存に失敗しました:", error);
   } finally {
@@ -540,7 +580,10 @@ async function callApi(payload) {
 }
 
 // APIを呼び出すボタン
-document.getElementById("callApiBtn").addEventListener("click", function () {
-  callApi();
-});
+const callApiBtn = document.getElementById("callApiBtn");
+if (callApiBtn) {
+  callApiBtn.addEventListener("click", function () {
+    callApi();
+  });
+}
 

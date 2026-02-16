@@ -1,5 +1,15 @@
 // main.js
 
+const activeUser = (localStorage.getItem("userName") || "").trim();
+if (!activeUser) {
+    window.location.replace("index.html");
+}
+
+const activeTheme = (localStorage.getItem("searchTitle") || "").trim();
+if (!activeTheme) {
+    window.location.replace("theme-select.html");
+}
+
 // 1. レイアウト設定
 var config = {
   // グローバル設定: 閉じる/最大化/ポップアウトアイコンをすべて表示

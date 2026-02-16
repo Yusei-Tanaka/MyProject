@@ -10,7 +10,7 @@ app.use(express.json());
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  res.header("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
   if (req.method === "OPTIONS") return res.sendStatus(204);
   next();
 });
@@ -36,11 +36,26 @@ const USER_ID_PATTERN = /^[a-zA-Z0-9_-]{3,32}$/;
 
 const normalizeUserId = (value) => String(value || "").trim();
 const normalizePassword = (value) => String(value || "").trim();
+const normalizeThemeName = (value) => String(value || "").trim();
 
 const isValidUserId = (id) => USER_ID_PATTERN.test(id);
 const isValidPassword = (password) => password.length >= 1;
+const isValidThemeName = (themeName) => themeName.length >= 1 && themeName.length <= 255;
 
 const hashPassword = (password) => crypto.createHash("sha256").update(password).digest("hex");
+
+const parseJsonField = (value) => {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "object") return value;
+  if (typeof value === "string") {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return value;
+    }
+  }
+  return value;
+};
 
 const ensureSchema = async () => {
   await pool.execute(
@@ -65,6 +80,10 @@ const ensureSchema = async () => {
 
   await pool.execute(
     "CREATE TABLE IF NOT EXISTS edges (id BIGINT AUTO_INCREMENT PRIMARY KEY, src_id BIGINT NOT NULL, dst_id BIGINT NOT NULL, relation VARCHAR(255), props JSON, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, INDEX idx_edges_src (src_id), INDEX idx_edges_dst (dst_id), CONSTRAINT fk_edges_src FOREIGN KEY (src_id) REFERENCES nodes(id), CONSTRAINT fk_edges_dst FOREIGN KEY (dst_id) REFERENCES nodes(id))"
+  );
+
+  await pool.execute(
+    "CREATE TABLE IF NOT EXISTS user_themes (user_id VARCHAR(64) NOT NULL, theme_name VARCHAR(255) NOT NULL, content_json JSON NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (user_id, theme_name), INDEX idx_user_themes_user_updated (user_id, updated_at), CONSTRAINT fk_user_themes_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE)"
   );
 };
 
@@ -151,6 +170,140 @@ app.put("/users/:id", async (req, res) => {
     res.json({ id: userId, updated: true });
   } catch (err) {
     console.error("update user failed", err);
+    res.status(500).json({ error: "db error" });
+  }
+});
+
+app.get("/users/:id/themes", async (req, res) => {
+  const userId = normalizeUserId(req.params.id);
+  if (!userId) {
+    return res.status(400).json({ error: "missing id" });
+  }
+  if (!isValidUserId(userId)) {
+    return res.status(400).json({ error: "invalid id format" });
+  }
+
+  try {
+    const [rows] = await pool.query(
+      "SELECT theme_name, content_json, updated_at FROM user_themes WHERE user_id = ? ORDER BY updated_at DESC, theme_name ASC",
+      [userId]
+    );
+
+    const payload = rows.map((row) => ({
+      themeName: row.theme_name,
+      content: parseJsonField(row.content_json),
+      updatedAt: row.updated_at,
+    }));
+
+    res.json(payload);
+  } catch (err) {
+    console.error("fetch themes failed", err);
+    res.status(500).json({ error: "db error" });
+  }
+});
+
+app.get("/users/:id/themes/:themeName", async (req, res) => {
+  const userId = normalizeUserId(req.params.id);
+  const themeName = normalizeThemeName(req.params.themeName || "");
+  if (!userId || !themeName) {
+    return res.status(400).json({ error: "missing fields" });
+  }
+  if (!isValidUserId(userId)) {
+    return res.status(400).json({ error: "invalid id format" });
+  }
+  if (!isValidThemeName(themeName)) {
+    return res.status(400).json({ error: "invalid themeName" });
+  }
+
+  try {
+    const [rows] = await pool.execute(
+      "SELECT theme_name, content_json, updated_at FROM user_themes WHERE user_id = ? AND theme_name = ? LIMIT 1",
+      [userId, themeName]
+    );
+    if (!rows || rows.length === 0) {
+      return res.status(404).json({ error: "theme not found" });
+    }
+    const row = rows[0];
+    res.json({
+      themeName: row.theme_name,
+      content: parseJsonField(row.content_json),
+      updatedAt: row.updated_at,
+    });
+  } catch (err) {
+    console.error("fetch theme failed", err);
+    res.status(500).json({ error: "db error" });
+  }
+});
+
+app.put("/users/:id/themes", async (req, res) => {
+  const userId = normalizeUserId(req.params.id);
+  const themeName = normalizeThemeName(req.body.themeName);
+  const content = req.body.content ?? null;
+
+  if (!userId || !themeName) {
+    return res.status(400).json({ error: "missing fields" });
+  }
+  if (!isValidUserId(userId)) {
+    return res.status(400).json({ error: "invalid id format" });
+  }
+  if (!isValidThemeName(themeName)) {
+    return res.status(400).json({ error: "invalid themeName" });
+  }
+
+  try {
+    await pool.execute(
+      "INSERT INTO user_themes (user_id, theme_name, content_json) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE content_json = VALUES(content_json), updated_at = CURRENT_TIMESTAMP",
+      [userId, themeName, JSON.stringify(content)]
+    );
+    res.json({ userId, themeName, saved: true });
+  } catch (err) {
+    if (err && err.code === "ER_NO_REFERENCED_ROW_2") {
+      return res.status(404).json({ error: "user not found" });
+    }
+    console.error("save theme failed", err);
+    res.status(500).json({ error: "db error" });
+  }
+});
+
+app.delete("/users/:id/themes", async (req, res) => {
+  const userId = normalizeUserId(req.params.id);
+  if (!userId) {
+    return res.status(400).json({ error: "missing id" });
+  }
+  if (!isValidUserId(userId)) {
+    return res.status(400).json({ error: "invalid id format" });
+  }
+
+  try {
+    await pool.execute("DELETE FROM user_themes WHERE user_id = ?", [userId]);
+    res.json({ userId, deletedAll: true });
+  } catch (err) {
+    console.error("delete all themes failed", err);
+    res.status(500).json({ error: "db error" });
+  }
+});
+
+app.delete("/users/:id/themes/:themeName", async (req, res) => {
+  const userId = normalizeUserId(req.params.id);
+  const themeName = normalizeThemeName(decodeURIComponent(req.params.themeName || ""));
+  if (!userId || !themeName) {
+    return res.status(400).json({ error: "missing fields" });
+  }
+  if (!isValidUserId(userId)) {
+    return res.status(400).json({ error: "invalid id format" });
+  }
+
+  try {
+    const [result] = await pool.execute(
+      "DELETE FROM user_themes WHERE user_id = ? AND theme_name = ?",
+      [userId, themeName]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "theme not found" });
+    }
+    res.json({ userId, themeName, deleted: true });
+  } catch (err) {
+    console.error("delete theme failed", err);
     res.status(500).json({ error: "db error" });
   }
 });

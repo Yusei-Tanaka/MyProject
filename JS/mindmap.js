@@ -9,11 +9,56 @@ window.addEventListener('DOMContentLoaded', function() {
   let mindmapSaveQueued = false;
   let shouldApplyInitialOffset = true;
   let initialOffsetApplied = false;
+  const MAX_FILE_PART_LENGTH = 24;
 
-  function getMindmapFileName() {
+  function sanitizeFilePart(value) {
+    return String(value || "")
+      .trim()
+      .replace(/[\\/:*?"<>|]/g, "_")
+      .replace(/\s+/g, "_")
+      .replace(/_+/g, "_")
+      .replace(/^_+|_+$/g, "");
+  }
+
+  function hashString8(value) {
+    let hash = 0x811c9dc5;
+    for (let i = 0; i < value.length; i += 1) {
+      hash ^= value.charCodeAt(i);
+      hash = Math.imul(hash, 0x01000193) >>> 0;
+    }
+    return hash.toString(16).padStart(8, "0");
+  }
+
+  function toShortFilePart(value, fallback) {
+    const normalized = sanitizeFilePart(value) || fallback;
+    if (normalized.length <= MAX_FILE_PART_LENGTH) {
+      return normalized;
+    }
+    const headLength = MAX_FILE_PART_LENGTH - 9;
+    const head = normalized.slice(0, headLength);
+    return `${head}_${hashString8(normalized)}`;
+  }
+
+  function getUserThemeParts(useShort = true) {
     const storedName = localStorage.getItem("userName");
-    const trimmed = storedName ? storedName.trim() : "";
-    return `${trimmed || "user_map"}.mindmap.json`;
+    const storedTheme = localStorage.getItem("searchTitle");
+    const user = storedName ? storedName.trim() : "";
+    const theme = storedTheme ? storedTheme.trim() : "";
+    if (!useShort) {
+      return {
+        user: sanitizeFilePart(user) || "user_map",
+        theme: sanitizeFilePart(theme) || "untitled",
+      };
+    }
+    return {
+      user: toShortFilePart(user, "user_map"),
+      theme: toShortFilePart(theme, "untitled"),
+    };
+  }
+
+  function getMindmapFileName(useShort = true) {
+    const parts = getUserThemeParts(useShort);
+    return `${parts.user}__${parts.theme}.mindmap.json`;
   }
 
   async function saveMindmapState() {
@@ -57,12 +102,18 @@ window.addEventListener('DOMContentLoaded', function() {
   }
 
   async function restoreMindmapState(defaultTitle) {
-    const fileName = getMindmapFileName();
+    const fileName = getMindmapFileName(true);
     const statePath = `JS/XML/${fileName}`;
     isRestoringMindmap = true;
 
     try {
-      const response = await fetch(statePath, { cache: "no-store" });
+      let response = await fetch(statePath, { cache: "no-store" });
+      if (!response.ok && response.status === 404) {
+        const legacyFileName = getMindmapFileName(false);
+        if (legacyFileName !== fileName) {
+          response = await fetch(`JS/XML/${legacyFileName}`, { cache: "no-store" });
+        }
+      }
       if (!response.ok) {
         if (response.status === 404) return false;
         throw new Error(`HTTP ${response.status}`);

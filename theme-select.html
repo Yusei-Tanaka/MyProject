@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <title>探索テーマ選択 - 探索活動支援システム</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="./img/favicon.svg">
+  </head>
+  <body>
+    <div class="title-input-container">
+      <h1>取り組むテーマを選択してください</h1>
+      <div id="themeHistoryContainer" class="theme-history-container" hidden>
+        <label for="themeHistorySelect">これまでのテーマ</label>
+        <select id="themeHistorySelect">
+          <option value="">選択してください</option>
+        </select>
+        <div class="theme-history-actions">
+          <button id="deleteSelectedThemeBtn" type="button">選択テーマ削除</button>
+          <button id="clearThemeHistoryBtn" type="button">履歴全削除</button>
+        </div>
+      </div>
+      <input id="titleInput" type="text" placeholder="探索テーマを入力" required>
+      <button id="startSearchBtn">探索スタート!</button>
+    </div>
+
+    <div class="admin-link-container">
+      <a class="admin-link-button" href="http://localhost/phpmyadmin/" target="_blank" rel="noopener noreferrer">ユーザ管理</a>
+    </div>
+
+    <script src="JS/theme-select.js"></script>
+  </body>
+</html>

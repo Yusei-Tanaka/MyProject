@@ -71,6 +71,7 @@
   },
   "scripts": {
     "start": "node JS/server.js",
+    "migrate:xml": "node scripts/migrate-xml-to-db.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
