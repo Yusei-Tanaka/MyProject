@@ -7,13 +7,13 @@ const saveUserLog = async (logText) => {
     if (!userName) return;
 
     try {
-        const res = await fetch(`http://${saveLogHost}:${saveLogPort}/save-log`, {
+        const fileRes = await fetch(`http://${saveLogHost}:${saveLogPort}/save-log`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ userName, themeName, logText }),
         });
 
-        if (!res.ok) {
+        if (!fileRes.ok) {
             console.error("ログの保存に失敗しました");
         }
     } catch (error) {

@@ -112,8 +112,14 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:3000/auth/login" -ContentT
 - サーバー起動時に必要テーブルを自動作成/補完
 - テーマ履歴は `user_themes` テーブルに保存（`(user_id, theme_name)` の複合主キー）
 - キーワードマップのノード/エッジは、テーマ単位で `user_themes.content_json` に保存
+- 左下の仮説発散エリア（仮説本文HTML）は `user_themes.content_json.hypothesis.html` に保存され、`hypothesis_spread` テーブルにも同期保存
+- キーワードノードは `user_themes.content_json.keywordNodes` に保存
+- キーワードマップ構成エリアのノードは `node_keyword` テーブルに同期保存
+- キーワードマップ構成エリアのエッジは `node_edge` テーブルに同期保存
+- 仮説関係性マップ内の仮説ノードは `user_themes.content_json.hypothesis.nodes` に保存され、`node_hypothesis` テーブルにも同期保存
 - `JS/XML` のスナップショットXMLファイルは `短縮ユーザ__短縮テーマ.xml` 形式で保存
 - `log` のログファイルは `短縮ユーザ__短縮テーマ_log` 形式で保存
+- DBの `logs` テーブルは現在使用しません（起動時に削除されます）
 - ファイル名パーツ（ユーザ/テーマ）は記号除去・空白を `_` へ正規化し、24文字超過時は `先頭15文字 + _ + 8桁ハッシュ` に短縮
 
 ### 既存XMLをDBへ一括移行
@@ -158,6 +164,51 @@ curl.exe http://127.0.0.1:3000/users/user2/themes/user2
 - `content.nodes` と `content.edges` が存在すること
 - fallback対象では `content.migratedFromFallbackRoot = true` になること
 
+### 既存 user_themes から node_keyword/node_edge を再生成
+
+`user_themes.content_json` を元に、`node_keyword` / `node_edge` テーブルを再生成できます。
+
+```powershell
+# 事前確認（DB更新しない）
+node scripts/backfill-user-themes-to-graph.js --dry-run
+
+# 本実行（全ユーザー・全テーマ）
+node scripts/backfill-user-themes-to-graph.js
+
+# 特定ユーザーのみ
+node scripts/backfill-user-themes-to-graph.js --user user1
+
+# 特定ユーザー + 特定テーマのみ
+node scripts/backfill-user-themes-to-graph.js --user user1 --theme 再生可能エネルギー
+```
+
+補足:
+- 同一ユーザー・同一テーマの既存ノード/エッジは削除後に再作成します
+- エッジは `from` / `to` の参照ノードがあるものだけ登録します
+- `npm run backfill:graph` でも実行できます
+
+### 既存 user_themes から hypothesis_spread を再生成
+
+`user_themes.content_json.hypothesis.html` を元に、`hypothesis_spread` テーブルを再生成できます。
+
+```powershell
+# 事前確認（DB更新しない）
+node scripts/backfill-user-themes-to-hypotheses.js --dry-run
+
+# 本実行（全ユーザー・全テーマ）
+node scripts/backfill-user-themes-to-hypotheses.js
+
+# 特定ユーザーのみ
+node scripts/backfill-user-themes-to-hypotheses.js --user user1
+
+# 特定ユーザー + 特定テーマのみ
+node scripts/backfill-user-themes-to-hypotheses.js --user user1 --theme 再生可能エネルギー
+```
+
+補足:
+- `hypothesis.html` が空のテーマはスキップされます
+- `npm run backfill:hypothesis` でも実行できます
+
 ### テーマAPI
 
 テーマはユーザ単位で保存されます。
@@ -175,6 +226,12 @@ Invoke-RestMethod -Method Delete -Uri "http://127.0.0.1:3000/users/user1/themes/
 
 # テーマ全削除
 Invoke-RestMethod -Method Delete -Uri "http://127.0.0.1:3000/users/user1/themes"
+
+# 仮説本文（1テーマ）
+Invoke-RestMethod -Method Get -Uri "http://127.0.0.1:3000/users/user1/themes/%E5%86%8D%E7%94%9F%E5%8F%AF%E8%83%BD%E3%82%A8%E3%83%8D%E3%83%AB%E3%82%AE%E3%83%BC/hypothesis"
+
+# 仮説ノード一覧（1テーマ）
+Invoke-RestMethod -Method Get -Uri "http://127.0.0.1:3000/users/user1/themes/%E5%86%8D%E7%94%9F%E5%8F%AF%E8%83%BD%E3%82%A8%E3%83%8D%E3%83%AB%E3%82%AE%E3%83%BC/hypothesis-nodes"
 ```
 
 ## 9. トラブルシュート

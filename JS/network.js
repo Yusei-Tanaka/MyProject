@@ -50,6 +50,22 @@ var data = {
 };
 var network = new vis.Network(container, data, options);
 
+function handleNetworkResize() {
+  if (!network || !container) return;
+  try {
+    network.redraw();
+    network.fit({
+      animation: false,
+    });
+  } catch (error) {
+    console.warn("network resize failed:", error);
+  }
+}
+
+window.addEventListener("app-layout-resized", () => {
+  setTimeout(handleNetworkResize, 0);
+});
+
 const host = window.location.hostname;
 const apiBaseUrl = `http://${host}:8000`;
 const themeApiBaseUrl = `http://${host}:3000`;
@@ -63,6 +79,7 @@ const MAX_FILE_PART_LENGTH = 24;
 
 // 最後に選択された2つのノードを保存
 var selectedNodes = []; // 選択されたノードIDを保存
+window.selectedNodes = selectedNodes;
 
 function logAction(message) {
   if (typeof window.addSystemLog === "function") {
@@ -80,6 +97,7 @@ network.on("selectNode", function (event) {
       // Shiftキーが押されていない場合は選択をリセット
       selectedNodes = event.nodes;
     }
+    window.selectedNodes = selectedNodes;
   }
 
   // ノードの情報を表示
@@ -98,6 +116,7 @@ network.on("deselectNode", function (event) {
     selectedNodes = selectedNodes.filter(function (id) {
       return !event.previousSelection.nodes.includes(id);
     });
+    window.selectedNodes = selectedNodes;
   }
 
   // 表示内容を更新
@@ -220,6 +239,7 @@ document.getElementById("deleteNodeBtn").addEventListener("click", function () {
     var nodeData = nodes.get(nodeId);
     nodes.remove({ id: nodeId }); // 選択されたノードを削除
     selectedNodes = []; // 選択リセット
+    window.selectedNodes = selectedNodes;
     if (nodeData) {
       logAction(`キーワードマップ: ノード削除 id=${nodeId} label="${nodeData.label}"`);
     }
@@ -282,17 +302,11 @@ document.getElementById("deleteEdgeBtn").addEventListener("click", function () {
 });
 
 // ノードタイトルを表示する関数（複数ノード対応）
-function updateCopiedContent(nodeIds) {
-  var selectedContent = nodeIds
-    .map(function (id) {
-      var node = nodes.get(id);
-      return node ? node.label : "";
-    })
-    .join(", "); // 複数ノードのラベルをカンマ区切りで表示
-
-  // タイトル表示エリアに設定
+function updateCopiedContent(_nodeIds) {
   var copiedContentElement = document.getElementById("copiedContent");
-  copiedContentElement.innerText = selectedContent;
+  if (!copiedContentElement) return;
+  copiedContentElement.innerText = "";
+  copiedContentElement.style.display = "none";
 }
 
 function getCurrentTitleText() {
@@ -348,6 +362,7 @@ network.on("click", function (event) {
   if (event.nodes.length === 0 && event.edges.length === 0) {
     // ノードやエッジが選択されていない場合
     selectedNodes = []; // 選択リセット
+    window.selectedNodes = selectedNodes;
     highlightNodes(selectedNodes); // ハイライトを解除
     updateCopiedContent(selectedNodes); // 表示内容をリセット
   }
@@ -363,17 +378,21 @@ function buildConceptMapPayload() {
   const currentEdges = edges.get();
   const nodePositions = network.getPositions(currentNodes.map((node) => node.id));
 
+  const keywordNodes = currentNodes.map((node) => {
+    const pos = nodePositions[node.id] || {};
+    return {
+      id: node.id,
+      label: node.label || "",
+      nodeType: node.nodeType || "keyword",
+      x: Number.isFinite(pos.x) ? pos.x : node.x,
+      y: Number.isFinite(pos.y) ? pos.y : node.y,
+    };
+  });
+
   return {
     title: getCurrentThemeName(),
-    nodes: currentNodes.map((node) => {
-      const pos = nodePositions[node.id] || {};
-      return {
-        id: node.id,
-        label: node.label || "",
-        x: Number.isFinite(pos.x) ? pos.x : node.x,
-        y: Number.isFinite(pos.y) ? pos.y : node.y,
-      };
-    }),
+    keywordNodes,
+    nodes: keywordNodes,
     edges: currentEdges.map((edge) => ({
       id: edge.id ?? "",
       from: edge.from,
@@ -419,7 +438,11 @@ function convertConceptMapPayloadToXml(payload) {
 function applyConceptMapPayload(payload) {
   const loadedNodes = [];
   const nodeMap = new Set();
-  const payloadNodes = Array.isArray(payload?.nodes) ? payload.nodes : [];
+  const payloadNodes = Array.isArray(payload?.keywordNodes)
+    ? payload.keywordNodes
+    : Array.isArray(payload?.nodes)
+      ? payload.nodes
+      : [];
   payloadNodes.forEach((node) => {
     const id = parseNodeId(node.id);
     if (id === null || id === undefined || id === "") return;
@@ -428,6 +451,7 @@ function applyConceptMapPayload(payload) {
     const restoredNode = {
       id,
       label: String(node.label || ""),
+      nodeType: String(node.nodeType || "keyword"),
       color: {
         background: "#FFFFFF",
         border: "#3498DB"
@@ -467,6 +491,7 @@ function applyConceptMapPayload(payload) {
   if (loadedEdges.length > 0) edges.add(loadedEdges);
   updateCopiedContent([]);
   selectedNodes = [];
+  window.selectedNodes = selectedNodes;
 }
 
 async function restoreUserConceptMap() {

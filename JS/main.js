@@ -96,6 +96,42 @@ container.getElement().append( content );
 // 4. レイアウトの初期化と起動
 myLayout.init();
 
+function notifyVisualResize() {
+    if (typeof window.dispatchEvent === "function") {
+        window.dispatchEvent(new Event("app-layout-resized"));
+    }
+}
+
+function updateLayoutSize() {
+    var container = document.getElementById("golden-layout-container");
+    if (!container) return;
+
+    var width = container.clientWidth;
+    var height = container.clientHeight;
+    if (width <= 0 || height <= 0) return;
+
+    if (typeof myLayout.updateSize === "function") {
+        myLayout.updateSize(width, height);
+    }
+
+    if (myLayout.root && myLayout.root.contentItems && myLayout.root.contentItems[0]) {
+        myLayout.root.contentItems[0].callDownwards("setSize");
+    }
+
+    notifyVisualResize();
+}
+
+let resizeTimer = null;
+window.addEventListener("resize", function () {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(updateLayoutSize, 120);
+});
+
+window.addEventListener("orientationchange", function () {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(updateLayoutSize, 120);
+});
+
 function logLayoutAction(message) {
     if (typeof window.addSystemLog === "function") {
         window.addSystemLog(message);
@@ -121,6 +157,7 @@ $(function(){
         if (row) {
             row.callDownwards('setSize');
         }
+        updateLayoutSize();
     });
 
     // 左 30%・右 70% に切替するボタン
@@ -135,6 +172,7 @@ $(function(){
         rightCol.config.width = 70;
         // サイズ再計算を下位要素に伝播
         row.callDownwards('setSize');
+        updateLayoutSize();
         $('#createHypothesisBtn').removeAttr('hidden').removeClass('is-hidden');
         logLayoutAction("画面: 左サイドビュー表示");
     });

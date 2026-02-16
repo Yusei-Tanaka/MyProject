@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <title>ユーザ管理画面</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="./img/favicon.svg">
+  </head>
+  <body>
+    <div class="user-admin-page">
+      <div class="user-admin-card">
+        <h1>ユーザ管理</h1>
+
+        <form id="userCreateForm" class="user-admin-form">
+          <input id="newUserId" type="text" placeholder="ユーザID（英数字/3〜32文字）" required />
+          <input id="newUserPassword" type="password" placeholder="パスワード" required />
+          <button id="createUserBtn" type="submit">ユーザ登録</button>
+        </form>
+
+        <form id="passwordUpdateForm" class="user-admin-form">
+          <input id="passwordTargetUserId" type="text" placeholder="変更対象ユーザID" required />
+          <input id="currentPassword" type="password" placeholder="現在のパスワード" required />
+          <input id="updatedPassword" type="password" placeholder="新しいパスワード" required />
+          <button id="updatePasswordBtn" type="submit">パスワード変更</button>
+        </form>
+
+        <div class="user-admin-actions">
+          <button id="refreshUsersBtn" type="button">ユーザ一覧を更新</button>
+          <a class="user-admin-back" href="index.html">ログイン画面へ戻る</a>
+        </div>
+
+        <div id="userAdminMessage" class="user-admin-message" aria-live="polite"></div>
+
+        <h2>登録済みユーザ一覧</h2>
+        <ul id="userList" class="user-list"></ul>
+      </div>
+    </div>
+
+    <script src="JS/user-admin.js"></script>
+  </body>
+</html>

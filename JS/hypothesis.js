@@ -42,8 +42,11 @@ function logHypothesisAction(message) {
 
 const hypothesisHost = window.location.hostname || "localhost";
 const hypothesisSaveBaseUrl = `http://${hypothesisHost}:3005`;
+const hypothesisDbApiBaseUrl = `http://${hypothesisHost}:3000`;
 let hypothesisSaveTimer = null;
-const MAX_FILE_PART_LENGTH = 24;
+const HYPOTHESIS_MAX_FILE_PART_LENGTH = 24;
+let hasShownHypothesisUserMissingWarning = false;
+let hasShownXmlFetchWarning = false;
 
 function sanitizeFilePart(value) {
   return String(value || "")
@@ -65,10 +68,10 @@ function hashString8(value) {
 
 function toShortFilePart(value, fallback) {
   const normalized = sanitizeFilePart(value) || fallback;
-  if (normalized.length <= MAX_FILE_PART_LENGTH) {
+  if (normalized.length <= HYPOTHESIS_MAX_FILE_PART_LENGTH) {
     return normalized;
   }
-  const headLength = MAX_FILE_PART_LENGTH - 9;
+  const headLength = HYPOTHESIS_MAX_FILE_PART_LENGTH - 9;
   const head = normalized.slice(0, headLength);
   return `${head}_${hashString8(normalized)}`;
 }
@@ -93,6 +96,127 @@ function getUserThemeParts(useShort = true) {
 function getHypothesisStateFilename() {
   const parts = getUserThemeParts(true);
   return `${parts.user}__${parts.theme}.hypothesis.json`;
+}
+
+function getCurrentUserThemeRaw() {
+  const userId = String(localStorage.getItem("userName") || "").trim();
+  const themeName = String(localStorage.getItem("searchTitle") || "").trim();
+  return { userId, themeName };
+}
+
+function rebindRestoredHypothesis(wrapper) {
+  wrapper.querySelectorAll(".hypothesis-box").forEach(function (entry) {
+    rebindHypothesisEntry(entry);
+    bindDeleteButton(entry, wrapper);
+  });
+
+  updateHypothesisNumbers(wrapper);
+  if (wrapper.children.length > 0) {
+    logHypothesisAction("仮説: 復元しました");
+  }
+}
+
+function collectHypothesisNodesFromWrapper(wrapper) {
+  if (!wrapper) return [];
+
+  const rows = [];
+  const entries = wrapper.querySelectorAll(".hypothesis-box");
+  entries.forEach(function (entry, entryIndex) {
+    const keywordElement = entry.querySelector("div:nth-child(2)");
+    const basedKeywords = keywordElement ? String(keywordElement.innerText || "").trim() : "";
+
+    const mainTextarea = entry.querySelector("textarea.hypothesis-text");
+    const hypothesisText = mainTextarea ? String(mainTextarea.value || "").trim() : "";
+    if (hypothesisText) {
+      rows.push({
+        id: `hypothesis-${entryIndex + 1}`,
+        kind: "hypothesis",
+        text: hypothesisText,
+        basedKeywords,
+        order: rows.length + 1,
+      });
+    }
+
+    const scamperContainers = entry.querySelectorAll(".scamper-tag-container");
+    scamperContainers.forEach(function (container, scamperIndex) {
+      const tag = container.querySelector(".scamper-tag");
+      const textarea = container.querySelector("textarea.scamper-edit-box");
+      const scamperText = textarea ? String(textarea.value || "").trim() : "";
+      if (!scamperText) return;
+
+      rows.push({
+        id: `hypothesis-${entryIndex + 1}-scamper-${scamperIndex + 1}`,
+        kind: "scamper",
+        tag: tag ? String(tag.innerText || "").trim() : "",
+        text: scamperText,
+        basedKeywords,
+        order: rows.length + 1,
+      });
+    });
+  });
+
+  return rows;
+}
+
+async function saveHypothesisStateToDb(serializedHtml, hypothesisNodes) {
+  const { userId, themeName } = getCurrentUserThemeRaw();
+  if (!userId || !themeName) return;
+
+  let existingContent = {};
+  try {
+    const getRes = await fetch(
+      `${hypothesisDbApiBaseUrl}/users/${encodeURIComponent(userId)}/themes/${encodeURIComponent(themeName)}`,
+      { cache: "no-store" }
+    );
+
+    if (getRes.ok) {
+      const currentTheme = await getRes.json();
+      if (currentTheme && currentTheme.content && typeof currentTheme.content === "object") {
+        existingContent = currentTheme.content;
+      }
+    } else if (getRes.status !== 404) {
+      throw new Error(`HTTP ${getRes.status}`);
+    }
+
+    const existingHypothesis =
+      existingContent && existingContent.hypothesis && typeof existingContent.hypothesis === "object"
+        ? existingContent.hypothesis
+        : {};
+
+    const mergedContent = {
+      ...existingContent,
+      hypothesis: {
+        ...existingHypothesis,
+        html: serializedHtml,
+        nodes: Array.isArray(hypothesisNodes) ? hypothesisNodes : [],
+        savedAt: new Date().toISOString(),
+      },
+    };
+
+    const putRes = await fetch(
+      `${hypothesisDbApiBaseUrl}/users/${encodeURIComponent(userId)}/themes`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          themeName,
+          content: mergedContent,
+        }),
+      }
+    );
+    if (putRes.status === 404) {
+      if (!hasShownHypothesisUserMissingWarning) {
+        hasShownHypothesisUserMissingWarning = true;
+        alert(`ユーザー「${userId}」がDBに存在しないため、仮説のDB保存をスキップしました。\nログインし直して（auth_user / host）利用してください。`);
+      }
+      return;
+    }
+    if (!putRes.ok) {
+      throw new Error(`HTTP ${putRes.status}`);
+    }
+  } catch (error) {
+    console.error("仮説発散エリアのDB保存に失敗しました:", error);
+  }
 }
 
 function getLegacyHypothesisStateFilename() {
@@ -121,18 +245,27 @@ async function saveHypothesisState() {
     const wrapper = container.querySelector("#hypothesisWrapper");
     if (!wrapper) return;
 
+    const serializedHtml = serializeHypothesisWrapper(wrapper);
+    const hypothesisNodes = collectHypothesisNodesFromWrapper(wrapper);
+
     const payload = {
       filename: getHypothesisStateFilename(),
-      content: JSON.stringify({ html: serializeHypothesisWrapper(wrapper) }),
+      content: JSON.stringify({ html: serializedHtml }),
     };
 
-    const res = await fetch(`${hypothesisSaveBaseUrl}/save-xml`, {
+    const fileSavePromise = fetch(`${hypothesisSaveBaseUrl}/save-xml`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
+
+    const [fileSaveResult] = await Promise.all([
+      fileSavePromise,
+      saveHypothesisStateToDb(serializedHtml, hypothesisNodes),
+    ]);
+
+    if (!fileSaveResult.ok) {
+      throw new Error(`HTTP ${fileSaveResult.status}`);
     }
   } catch (error) {
     console.error("仮説発散エリアの保存に失敗しました:", error);
@@ -171,27 +304,41 @@ function attachHypothesisTextareaLogging(textarea, createMessage) {
 
 function bindDeleteButton(entry, wrapper) {
   const delBtn = entry.querySelector(".hypothesis-delete-btn");
-  if (!delBtn || delBtn.dataset.boundDelete === "true") return;
-  delBtn.addEventListener("click", function () {
+  if (!delBtn) return;
+
+  if (typeof delBtn.__hypothesisDeleteHandler === "function") {
+    delBtn.removeEventListener("click", delBtn.__hypothesisDeleteHandler);
+  }
+
+  const onDeleteClick = function () {
     wrapper.removeChild(entry);
     updateHypothesisNumbers(wrapper);
     logHypothesisAction("仮説: 削除");
     scheduleHypothesisSave();
-  });
-  delBtn.dataset.boundDelete = "true";
+  };
+
+  delBtn.addEventListener("click", onDeleteClick);
+  delBtn.__hypothesisDeleteHandler = onDeleteClick;
 }
 
 function bindScamperTagDelete(tagLabel, tagContainer) {
-  if (!tagLabel || tagLabel.dataset.boundContext === "true") return;
-  tagLabel.addEventListener("contextmenu", function (e) {
+  if (!tagLabel) return;
+
+  if (typeof tagLabel.__scamperDeleteHandler === "function") {
+    tagLabel.removeEventListener("contextmenu", tagLabel.__scamperDeleteHandler);
+  }
+
+  const onContextMenu = function (e) {
     e.preventDefault();
     var confirmDelete = confirm(`「${tagLabel.innerText}」タグを削除しますか？`);
     if (confirmDelete && tagContainer.parentNode) {
       tagContainer.parentNode.removeChild(tagContainer);
       scheduleHypothesisSave();
     }
-  });
-  tagLabel.dataset.boundContext = "true";
+  };
+
+  tagLabel.addEventListener("contextmenu", onContextMenu);
+  tagLabel.__scamperDeleteHandler = onContextMenu;
 }
 
 function rebindHypothesisEntry(entry) {
@@ -233,6 +380,35 @@ async function restoreHypothesisState() {
     const wrapper = container.querySelector("#hypothesisWrapper");
     if (!wrapper) return;
 
+    const { userId, themeName } = getCurrentUserThemeRaw();
+    if (userId && themeName) {
+      const dbRes = await fetch(
+        `${hypothesisDbApiBaseUrl}/users/${encodeURIComponent(userId)}/themes/${encodeURIComponent(themeName)}`,
+        { cache: "no-store" }
+      );
+
+      if (dbRes.ok) {
+        const dbRecord = await dbRes.json();
+        const dbContent = dbRecord && dbRecord.content && typeof dbRecord.content === "object"
+          ? dbRecord.content
+          : null;
+        const dbHypothesis = dbContent && dbContent.hypothesis && typeof dbContent.hypothesis === "object"
+          ? dbContent.hypothesis
+          : null;
+        const dbHtml = dbHypothesis && typeof dbHypothesis.html === "string"
+          ? dbHypothesis.html
+          : "";
+
+        if (dbHtml) {
+          wrapper.innerHTML = dbHtml;
+          rebindRestoredHypothesis(wrapper);
+          return;
+        }
+      } else if (dbRes.status !== 404) {
+        throw new Error(`HTTP ${dbRes.status}`);
+      }
+    }
+
     const preferredPath = `JS/XML/${getHypothesisStateFilename()}`;
     let res = await fetch(preferredPath, { cache: "no-store" });
     if (!res.ok && res.status === 404) {
@@ -259,15 +435,7 @@ async function restoreHypothesisState() {
     if (!parsed.html || typeof parsed.html !== "string") return;
 
     wrapper.innerHTML = parsed.html;
-    wrapper.querySelectorAll(".hypothesis-box").forEach(function (entry) {
-      rebindHypothesisEntry(entry);
-      bindDeleteButton(entry, wrapper);
-    });
-
-    updateHypothesisNumbers(wrapper);
-    if (wrapper.children.length > 0) {
-      logHypothesisAction("仮説: 復元しました");
-    }
+    rebindRestoredHypothesis(wrapper);
   } catch (error) {
     console.error("仮説発散エリアの復元に失敗しました:", error);
   }
@@ -277,10 +445,12 @@ async function restoreHypothesisState() {
 function addHypothesisEntry(nodeIds) {
   var container = ensureHypothesisContainer();
   var wrapper = container.querySelector("#hypothesisWrapper");
+  if (!wrapper) return;
 
   // 選択キーワードラベル取得（先頭リストは表示しない）
+  var nodeDataSet = window.nodes;
   var keywordLabels = nodeIds.map(function (id) {
-    var n = nodes.get(id);
+    var n = nodeDataSet && typeof nodeDataSet.get === "function" ? nodeDataSet.get(id) : null;
     return n ? n.label : "(未定義)";
   });
 
@@ -339,29 +509,70 @@ function updateHypothesisNumbers(wrapper) {
   }
 }
 
+function getSelectedNodeIdsForHypothesis() {
+  var ids = Array.isArray(window.selectedNodes) ? window.selectedNodes.slice() : [];
+  if (ids.length > 0) return ids;
+
+  if (window.network && typeof window.network.getSelectedNodes === "function") {
+    var networkSelected = window.network.getSelectedNodes();
+    if (Array.isArray(networkSelected) && networkSelected.length > 0) {
+      return networkSelected;
+    }
+  }
+
+  return [];
+}
+
+function bindCreateHypothesisButton() {
+  var createBtnDom = document.getElementById("createHypothesisBtn");
+  if (!createBtnDom || createBtnDom.dataset.boundHypothesisCreate === "true") {
+    return;
+  }
+
+  createBtnDom.onclick = function () {
+    if (typeof window.handleCreateHypothesisClick === "function") {
+      window.handleCreateHypothesisClick();
+    }
+  };
+
+  createBtnDom.dataset.boundHypothesisCreate = "true";
+}
+
+window.handleCreateHypothesisClick = function () {
+  try {
+    var currentSelectedNodes = getSelectedNodeIdsForHypothesis();
+    if (currentSelectedNodes.length === 0) {
+      alert("少なくとも1つのノードを選択してください。");
+      return;
+    }
+    addHypothesisEntry(currentSelectedNodes);
+  } catch (error) {
+    console.error("仮説立案ボタン処理でエラーが発生しました:", error);
+    alert("仮説立案の処理中にエラーが発生しました。ページを再読み込みしてください。");
+  }
+};
+
 // DOM が読み込まれたら仮説コンテナを初期化し，ボタンにリスナを登録する
 document.addEventListener("DOMContentLoaded", function () {
   ensureHypothesisContainer();
   restoreHypothesisState();
-
-  var createBtnDom = document.getElementById("createHypothesisBtn");
-  if (createBtnDom) {
-    createBtnDom.addEventListener("click", function () {
-      if (!selectedNodes || selectedNodes.length === 0) {
-        alert("少なくとも1つのノードを選択してください。");
-        return;
-      }
-      addHypothesisEntry(selectedNodes);
-    });
-  }
+  bindCreateHypothesisButton();
 });
+
+if (document.readyState !== "loading") {
+  bindCreateHypothesisButton();
+}
 
 // 選択されたノードが存在するか確認
-selectedNodes.forEach(function (nodeId) {
-  console.log("Node exists:", nodes.get(nodeId) !== null);
-});
+if (Array.isArray(window.selectedNodes) && window.nodes && typeof window.nodes.get === "function") {
+  window.selectedNodes.forEach(function (nodeId) {
+    console.log("Node exists:", nodes.get(nodeId) !== null);
+  });
+}
 
-console.log("Edges:", edges.get());
+if (window.edges && typeof window.edges.get === "function") {
+  console.log("Edges:", edges.get());
+}
 
 // SCAMPER の選択肢（日本語ラベル）
 var SCAMPER_OPTIONS = [
@@ -764,6 +975,7 @@ function handleKeywordClick(keyword) {
         var newNode = {
         id: newId,
             label: keyword,
+          nodeType: "keyword",
         };
         nodes.add(newNode); // ノードを追加
       logHypothesisAction(`キーワード: ノード追加 label="${keyword}"`);
@@ -809,6 +1021,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const xmlFilePath = getUserXmlRelativePath(); // XMLファイルのパスを指定
     fetch(xmlFilePath)
       .then(response => {
+        if (response.status === 404) {
+          return "";
+        }
         if (!response.ok) {
           throw new Error(`HTTPエラー: ${response.status}`);
         }
@@ -1054,6 +1269,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const xmlFilePath = getUserXmlRelativePath();
     fetch(xmlFilePath)
       .then(response => {
+        if (response.status === 404) {
+          return "";
+        }
         if (!response.ok) {
           throw new Error(`HTTPエラー: ${response.status}`);
         }
@@ -1063,7 +1281,10 @@ document.addEventListener("DOMContentLoaded", () => {
         xmlData = xmlText;
       })
       .catch(error => {
-        alert("XMLファイルの取得中にエラーが発生しました: " + error.message);
+        if (!hasShownXmlFetchWarning) {
+          hasShownXmlFetchWarning = true;
+          console.warn("XMLファイルの取得中にエラーが発生しました:", error.message);
+        }
       });
   };
   setInterval(fetchXML, 1000); // 1秒ごとに更新

@@ -3,6 +3,8 @@
 <ConceptMap>
   <Nodes>
     <Node id="1" label="New Node" x="935" y="152" />
+    <Node id="2" label="New Node" x="741" y="151" />
+    <Node id="3" label="New Node" x="864" y="95" />
   </Nodes>
   <Edges>
   </Edges>

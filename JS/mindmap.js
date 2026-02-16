@@ -153,6 +153,15 @@ window.addEventListener('DOMContentLoaded', function() {
     allowInsert: false
   });
 
+  function handleDiagramResize() {
+    if (!diagram) return;
+    setTimeout(function() {
+      diagram.requestUpdate();
+    }, 0);
+  }
+
+  window.addEventListener("app-layout-resized", handleDiagramResize);
+
   function logMindmapAction(message) {
     if (typeof window.addSystemLog === "function") {
       window.addSystemLog(message);

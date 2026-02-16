@@ -20,9 +20,14 @@
     </div>
 
     <div class="admin-link-container">
-      <a class="admin-link-button" href="http://localhost/phpmyadmin/" target="_blank" rel="noopener noreferrer">ユーザ管理</a>
+      <select id="adminMenuSelect" class="admin-link-select" aria-label="管理画面選択">
+        <option value="">管理画面を選択</option>
+        <option value="http://localhost/phpmyadmin/">phpMyAdmin</option>
+        <option value="user-admin.html">ユーザ管理画面</option>
+      </select>
     </div>
 
     <script src="JS/index.js"></script>
+    <script src="JS/admin-menu.js"></script>
   </body>
 </html>

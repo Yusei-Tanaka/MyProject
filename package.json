@@ -72,6 +72,8 @@
   "scripts": {
     "start": "node JS/server.js",
     "migrate:xml": "node scripts/migrate-xml-to-db.js",
+    "backfill:graph": "node scripts/backfill-user-themes-to-graph.js",
+    "backfill:hypothesis": "node scripts/backfill-user-themes-to-hypotheses.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
