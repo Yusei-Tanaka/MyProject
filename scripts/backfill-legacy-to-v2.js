@@ -62,6 +62,20 @@ const buildWhereClause = () => {
   return { whereSql: `WHERE ${conditions.join(" AND ")}`, params };
 };
 
+const resolveLegacySourceTable = async () => {
+  const candidates = ["user_themes", "user_themes_legacy_20260217"];
+  for (const tableName of candidates) {
+    const [rows] = await pool.execute(
+      "SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ? LIMIT 1",
+      [tableName]
+    );
+    if (rows.length > 0) {
+      return tableName;
+    }
+  }
+  return null;
+};
+
 const buildGraphSnapshot = (content) => {
   const source = toObjectOrEmpty(content);
   const rawNodes = Array.isArray(source.keywordNodes)
@@ -318,14 +332,20 @@ const insertVersionBundle = async ({ connection, row, content }) => {
 };
 
 (async () => {
+  const sourceTable = await resolveLegacySourceTable();
+  if (!sourceTable) {
+    console.log("対象のソーステーブルがありません（user_themes / user_themes_legacy_20260217）。");
+    return;
+  }
+
   const { whereSql, params } = buildWhereClause();
   const [rows] = await pool.execute(
-    `SELECT user_id, theme_name, content_json, updated_at FROM user_themes ${whereSql} ORDER BY user_id, theme_name`,
+    `SELECT user_id, theme_name, content_json, updated_at FROM ${sourceTable} ${whereSql} ORDER BY user_id, theme_name`,
     params
   );
 
   if (rows.length === 0) {
-    console.log("対象の user_themes レコードがありません。");
+    console.log(`対象の ${sourceTable} レコードがありません。`);
     return;
   }
 

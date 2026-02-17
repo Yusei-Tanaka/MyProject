@@ -11,6 +11,10 @@ SELECT 'legacy_user_themes_count' AS check_name, COUNT(*) AS row_count FROM user
 SELECT 'v2_themes_count' AS check_name, COUNT(*) AS row_count FROM themes;
 SELECT 'legacy_hypothesis_spread_count' AS check_name, COUNT(*) AS row_count FROM hypothesis_spread;
 SELECT 'v2_hypothesis_spreads_count' AS check_name, COUNT(*) AS row_count FROM hypothesis_spreads;
+SELECT 'legacy_node_keyword_count' AS check_name, COUNT(*) AS row_count FROM node_keyword;
+SELECT 'v2_keyword_nodes_count' AS check_name, COUNT(*) AS row_count FROM keyword_nodes;
+SELECT 'legacy_node_edge_count' AS check_name, COUNT(*) AS row_count FROM node_edge;
+SELECT 'v2_keyword_edges_count' AS check_name, COUNT(*) AS row_count FROM keyword_edges;
 SELECT 'legacy_node_hypothesis_count' AS check_name, COUNT(*) AS row_count FROM node_hypothesis;
 SELECT 'v2_hypothesis_nodes_count' AS check_name, COUNT(*) AS row_count FROM hypothesis_nodes;
 

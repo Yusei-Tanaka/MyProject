@@ -116,8 +116,7 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:3000/auth/login" -ContentT
 - キーワードマップのノード/エッジは、テーマ単位で `user_themes.content_json` に保存
 - 左下の仮説発散エリア（仮説本文HTML）は `user_themes.content_json.hypothesis.html` に保存され、`hypothesis_spread` テーブルにも同期保存
 - キーワードノードは `user_themes.content_json.keywordNodes` に保存
-- キーワードマップ構成エリアのノードは `node_keyword` テーブルに同期保存
-- キーワードマップ構成エリアのエッジは `node_edge` テーブルに同期保存
+- キーワードマップ構成エリアのノード/エッジは `keyword_nodes` / `keyword_edges`（DB V2）を正とします
 - 仮説関係性マップ内の仮説ノードは `user_themes.content_json.hypothesis.nodes` に保存され、`node_hypothesis` テーブルにも同期保存
 - `XML` のスナップショットXMLファイルは `短縮ユーザ__短縮テーマ.xml` 形式で保存
 - `log` のログファイルは `短縮ユーザ__短縮テーマ_log` 形式で保存
@@ -166,28 +165,27 @@ curl.exe http://127.0.0.1:3000/users/user2/themes/user2
 - `content.nodes` と `content.edges` が存在すること
 - fallback対象では `content.migratedFromFallbackRoot = true` になること
 
-### 既存 user_themes から node_keyword/node_edge を再生成
+### 既存 user_themes から DB V2 のキーワード表へ移行
 
-`user_themes.content_json` を元に、`node_keyword` / `node_edge` テーブルを再生成できます。
+`user_themes.content_json` を元に、`keyword_nodes` / `keyword_edges` を含むDB V2テーブルへ移行できます。
 
 ```powershell
 # 事前確認（DB更新しない）
-node scripts/backfill-user-themes-to-graph.js --dry-run
+node scripts/backfill-legacy-to-v2.js --dry-run
 
 # 本実行（全ユーザー・全テーマ）
-node scripts/backfill-user-themes-to-graph.js
+node scripts/backfill-legacy-to-v2.js
 
 # 特定ユーザーのみ
-node scripts/backfill-user-themes-to-graph.js --user user1
+node scripts/backfill-legacy-to-v2.js --user user1
 
 # 特定ユーザー + 特定テーマのみ
-node scripts/backfill-user-themes-to-graph.js --user user1 --theme 再生可能エネルギー
+node scripts/backfill-legacy-to-v2.js --user user1 --theme 再生可能エネルギー
 ```
 
 補足:
-- 同一ユーザー・同一テーマの既存ノード/エッジは削除後に再作成します
-- エッジは `from` / `to` の参照ノードがあるものだけ登録します
-- `npm run backfill:graph` でも実行できます
+- 既存V2版があるテーマを再投入する場合は `--force-append` を利用
+- `npm run migrate:v2` でも実行できます
 
 ### 既存 user_themes から hypothesis_spread を再生成
 

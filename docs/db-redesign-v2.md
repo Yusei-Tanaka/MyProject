@@ -427,7 +427,7 @@ erDiagram
 
 ### Phase 2: 初回バックフィル
 
-- 入力: `user_themes`, `node_keyword`, `node_edge`, `hypothesis_spread`, `node_hypothesis`
+- 入力: `user_themes`（`content_json` 内の nodes/edges/hypothesis を利用）
 - 出力: `themes`, `theme_versions`, `keyword_nodes`, `keyword_edges`, `hypothesis_spreads`, `hypothesis_nodes`
 - 生成ルール:
   - `themes`: `(user_id, theme_name)` ごとに1行

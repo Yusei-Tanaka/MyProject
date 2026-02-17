@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?meta title="持続可能なこれからのエネルギーの作り方を考える"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="車" x="0" y="0" />
+    <Node id="2" label="二酸化炭素" x="-263" y="2" />
+  </Nodes>
+  <Edges>
+    <Edge id="05ec0746-326d-4264-b438-da9318842540" from="2" to="1" label="原因" arrows="" />
+  </Edges>
+</ConceptMap>

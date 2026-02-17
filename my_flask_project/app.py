@@ -1,7 +1,9 @@
+from pathlib import Path
 from flask import Flask, render_template, request
 import requests
 
-app = Flask(__name__)
+BASE_DIR = Path(__file__).resolve().parents[1]
+app = Flask(__name__, template_folder=str(BASE_DIR))
 
 def search_wikidata_entity(search_term, language='en'):
     url = "https://www.wikidata.org/w/api.php"
@@ -29,7 +31,7 @@ def home():
     if request.method == 'POST':
         search_term = request.form['search_term']
         entity_id = search_wikidata_entity(search_term)
-    return render_template('index.html', entity_id=entity_id)
+    return render_template('flask-index.html', entity_id=entity_id)
 
 if __name__ == '__main__':
     app.run(debug=True)
