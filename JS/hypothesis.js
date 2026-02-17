@@ -46,6 +46,9 @@ const hypothesisDbApiBaseUrl = `http://${hypothesisHost}:3000`;
 const HYPOTHESIS_SNAPSHOT_DIR = "XML";
 const HYPOTHESIS_LEGACY_SNAPSHOT_DIR = "JS/XML";
 let hypothesisSaveTimer = null;
+let hypothesisSaveInFlight = false;
+let hypothesisSaveQueued = false;
+let lastSavedHypothesisFingerprint = "";
 const HYPOTHESIS_MAX_FILE_PART_LENGTH = 24;
 let hasShownHypothesisUserMissingWarning = false;
 let hasShownXmlFetchWarning = false;
@@ -229,7 +232,7 @@ function getLegacyHypothesisStateFilename() {
 function scheduleHypothesisSave() {
   if (hypothesisSaveTimer) clearTimeout(hypothesisSaveTimer);
   hypothesisSaveTimer = setTimeout(function () {
-    saveHypothesisState();
+    flushHypothesisSave();
   }, 400);
 }
 
@@ -274,6 +277,78 @@ async function saveHypothesisState() {
   }
 }
 
+function buildHypothesisSaveSnapshot() {
+  const container = ensureHypothesisContainer();
+  const wrapper = container.querySelector("#hypothesisWrapper");
+  if (!wrapper) {
+    return null;
+  }
+
+  const serializedHtml = serializeHypothesisWrapper(wrapper);
+  const hypothesisNodes = collectHypothesisNodesFromWrapper(wrapper);
+  const fingerprint = JSON.stringify({
+    html: serializedHtml,
+    nodes: hypothesisNodes,
+  });
+
+  return {
+    serializedHtml,
+    hypothesisNodes,
+    fingerprint,
+  };
+}
+
+function resetHypothesisSaveFingerprintFromCurrent() {
+  const snapshot = buildHypothesisSaveSnapshot();
+  lastSavedHypothesisFingerprint = snapshot ? snapshot.fingerprint : "";
+}
+
+async function flushHypothesisSave() {
+  if (hypothesisSaveInFlight) {
+    hypothesisSaveQueued = true;
+    return;
+  }
+
+  const snapshot = buildHypothesisSaveSnapshot();
+  if (!snapshot) return;
+  if (snapshot.fingerprint === lastSavedHypothesisFingerprint) {
+    return;
+  }
+
+  hypothesisSaveInFlight = true;
+  try {
+    const payload = {
+      filename: getHypothesisStateFilename(),
+      content: JSON.stringify({ html: snapshot.serializedHtml }),
+    };
+
+    const fileSavePromise = fetch(`${hypothesisSaveBaseUrl}/save-xml`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const [fileSaveResult] = await Promise.all([
+      fileSavePromise,
+      saveHypothesisStateToDb(snapshot.serializedHtml, snapshot.hypothesisNodes),
+    ]);
+
+    if (!fileSaveResult.ok) {
+      throw new Error(`HTTP ${fileSaveResult.status}`);
+    }
+
+    lastSavedHypothesisFingerprint = snapshot.fingerprint;
+  } catch (error) {
+    console.error("仮説発散エリアの保存に失敗しました:", error);
+  } finally {
+    hypothesisSaveInFlight = false;
+    if (hypothesisSaveQueued) {
+      hypothesisSaveQueued = false;
+      flushHypothesisSave();
+    }
+  }
+}
+
 function attachHypothesisTextareaLogging(textarea, createMessage) {
   if (!textarea || textarea.dataset.loggingBound === "true") return;
 
@@ -281,7 +356,6 @@ function attachHypothesisTextareaLogging(textarea, createMessage) {
   let logTimer = null;
 
   textarea.addEventListener("input", function () {
-    scheduleHypothesisSave();
     if (logTimer) clearTimeout(logTimer);
     logTimer = setTimeout(function () {
       const current = textarea.value.trim();
@@ -293,8 +367,10 @@ function attachHypothesisTextareaLogging(textarea, createMessage) {
   });
 
   textarea.addEventListener("blur", function () {
-    scheduleHypothesisSave();
     const current = textarea.value.trim();
+    if (current !== textarea.dataset.lastLoggedValue) {
+      scheduleHypothesisSave();
+    }
     if (current && current !== textarea.dataset.lastLoggedValue) {
       logHypothesisAction(createMessage(current));
       textarea.dataset.lastLoggedValue = current;
@@ -404,6 +480,7 @@ async function restoreHypothesisState() {
         if (dbHtml) {
           wrapper.innerHTML = dbHtml;
           rebindRestoredHypothesis(wrapper);
+          resetHypothesisSaveFingerprintFromCurrent();
           return;
         }
       } else if (dbRes.status !== 404) {
@@ -444,6 +521,7 @@ async function restoreHypothesisState() {
 
     wrapper.innerHTML = parsed.html;
     rebindRestoredHypothesis(wrapper);
+    resetHypothesisSaveFingerprintFromCurrent();
   } catch (error) {
     console.error("仮説発散エリアの復元に失敗しました:", error);
   }

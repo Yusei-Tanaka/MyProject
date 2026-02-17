@@ -164,7 +164,74 @@ CREATE TABLE IF NOT EXISTS theme_version_payloads (
 5. 検証完了後に旧書き込み停止
 6. 旧テーブル廃止は最終段階で実施
 
-## 7. ER図（Mermaid）
+## 7. ER図（2枚構成）
+
+### 7.1 論理ER図（業務構造）
+
+```mermaid
+erDiagram
+    USERS ||--o{ THEMES : owns
+    THEMES ||--o{ THEME_VERSIONS : has
+    THEME_VERSIONS ||--o{ KEYWORD_NODES : contains
+    THEME_VERSIONS ||--o{ KEYWORD_EDGES : contains
+    THEME_VERSIONS ||--o| HYPOTHESIS_SPREADS : has_optional
+    HYPOTHESIS_SPREADS ||--o{ HYPOTHESIS_NODES : contains
+    THEME_VERSIONS ||--o| THEME_VERSION_PAYLOADS : keeps_optional
+
+    USERS {
+      varchar id PK
+    }
+
+    THEMES {
+      bigint id PK
+      varchar user_id FK
+      varchar theme_name
+      int latest_version_no
+    }
+
+    THEME_VERSIONS {
+      bigint id PK
+      bigint theme_id FK
+      int version_no
+      varchar saved_by_user_id FK nullable
+      datetime saved_at
+    }
+
+    KEYWORD_NODES {
+      bigint id PK
+      bigint theme_version_id FK
+      varchar client_node_id
+      varchar label
+    }
+
+    KEYWORD_EDGES {
+      bigint id PK
+      bigint theme_version_id FK
+      varchar src_client_node_id
+      varchar dst_client_node_id
+      varchar relation
+    }
+
+    HYPOTHESIS_SPREADS {
+      bigint id PK
+      bigint theme_version_id FK
+      int hypothesis_node_count
+    }
+
+    HYPOTHESIS_NODES {
+      bigint id PK
+      bigint hypothesis_spread_id FK
+      text node_text
+      varchar node_kind
+      int node_order
+    }
+
+    THEME_VERSION_PAYLOADS {
+      bigint theme_version_id PK, FK
+    }
+```
+
+### 7.2 物理ER図（テーブル定義ベース）
 
 ```mermaid
 erDiagram
@@ -257,7 +324,7 @@ erDiagram
     }
 ```
 
-### 7.1 物理ER補足（インデックス/制約）
+### 7.3 物理ER補足（インデックス/制約）
 
 #### 主キー / 外部キー
 
@@ -304,109 +371,7 @@ erDiagram
 
 #### 物理モデル（詳細Mermaid）
 
-```mermaid
-erDiagram
-    USERS ||--o{ THEMES : "FK themes.user_id"
-    USERS ||--o{ THEME_VERSIONS : "FK theme_versions.saved_by_user_id"
-    THEMES ||--o{ THEME_VERSIONS : "FK theme_versions.theme_id"
-    THEME_VERSIONS ||--o{ KEYWORD_NODES : "FK keyword_nodes.theme_version_id"
-    THEME_VERSIONS ||--o{ KEYWORD_EDGES : "FK keyword_edges.theme_version_id"
-    THEME_VERSIONS ||--o| HYPOTHESIS_SPREADS : "FK hypothesis_spreads.theme_version_id"
-    HYPOTHESIS_SPREADS ||--o{ HYPOTHESIS_NODES : "FK hypothesis_nodes.hypothesis_spread_id"
-    THEME_VERSIONS ||--o| THEME_VERSION_PAYLOADS : "PK/FK theme_version_payloads.theme_version_id"
-
-    USERS {
-      varchar id PK
-      varchar password_hash
-      timestamp created_at
-      timestamp updated_at
-    }
-
-    THEMES {
-      bigint id PK
-      varchar user_id FK
-      varchar theme_name
-      int latest_version_no
-      bigint lock_version
-      timestamp created_at
-      timestamp updated_at
-      timestamp deleted_at
-      tinyint is_active
-      string UK_user_name_active
-      string IDX_user_updated
-      string IDX_user_deleted
-    }
-
-    THEME_VERSIONS {
-      bigint id PK
-      bigint theme_id FK
-      int version_no
-      varchar saved_by_user_id FK
-      datetime saved_at
-      varchar note
-      timestamp created_at
-      string UK_theme_version
-      string IDX_theme_saved_at
-    }
-
-    KEYWORD_NODES {
-      bigint id PK
-      bigint theme_version_id FK
-      varchar client_node_id
-      varchar label
-      varchar node_type
-      double x
-      double y
-      json props_json
-      timestamp created_at
-      string UK_version_client_node
-      string IDX_label
-    }
-
-    KEYWORD_EDGES {
-      bigint id PK
-      bigint theme_version_id FK
-      varchar client_edge_id
-      varchar src_client_node_id
-      varchar dst_client_node_id
-      varchar relation
-      json props_json
-      timestamp created_at
-      string IDX_version_src
-      string IDX_version_dst
-    }
-
-    HYPOTHESIS_SPREADS {
-      bigint id PK
-      bigint theme_version_id FK
-      datetime hypothesis_saved_at
-      int hypothesis_node_count
-      json hypothesis_summary_json
-      timestamp created_at
-      timestamp updated_at
-      string UK_version
-    }
-
-    HYPOTHESIS_NODES {
-      bigint id PK
-      bigint hypothesis_spread_id FK
-      text node_text
-      varchar node_kind
-      int node_order
-      text based_keywords
-      varchar scamper_tag
-      json props_json
-      timestamp created_at
-      string IDX_spread_order
-      string IDX_spread_created
-    }
-
-    THEME_VERSION_PAYLOADS {
-      bigint theme_version_id PK, FK
-      json content_json
-      timestamp created_at
-    }
-```
+- 図は `7.2 物理ER図（テーブル定義ベース）` を参照（重複掲載を廃止）
 
 ## 8. 移行Runbook（詳細）
 

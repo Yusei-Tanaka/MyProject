@@ -75,6 +75,7 @@ let isRestoringConceptMap = false;
 let conceptMapSaveTimer = null;
 let conceptMapSaveInFlight = false;
 let conceptMapSaveQueued = false;
+let lastSavedConceptMapFingerprint = "";
 const MAX_FILE_PART_LENGTH = 24;
 
 // 最後に選択された2つのノードを保存
@@ -400,8 +401,11 @@ function buildConceptMapPayload() {
       label: edge.label || "",
       arrows: edge.arrows || "",
     })),
-    savedAt: new Date().toISOString(),
   };
+}
+
+function buildConceptMapFingerprint(payload) {
+  return JSON.stringify(payload || buildConceptMapPayload());
 }
 
 function escapeXml(value) {
@@ -514,6 +518,7 @@ async function restoreUserConceptMap() {
 
     isRestoringConceptMap = true;
     applyConceptMapPayload(content);
+    lastSavedConceptMapFingerprint = buildConceptMapFingerprint();
     logAction(`キーワードマップ: DBから復元しました (theme=${themeName})`);
   } catch (error) {
     console.error("概念マップの復元に失敗しました:", error);
@@ -558,10 +563,16 @@ async function flushConceptMapSave() {
     return;
   }
 
+  const mapPayload = buildConceptMapPayload();
+  const fingerprint = buildConceptMapFingerprint(mapPayload);
+  if (fingerprint === lastSavedConceptMapFingerprint) {
+    return;
+  }
+
   conceptMapSaveInFlight = true;
   try {
-    const mapPayload = buildConceptMapPayload();
     await sendConceptMapToServer(mapPayload);
+    lastSavedConceptMapFingerprint = fingerprint;
   } catch (error) {
     console.error("概念マップの保存に失敗しました:", error);
   } finally {
@@ -582,8 +593,12 @@ function scheduleConceptMapSave() {
 }
 
 // ノードやエッジ更新時はデバウンス保存
-nodes.on("*", scheduleConceptMapSave);
-edges.on("*", scheduleConceptMapSave);
+nodes.on("add", scheduleConceptMapSave);
+nodes.on("update", scheduleConceptMapSave);
+nodes.on("remove", scheduleConceptMapSave);
+edges.on("add", scheduleConceptMapSave);
+edges.on("update", scheduleConceptMapSave);
+edges.on("remove", scheduleConceptMapSave);
 
 // ノード移動後にも保存（座標の取りこぼし防止）
 network.on("dragEnd", function () {

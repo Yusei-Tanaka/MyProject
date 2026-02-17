@@ -4,7 +4,7 @@ const mysql = require("mysql2/promise");
 const crypto = require("crypto");
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 
 // シンプルなCORS許可（フロントが別ポートの場合用）
 app.use((req, res, next) => {
@@ -80,6 +80,25 @@ const tableExists = async (tableName) => {
 
 const toObjectOrEmpty = (value) =>
   value && typeof value === "object" && !Array.isArray(value) ? value : {};
+
+const canonicalizeJson = (value) => {
+  if (Array.isArray(value)) {
+    return value.map((item) => canonicalizeJson(item));
+  }
+  if (value && typeof value === "object") {
+    const ordered = {};
+    Object.keys(value)
+      .sort()
+      .forEach((key) => {
+        ordered[key] = canonicalizeJson(value[key]);
+      });
+    return ordered;
+  }
+  return value;
+};
+
+const isSameThemeContent = (left, right) =>
+  JSON.stringify(canonicalizeJson(left)) === JSON.stringify(canonicalizeJson(right));
 
 const mergeThemeContent = (existingContent, incomingContent) => {
   const existing = toObjectOrEmpty(existingContent);
@@ -184,25 +203,39 @@ const normalizeHypothesisNode = (value, index) => {
 const extractHypothesisNodes = (content) => {
   const hypothesis = toObjectOrEmpty(content?.hypothesis);
   const result = [];
+  const hasPrimaryNodes = Array.isArray(hypothesis.nodes) && hypothesis.nodes.length > 0;
 
-  if (Array.isArray(hypothesis.nodes)) {
+  if (hasPrimaryNodes) {
     for (let i = 0; i < hypothesis.nodes.length; i += 1) {
       const node = normalizeHypothesisNode(hypothesis.nodes[i], i);
-      if (node) result.push(node);
+      if (node && node.source !== "mindmap") result.push(node);
     }
   }
 
   const entries = toObjectOrEmpty(hypothesis.entries);
   const hypothesisEntries = Array.isArray(entries.hypotheses) ? entries.hypotheses : [];
   const scamperEntries = Array.isArray(entries.scamper) ? entries.scamper : [];
+  const mapEntries = Array.isArray(hypothesis.mapNodes) ? hypothesis.mapNodes : [];
 
-  const startIndex = result.length;
-  for (let i = 0; i < hypothesisEntries.length; i += 1) {
-    const node = normalizeHypothesisNode({ ...hypothesisEntries[i], kind: "hypothesis" }, startIndex + i);
-    if (node) result.push(node);
+  if (!hasPrimaryNodes) {
+    const startIndex = result.length;
+    for (let i = 0; i < hypothesisEntries.length; i += 1) {
+      const node = normalizeHypothesisNode({ ...hypothesisEntries[i], kind: "hypothesis" }, startIndex + i);
+      if (node && node.source !== "mindmap") result.push(node);
+    }
+    for (let i = 0; i < scamperEntries.length; i += 1) {
+      const node = normalizeHypothesisNode({ ...scamperEntries[i], kind: "scamper" }, result.length + i);
+      if (node) result.push(node);
+    }
   }
-  for (let i = 0; i < scamperEntries.length; i += 1) {
-    const node = normalizeHypothesisNode({ ...scamperEntries[i], kind: "scamper" }, result.length + i);
+
+  for (let i = 0; i < mapEntries.length; i += 1) {
+    const raw = toObjectOrEmpty(mapEntries[i]);
+    const node = normalizeHypothesisNode({
+      ...raw,
+      kind: "hypothesis",
+      source: raw.source || "mindmap",
+    }, result.length + i);
     if (node) result.push(node);
   }
 
@@ -243,6 +276,57 @@ const normalizeHypothesisPayload = (value) => {
         ? hypothesis.savedAt
         : new Date().toISOString(),
   };
+};
+
+const buildHypothesisNodeSignature = (node) => {
+  const normalized = toObjectOrEmpty(node);
+  return [
+    String(normalized.kind || "hypothesis"),
+    String(normalized.text || ""),
+    String(normalized.basedKeywords || ""),
+    String(normalized.tag || ""),
+    String(normalized.source || ""),
+  ].join("\u001f");
+};
+
+const diffHypothesisNodes = (previousNodes, currentNodes) => {
+  const prev = Array.isArray(previousNodes) ? previousNodes : [];
+  const curr = Array.isArray(currentNodes) ? currentNodes : [];
+
+  const prevBuckets = new Map();
+  for (const node of prev) {
+    const normalized = toObjectOrEmpty(node);
+    const sig = buildHypothesisNodeSignature(normalized);
+    if (!prevBuckets.has(sig)) prevBuckets.set(sig, []);
+    prevBuckets.get(sig).push(normalized);
+  }
+
+  const deltas = [];
+
+  for (const node of curr) {
+    const normalized = toObjectOrEmpty(node);
+    const sig = buildHypothesisNodeSignature(normalized);
+    const bucket = prevBuckets.get(sig);
+    if (bucket && bucket.length > 0) {
+      bucket.pop();
+      continue;
+    }
+    deltas.push({
+      ...normalized,
+      op: "upsert",
+    });
+  }
+
+  for (const bucket of prevBuckets.values()) {
+    for (const node of bucket) {
+      deltas.push({
+        ...node,
+        op: "delete",
+      });
+    }
+  }
+
+  return deltas;
 };
 
 const toMysqlDateTimeOrNull = (value) => {
@@ -457,7 +541,13 @@ const resolveOrCreateThemeV2 = async (connection, userId, themeName) => {
   };
 };
 
-const syncThemeToV2 = async (userId, themeName, content, note = "dual-write from /users/:id/themes") => {
+const syncThemeToV2 = async (
+  userId,
+  themeName,
+  content,
+  note = "dual-write from /users/:id/themes",
+  previousContent = null
+) => {
   if (!canWriteV2()) return;
 
   const connection = await pool.getConnection();
@@ -524,28 +614,34 @@ const syncThemeToV2 = async (userId, themeName, content, note = "dual-write from
     }
 
     const normalizedHypothesis = normalizeHypothesisPayload(content?.hypothesis);
+    const normalizedPreviousHypothesis = normalizeHypothesisPayload(previousContent?.hypothesis);
     const hypothesisHtml = String(normalizedHypothesis.html || "").trim();
     const hypothesisNodes = Array.isArray(normalizedHypothesis.nodes) ? normalizedHypothesis.nodes : [];
+    const previousHypothesisNodes = Array.isArray(normalizedPreviousHypothesis.nodes)
+      ? normalizedPreviousHypothesis.nodes
+      : [];
+    const hypothesisNodeDeltas = diffHypothesisNodes(previousHypothesisNodes, hypothesisNodes);
     const savedAt = toMysqlDateTimeOrNull(normalizedHypothesis.savedAt);
     const summary = {
       schemaVersion: 2,
       hypothesisCount: normalizedHypothesis?.stats?.hypothesisCount || 0,
       scamperCount: normalizedHypothesis?.stats?.scamperCount || 0,
-      totalCount: normalizedHypothesis?.stats?.total || hypothesisNodes.length,
+      totalCount: hypothesisNodeDeltas.length,
     };
 
-    const hasHypothesisData = Boolean(hypothesisHtml) || hypothesisNodes.length > 0 || Boolean(savedAt);
+    const hasHypothesisData =
+      Boolean(hypothesisHtml) || hypothesisNodeDeltas.length > 0 || Boolean(savedAt);
     let hypothesisSpreadId = null;
     if (hasHypothesisData) {
       const [spreadResult] = await connection.execute(
         `INSERT INTO ${V2_TABLES.hypothesisSpreads} (theme_version_id, hypothesis_saved_at, hypothesis_node_count, hypothesis_summary_json) VALUES (?, ?, ?, ?)`,
-        [themeVersionId, savedAt, hypothesisNodes.length, JSON.stringify(summary)]
+        [themeVersionId, savedAt, hypothesisNodeDeltas.length, JSON.stringify(summary)]
       );
       hypothesisSpreadId = spreadResult.insertId;
     }
 
     let nodeOrder = 0;
-    for (const node of hypothesisNodes) {
+    for (const node of hypothesisNodeDeltas) {
       if (!hypothesisSpreadId) break;
       const normalizedNode = toObjectOrEmpty(node);
       const nodeText = String(normalizedNode.text || normalizedNode.label || "").trim();
@@ -561,7 +657,10 @@ const syncThemeToV2 = async (userId, themeName, content, note = "dual-write from
           nodeOrder,
           String(normalizedNode.basedKeywords || "").trim() || null,
           String(normalizedNode.tag || "").trim() || null,
-          JSON.stringify(normalizedNode),
+          JSON.stringify({
+            ...normalizedNode,
+            op: String(normalizedNode.op || "upsert"),
+          }),
         ]
       );
     }
@@ -909,7 +1008,18 @@ app.put("/users/:id/themes", async (req, res) => {
     const existingTheme = await fetchThemeFromV2(userId, themeName);
     const existingContent = existingTheme && existingTheme.content ? existingTheme.content : {};
     const mergedContent = mergeThemeContent(existingContent, incomingContent);
-    await syncThemeToV2(userId, themeName, mergedContent, "v2-primary write from /users/:id/themes");
+
+    if (existingTheme && isSameThemeContent(existingContent, mergedContent)) {
+      return res.json({ userId, themeName, saved: true, skipped: true, reason: "no content change" });
+    }
+
+    await syncThemeToV2(
+      userId,
+      themeName,
+      mergedContent,
+      "v2-primary write from /users/:id/themes",
+      existingContent
+    );
 
     res.json({ userId, themeName, saved: true });
   } catch (err) {

@@ -2,6 +2,7 @@ window.addEventListener('DOMContentLoaded', function() {
   const $ = go.GraphObject.make;
   const host = window.location.hostname || "localhost";
   const saveApiBaseUrl = `http://${host}:3005`;
+  const themeApiBaseUrl = `http://${host}:3000`;
   const MINDMAP_SNAPSHOT_DIR = "XML";
   const MINDMAP_LEGACY_SNAPSHOT_DIR = "JS/XML";
   let isRestoringMindmap = false;
@@ -9,6 +10,8 @@ window.addEventListener('DOMContentLoaded', function() {
   let mindmapSaveTimer = null;
   let mindmapSaveInFlight = false;
   let mindmapSaveQueued = false;
+  let lastSavedMindmapFingerprint = "";
+  let hasShownMindmapUserMissingWarning = false;
   let shouldApplyInitialOffset = true;
   let initialOffsetApplied = false;
   const MAX_FILE_PART_LENGTH = 24;
@@ -85,6 +88,103 @@ window.addEventListener('DOMContentLoaded', function() {
     return candidates;
   }
 
+  function getCurrentThemeName() {
+    const titleInput = document.getElementById("myTitle");
+    const inputValue = titleInput ? String(titleInput.value || "").trim() : "";
+    return inputValue || String(localStorage.getItem("searchTitle") || "").trim();
+  }
+
+  function getCurrentUserThemeRaw() {
+    const userId = String(localStorage.getItem("userName") || "").trim();
+    const themeName = getCurrentThemeName();
+    return { userId, themeName };
+  }
+
+  function collectMindmapHypothesisNodes() {
+    if (!diagram || !diagram.model || !Array.isArray(diagram.model.nodeDataArray)) {
+      return [];
+    }
+
+    const items = [];
+    diagram.model.nodeDataArray.forEach(function(node, index) {
+      const text = String(node && node.text ? node.text : "").trim();
+      if (!text) return;
+      if (node && node.key === 0) return;
+
+      const parent = node && node.parent !== undefined && node.parent !== null ? String(node.parent) : "";
+      items.push({ text, parent, originalIndex: index });
+    });
+
+    items.sort(function(a, b) {
+      if (a.text < b.text) return -1;
+      if (a.text > b.text) return 1;
+      if (a.parent < b.parent) return -1;
+      if (a.parent > b.parent) return 1;
+      return a.originalIndex - b.originalIndex;
+    });
+
+    const result = items.map(function(item) {
+      return {
+        kind: "hypothesis",
+        text: item.text,
+        source: "mindmap",
+      };
+    });
+
+    return result;
+  }
+
+  async function saveMindmapStateToDb(modelJson) {
+    const { userId, themeName } = getCurrentUserThemeRaw();
+    if (!userId || !themeName) return;
+
+    const putResponse = await fetch(`${themeApiBaseUrl}/users/${encodeURIComponent(userId)}/themes`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        themeName,
+        content: {
+          hypothesis: {
+            mapNodes: collectMindmapHypothesisNodes(),
+          },
+          mindmap: {},
+        },
+      }),
+    });
+
+    if (putResponse.status === 404) {
+      if (!hasShownMindmapUserMissingWarning) {
+        hasShownMindmapUserMissingWarning = true;
+        alert(`ユーザー「${userId}」がDBに存在しないため、仮説関係性マップのDB保存をスキップしました。\nログインし直して（auth_user / host）利用してください。`);
+      }
+      return;
+    }
+
+    if (!putResponse.ok) {
+      throw new Error(`HTTP ${putResponse.status}`);
+    }
+  }
+
+  function buildMindmapSaveSnapshot() {
+    if (!diagram || !diagram.model) return null;
+    const modelJson = diagram.model.toJson();
+    const mapNodes = collectMindmapHypothesisNodes();
+    const fingerprint = JSON.stringify({
+      modelJson,
+      mapNodes,
+    });
+    return {
+      modelJson,
+      mapNodes,
+      fingerprint,
+    };
+  }
+
+  function resetMindmapSaveFingerprintFromCurrent() {
+    const snapshot = buildMindmapSaveSnapshot();
+    lastSavedMindmapFingerprint = snapshot ? snapshot.fingerprint : "";
+  }
+
   async function fetchMindmapSnapshot() {
     const dirs = [MINDMAP_SNAPSHOT_DIR, MINDMAP_LEGACY_SNAPSHOT_DIR];
     const fileNames = getMindmapRestoreCandidates();
@@ -114,20 +214,30 @@ window.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
+    const snapshot = buildMindmapSaveSnapshot();
+    if (!snapshot) return;
+    if (snapshot.fingerprint === lastSavedMindmapFingerprint) {
+      return;
+    }
+
     mindmapSaveInFlight = true;
     try {
-      const modelJson = diagram.model.toJson();
-      const response = await fetch(`${saveApiBaseUrl}/save-xml`, {
+      const fileSavePromise = fetch(`${saveApiBaseUrl}/save-xml`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           filename: getMindmapFileName(),
-          content: modelJson,
+          content: snapshot.modelJson,
         }),
       });
+      const [response] = await Promise.all([
+        fileSavePromise,
+        saveMindmapStateToDb(snapshot.modelJson),
+      ]);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
+      lastSavedMindmapFingerprint = snapshot.fingerprint;
     } catch (error) {
       console.error("マインドマップ保存に失敗しました:", error);
     } finally {
@@ -173,6 +283,8 @@ window.addEventListener('DOMContentLoaded', function() {
         if (titleInput) titleInput.value = rootData.text;
         localStorage.setItem("searchTitle", rootData.text);
       }
+
+      resetMindmapSaveFingerprintFromCurrent();
 
       logMindmapAction(`マインドマップ: 復元しました (${fileName})`);
       return true;
@@ -289,11 +401,19 @@ window.addEventListener('DOMContentLoaded', function() {
 
   /* 子ノードの追加 */
   function addChild(node) {
+    const inputText = prompt("追加するノードのテキスト:", "");
+    if (inputText === null) return;
+    const normalizedText = String(inputText || "").trim();
+    if (!normalizedText) {
+      alert("ノード名を入力してください。");
+      return;
+    }
+
     diagram.startTransaction("add child");
-    const newNodeData = { text: "新しいノード", parent: node.data.key };
+    const newNodeData = { text: normalizedText, parent: node.data.key };
     diagram.model.addNodeData(newNodeData);
     diagram.commitTransaction("add child");
-    logMindmapAction(`マインドマップ: 子ノード追加 parent=${node.data.key} "${node.data.text}"`);
+    logMindmapAction(`マインドマップ: 子ノード追加 parent=${node.data.key} "${node.data.text}" text="${normalizedText}"`);
   }
 
   /* ノードの削除 */
@@ -324,6 +444,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
   restoreMindmapState(initialText).then((restored) => {
     isMindmapReady = true;
+    resetMindmapSaveFingerprintFromCurrent();
     if (!restored) {
       scheduleMindmapSave();
     }
