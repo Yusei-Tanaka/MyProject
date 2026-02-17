@@ -38,7 +38,7 @@ app.get("/xml-exists", (req, res) => {
   return res.json({ exists });
 });
 
-const xmlDir = path.join(__dirname, "XML");
+const xmlDir = path.join(__dirname, "..", "XML");
 const logDir = path.join(__dirname, "..", "log");
 const MAX_FILE_PART_LENGTH = 24;
 

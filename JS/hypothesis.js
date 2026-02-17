@@ -43,6 +43,8 @@ function logHypothesisAction(message) {
 const hypothesisHost = window.location.hostname || "localhost";
 const hypothesisSaveBaseUrl = `http://${hypothesisHost}:3005`;
 const hypothesisDbApiBaseUrl = `http://${hypothesisHost}:3000`;
+const HYPOTHESIS_SNAPSHOT_DIR = "XML";
+const HYPOTHESIS_LEGACY_SNAPSHOT_DIR = "JS/XML";
 let hypothesisSaveTimer = null;
 const HYPOTHESIS_MAX_FILE_PART_LENGTH = 24;
 let hasShownHypothesisUserMissingWarning = false;
@@ -409,12 +411,18 @@ async function restoreHypothesisState() {
       }
     }
 
-    const preferredPath = `JS/XML/${getHypothesisStateFilename()}`;
+    const preferredPath = `${HYPOTHESIS_SNAPSHOT_DIR}/${getHypothesisStateFilename()}`;
     let res = await fetch(preferredPath, { cache: "no-store" });
     if (!res.ok && res.status === 404) {
-      const legacyPath = `JS/XML/${getLegacyHypothesisStateFilename()}`;
-      if (legacyPath !== preferredPath) {
-        res = await fetch(legacyPath, { cache: "no-store" });
+      const sameNameLegacyPath = `${HYPOTHESIS_LEGACY_SNAPSHOT_DIR}/${getHypothesisStateFilename()}`;
+      if (sameNameLegacyPath !== preferredPath) {
+        res = await fetch(sameNameLegacyPath, { cache: "no-store" });
+      }
+      if (!res.ok && res.status === 404) {
+        const legacyPath = `${HYPOTHESIS_LEGACY_SNAPSHOT_DIR}/${getLegacyHypothesisStateFilename()}`;
+        if (legacyPath !== sameNameLegacyPath) {
+          res = await fetch(legacyPath, { cache: "no-store" });
+        }
       }
     }
     if (!res.ok) {
@@ -995,7 +1003,7 @@ document.querySelectorAll('.keyword').forEach(function(elem) {
 function getUserXmlRelativePath() {
   const parts = getUserThemeParts(true);
   const filename = `${parts.user}__${parts.theme}.xml`;
-  return `JS/XML/${filename}`;
+  return `${HYPOTHESIS_SNAPSHOT_DIR}/${filename}`;
 }
 
 // HTMLの入力フィールドからタイトルを取得してコンソールに出力する

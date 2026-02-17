@@ -2,6 +2,8 @@ window.addEventListener('DOMContentLoaded', function() {
   const $ = go.GraphObject.make;
   const host = window.location.hostname || "localhost";
   const saveApiBaseUrl = `http://${host}:3005`;
+  const MINDMAP_SNAPSHOT_DIR = "XML";
+  const MINDMAP_LEGACY_SNAPSHOT_DIR = "JS/XML";
   let isRestoringMindmap = false;
   let isMindmapReady = false;
   let mindmapSaveTimer = null;
@@ -103,15 +105,18 @@ window.addEventListener('DOMContentLoaded', function() {
 
   async function restoreMindmapState(defaultTitle) {
     const fileName = getMindmapFileName(true);
-    const statePath = `JS/XML/${fileName}`;
+    const statePath = `${MINDMAP_SNAPSHOT_DIR}/${fileName}`;
     isRestoringMindmap = true;
 
     try {
       let response = await fetch(statePath, { cache: "no-store" });
       if (!response.ok && response.status === 404) {
+        response = await fetch(`${MINDMAP_LEGACY_SNAPSHOT_DIR}/${fileName}`, { cache: "no-store" });
+      }
+      if (!response.ok && response.status === 404) {
         const legacyFileName = getMindmapFileName(false);
         if (legacyFileName !== fileName) {
-          response = await fetch(`JS/XML/${legacyFileName}`, { cache: "no-store" });
+          response = await fetch(`${MINDMAP_LEGACY_SNAPSHOT_DIR}/${legacyFileName}`, { cache: "no-store" });
         }
       }
       if (!response.ok) {

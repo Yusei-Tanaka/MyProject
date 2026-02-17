@@ -1,5 +1,7 @@
 # MyProject セットアップ手順（Windows / MariaDB）
 
+- API仕様の要点・API×テーブル対応表は [docs/api-v2-reference.md](docs/api-v2-reference.md) を参照
+
 ## 1. 前提
 - Node.js がインストール済み
 - MariaDB が Windows にインストール済み
@@ -117,14 +119,14 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:3000/auth/login" -ContentT
 - キーワードマップ構成エリアのノードは `node_keyword` テーブルに同期保存
 - キーワードマップ構成エリアのエッジは `node_edge` テーブルに同期保存
 - 仮説関係性マップ内の仮説ノードは `user_themes.content_json.hypothesis.nodes` に保存され、`node_hypothesis` テーブルにも同期保存
-- `JS/XML` のスナップショットXMLファイルは `短縮ユーザ__短縮テーマ.xml` 形式で保存
+- `XML` のスナップショットXMLファイルは `短縮ユーザ__短縮テーマ.xml` 形式で保存
 - `log` のログファイルは `短縮ユーザ__短縮テーマ_log` 形式で保存
 - DBの `logs` テーブルは現在使用しません（起動時に削除されます）
 - ファイル名パーツ（ユーザ/テーマ）は記号除去・空白を `_` へ正規化し、24文字超過時は `先頭15文字 + _ + 8桁ハッシュ` に短縮
 
 ### 既存XMLをDBへ一括移行
 
-`JS/XML` 配下のXMLを `user_themes.content_json` に移行できます。
+`XML` 配下のXMLを `user_themes.content_json` に移行できます。
 
 ```powershell
 # 事前確認（DB更新しない）
@@ -209,6 +211,78 @@ node scripts/backfill-user-themes-to-hypotheses.js --user user1 --theme 再生�
 - `hypothesis.html` が空のテーマはスキップされます
 - `npm run backfill:hypothesis` でも実行できます
 
+### DB V2 スキーマ適用（再構成用）
+
+`scripts/sql/20260217_db_v2_up.sql` を適用すると、
+`themes` / `theme_versions` 系の新スキーマを追加できます（既存テーブルは維持）。
+
+```powershell
+# 適用
+Get-Content -Raw .\scripts\sql\20260217_db_v2_up.sql |
+	& "C:\Program Files\MariaDB 12.1\bin\mysql.exe" -u appuser -p -D myapp
+
+# ロールバック（新規テーブルのみ削除）
+Get-Content -Raw .\scripts\sql\20260217_db_v2_down.sql |
+	& "C:\Program Files\MariaDB 12.1\bin\mysql.exe" -u appuser -p -D myapp
+```
+
+注意:
+- `DOWN` は V2 新規テーブルのみ対象で、既存の `users` / `user_themes` などは削除しません
+- 本番では実行前に必ずバックアップを取得してください
+- V2テーブル未作成時は、テーマ系APIが利用できません（起動時に警告を表示）
+- 読み取りをV2優先に切り替える場合は `.env` に `ENABLE_V2_READ=true` を設定（既定値は `false`）
+- `ENABLE_V2_READ=true` のとき、`/users/:id/themes*`、`/hypotheses`、`/hypothesis-nodes` は V2 のみを参照します
+- 現在の実装では、テーマ保存/削除およびテーマ系読み取りは V2 を正として動作します
+- `ENABLE_V2_READ=false` の場合、テーマ系の読み取りAPIは `503` を返します（V2有効化が前提）
+
+### 既存 user_themes から DB V2 へバックフィル
+
+`user_themes.content_json` から、`themes` / `theme_versions` / `keyword_*` / `hypothesis_*` へ移行します。
+
+```powershell
+# 事前確認（DB更新しない）
+node scripts/backfill-legacy-to-v2.js --dry-run
+
+# 本実行（初回）
+node scripts/backfill-legacy-to-v2.js
+
+# 特定ユーザーのみ
+node scripts/backfill-legacy-to-v2.js --user user1
+
+# 特定ユーザー + 特定テーマのみ
+node scripts/backfill-legacy-to-v2.js --user user1 --theme 再生可能エネルギー
+
+# 既存テーマに追加バージョンとして再投入したい場合
+node scripts/backfill-legacy-to-v2.js --force-append
+```
+
+補足:
+- 既定では、すでに V2 側にバージョンがあるテーマはスキップします（重複投入防止）
+- `npm run migrate:v2 -- --dry-run` でも実行できます
+
+### 旧テーマ系テーブルの廃止（V2完全移行後）
+
+以下は **3段階** で実施してください。
+
+```powershell
+# 1) 事前確認（件数/サンプル比較）
+Get-Content -Raw .\scripts\sql\20260217_legacy_theme_tables_precheck.sql |
+	& "C:\Program Files\MariaDB 12.1\bin\mysql.exe" -u appuser -p -D myapp
+
+# 2) まずはアーカイブ（rename）
+Get-Content -Raw .\scripts\sql\20260217_legacy_theme_tables_archive.sql |
+	& "C:\Program Files\MariaDB 12.1\bin\mysql.exe" -u appuser -p -D myapp
+
+# 3) 安定運用確認後に最終削除
+Get-Content -Raw .\scripts\sql\20260217_legacy_theme_tables_drop.sql |
+	& "C:\Program Files\MariaDB 12.1\bin\mysql.exe" -u appuser -p -D myapp
+```
+
+対象テーブル:
+- `user_themes`
+- `hypothesis_spread`
+- `node_hypothesis`
+
 ### テーマAPI
 
 テーマはユーザ単位で保存されます。
@@ -232,6 +306,43 @@ Invoke-RestMethod -Method Get -Uri "http://127.0.0.1:3000/users/user1/themes/%E5
 
 # 仮説ノード一覧（1テーマ）
 Invoke-RestMethod -Method Get -Uri "http://127.0.0.1:3000/users/user1/themes/%E5%86%8D%E7%94%9F%E5%8F%AF%E8%83%BD%E3%82%A8%E3%83%8D%E3%83%AB%E3%82%AE%E3%83%BC/hypothesis-nodes"
+```
+
+### グラフAPI（V2）
+
+`/graph/*` は V2 テーブル（`keyword_nodes` / `keyword_edges`）を参照します。
+
+```powershell
+# 利用する themeVersionId の取得例
+& "C:\Program Files\MariaDB 12.1\bin\mysql.exe" -u appuser -p -D myapp -e "SELECT tv.id AS theme_version_id FROM themes t JOIN theme_versions tv ON tv.theme_id=t.id AND tv.version_no=t.latest_version_no WHERE t.user_id='user1' AND t.theme_name='再生可能エネルギー' LIMIT 1;"
+
+# ノード作成（themeVersionId 必須）
+$body = @{
+	themeVersionId = 1
+	label = "キーワードA"
+	clientNodeId = "node_a"
+	nodeType = "keyword"
+	x = 100
+	y = 120
+	props = @{ source = "manual" }
+} | ConvertTo-Json -Depth 10
+Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:3000/graph/nodes" -ContentType "application/json" -Body $body
+
+# エッジ作成（themeVersionId + src/dst client node id 必須）
+$body = @{
+	themeVersionId = 1
+	srcClientNodeId = "node_a"
+	dstClientNodeId = "node_a"
+	relation = "self"
+	props = @{ source = "manual" }
+} | ConvertTo-Json -Depth 10
+Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:3000/graph/edges" -ContentType "application/json" -Body $body
+
+# ノード取得（themeVersionId / userId / themeName で絞り込み可能）
+Invoke-RestMethod -Method Get -Uri "http://127.0.0.1:3000/graph/nodes?themeVersionId=1&limit=20"
+
+# エッジ取得（themeVersionId / userId / themeName で絞り込み可能）
+Invoke-RestMethod -Method Get -Uri "http://127.0.0.1:3000/graph/edges?themeVersionId=1&limit=20"
 ```
 
 ## 9. トラブルシュート

@@ -15,7 +15,7 @@ for (let i = 0; i < args.length; i += 1) {
 
 const host = argMap.get("--host") || process.env.MIGRATE_API_HOST || "127.0.0.1";
 const port = Number(argMap.get("--port") || process.env.PORT || 3000);
-const xmlDir = path.resolve(argMap.get("--xml-dir") || path.join(__dirname, "..", "JS", "XML"));
+const xmlDir = path.resolve(argMap.get("--xml-dir") || path.join(__dirname, "..", "XML"));
 const dryRun = argMap.get("--dry-run") === "true";
 
 const apiBase = `http://${host}:${port}`;

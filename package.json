@@ -74,6 +74,9 @@
     "migrate:xml": "node scripts/migrate-xml-to-db.js",
     "backfill:graph": "node scripts/backfill-user-themes-to-graph.js",
     "backfill:hypothesis": "node scripts/backfill-user-themes-to-hypotheses.js",
+    "migrate:v2": "node scripts/backfill-legacy-to-v2.js",
+    "db:v2:up": "node -e \"console.log('Use mysql client to run scripts/sql/20260217_db_v2_up.sql')\"",
+    "db:v2:down": "node -e \"console.log('Use mysql client to run scripts/sql/20260217_db_v2_down.sql')\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
