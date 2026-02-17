@@ -233,6 +233,33 @@ Get-Content -Raw .\scripts\sql\20260217_db_v2_down.sql |
 - 現在の実装では、テーマ保存/削除およびテーマ系読み取りは V2 を正として動作します
 - `ENABLE_V2_READ=false` の場合、テーマ系の読み取りAPIは `503` を返します（V2有効化が前提）
 
+### 既存DBの仮説スキーマを正規化（HTML直保存廃止）
+
+既に稼働中のDBで `hypothesis_spreads.hypothesis_html` や
+`hypothesis_nodes.theme_version_id` が残っている場合は、下記を実行します。
+
+```powershell
+node scripts/migrate-hypothesis-schema-to-normalized.js
+
+# npm script でも実行可
+npm run migrate:v2:hypothesis-normalize
+```
+
+この処理で以下へ変換します。
+- `hypothesis_spreads`: `hypothesis_html` 列を削除
+- `hypothesis_nodes`: `theme_version_id` を廃止し `hypothesis_spread_id` 外部キーへ移行
+
+### 仮説正規化の整合チェック
+
+正規化後に、列構成・外部キー・件数整合を一括確認できます。
+
+```powershell
+node scripts/check-hypothesis-normalization-integrity.js
+
+# npm script でも実行可
+npm run check:v2:hypothesis-integrity
+```
+
 ### 既存 user_themes から DB V2 へバックフィル
 
 `user_themes.content_json` から、`themes` / `theme_versions` / `keyword_*` / `hypothesis_*` へ移行します。

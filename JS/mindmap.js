@@ -63,6 +63,50 @@ window.addEventListener('DOMContentLoaded', function() {
     return `${parts.user}__${parts.theme}.mindmap.json`;
   }
 
+  function getMindmapRestoreCandidates() {
+    const candidates = [];
+    const { user: shortUser, theme: shortTheme } = getUserThemeParts(true);
+    const { user: legacyUser, theme: legacyTheme } = getUserThemeParts(false);
+
+    const pushUnique = function(name) {
+      if (!name) return;
+      if (candidates.indexOf(name) === -1) {
+        candidates.push(name);
+      }
+    };
+
+    pushUnique(`${shortUser}__${shortTheme}.mindmap.json`);
+    pushUnique(`${legacyUser}__${legacyTheme}.mindmap.json`);
+
+    // 旧形式（テーマ未スコープ）: user.mindmap.json
+    pushUnique(`${shortUser}.mindmap.json`);
+    pushUnique(`${legacyUser}.mindmap.json`);
+
+    return candidates;
+  }
+
+  async function fetchMindmapSnapshot() {
+    const dirs = [MINDMAP_SNAPSHOT_DIR, MINDMAP_LEGACY_SNAPSHOT_DIR];
+    const fileNames = getMindmapRestoreCandidates();
+
+    for (let i = 0; i < fileNames.length; i += 1) {
+      const fileName = fileNames[i];
+      for (let j = 0; j < dirs.length; j += 1) {
+        const dir = dirs[j];
+        const path = `${dir}/${fileName}`;
+        const response = await fetch(path, { cache: "no-store" });
+        if (response.ok) {
+          return { response, fileName };
+        }
+        if (response.status !== 404) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+      }
+    }
+
+    return null;
+  }
+
   async function saveMindmapState() {
     if (!isMindmapReady || isRestoringMindmap) return;
     if (mindmapSaveInFlight) {
@@ -104,25 +148,12 @@ window.addEventListener('DOMContentLoaded', function() {
   }
 
   async function restoreMindmapState(defaultTitle) {
-    const fileName = getMindmapFileName(true);
-    const statePath = `${MINDMAP_SNAPSHOT_DIR}/${fileName}`;
     isRestoringMindmap = true;
 
     try {
-      let response = await fetch(statePath, { cache: "no-store" });
-      if (!response.ok && response.status === 404) {
-        response = await fetch(`${MINDMAP_LEGACY_SNAPSHOT_DIR}/${fileName}`, { cache: "no-store" });
-      }
-      if (!response.ok && response.status === 404) {
-        const legacyFileName = getMindmapFileName(false);
-        if (legacyFileName !== fileName) {
-          response = await fetch(`${MINDMAP_LEGACY_SNAPSHOT_DIR}/${legacyFileName}`, { cache: "no-store" });
-        }
-      }
-      if (!response.ok) {
-        if (response.status === 404) return false;
-        throw new Error(`HTTP ${response.status}`);
-      }
+      const snapshot = await fetchMindmapSnapshot();
+      if (!snapshot) return false;
+      const { response, fileName } = snapshot;
 
       const modelJson = await response.text();
       if (!modelJson || !modelJson.trim()) return false;

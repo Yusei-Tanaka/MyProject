@@ -83,7 +83,7 @@
 
 ### GET /users/:id/themes/:themeName/hypothesis
 - 用途: 仮説本文（1テーマ）取得
-- 返却: `html`, `savedAt`, `nodeCount`, `summary` など
+- 返却: `savedAt`, `nodeCount`, `summary`, `updatedAt` など（`html` は互換のため空文字）
 
 ### GET /users/:id/themes/:themeName/hypothesis-nodes
 - 用途: 仮説ノード一覧（1テーマ）取得

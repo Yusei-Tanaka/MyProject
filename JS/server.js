@@ -320,7 +320,7 @@ const fetchThemeFromV2 = async (userId, themeName) => {
 
 const fetchThemeHypothesisFromV2 = async (userId, themeName) => {
   const [rows] = await pool.execute(
-    `SELECT hs.hypothesis_html, hs.hypothesis_saved_at, hs.hypothesis_node_count, hs.hypothesis_summary_json, hs.updated_at
+    `SELECT hs.hypothesis_saved_at, hs.hypothesis_node_count, hs.hypothesis_summary_json, hs.updated_at
        FROM ${V2_TABLES.themes} t
        INNER JOIN ${V2_TABLES.themeVersions} tv
          ON tv.theme_id = t.id AND tv.version_no = t.latest_version_no
@@ -336,7 +336,7 @@ const fetchThemeHypothesisFromV2 = async (userId, themeName) => {
   return {
     userId,
     themeName,
-    html: row.hypothesis_html,
+    html: "",
     savedAt: row.hypothesis_saved_at,
     nodeCount: row.hypothesis_node_count,
     summary: parseJsonField(row.hypothesis_summary_json),
@@ -350,8 +350,10 @@ const fetchThemeHypothesisNodesFromV2 = async (userId, themeName) => {
        FROM ${V2_TABLES.themes} t
        INNER JOIN ${V2_TABLES.themeVersions} tv
          ON tv.theme_id = t.id AND tv.version_no = t.latest_version_no
+       INNER JOIN ${V2_TABLES.hypothesisSpreads} hs
+         ON hs.theme_version_id = tv.id
        INNER JOIN ${V2_TABLES.hypothesisNodes} hn
-         ON hn.theme_version_id = tv.id
+         ON hn.hypothesis_spread_id = hs.id
       WHERE t.user_id = ? AND t.theme_name = ? AND t.deleted_at IS NULL
       ORDER BY hn.node_order ASC, hn.id ASC`,
     [userId, themeName]
@@ -375,7 +377,7 @@ const fetchHypothesesFromV2 = async ({ userId, limit }) => {
   const params = userId ? [userId, limit] : [limit];
 
   const [rows] = await pool.query(
-    `SELECT t.user_id, t.theme_name, hs.updated_at, CHAR_LENGTH(hs.hypothesis_html) AS html_length
+    `SELECT t.user_id, t.theme_name, hs.updated_at, hs.hypothesis_node_count
        FROM ${V2_TABLES.themes} t
        INNER JOIN ${V2_TABLES.themeVersions} tv
          ON tv.theme_id = t.id AND tv.version_no = t.latest_version_no
@@ -411,8 +413,10 @@ const fetchHypothesisNodesFromV2 = async ({ userId, themeName, limit }) => {
        FROM ${V2_TABLES.themes} t
        INNER JOIN ${V2_TABLES.themeVersions} tv
          ON tv.theme_id = t.id AND tv.version_no = t.latest_version_no
+       INNER JOIN ${V2_TABLES.hypothesisSpreads} hs
+         ON hs.theme_version_id = tv.id
        INNER JOIN ${V2_TABLES.hypothesisNodes} hn
-         ON hn.theme_version_id = tv.id
+         ON hn.hypothesis_spread_id = hs.id
       ${whereSql}
       ORDER BY hn.created_at DESC, hn.id DESC
       LIMIT ?`,
@@ -530,24 +534,28 @@ const syncThemeToV2 = async (userId, themeName, content, note = "dual-write from
       totalCount: normalizedHypothesis?.stats?.total || hypothesisNodes.length,
     };
 
-    if (hypothesisHtml) {
-      await connection.execute(
-        `INSERT INTO ${V2_TABLES.hypothesisSpreads} (theme_version_id, hypothesis_html, hypothesis_saved_at, hypothesis_node_count, hypothesis_summary_json) VALUES (?, ?, ?, ?, ?)`,
-        [themeVersionId, hypothesisHtml, savedAt, hypothesisNodes.length, JSON.stringify(summary)]
+    const hasHypothesisData = Boolean(hypothesisHtml) || hypothesisNodes.length > 0 || Boolean(savedAt);
+    let hypothesisSpreadId = null;
+    if (hasHypothesisData) {
+      const [spreadResult] = await connection.execute(
+        `INSERT INTO ${V2_TABLES.hypothesisSpreads} (theme_version_id, hypothesis_saved_at, hypothesis_node_count, hypothesis_summary_json) VALUES (?, ?, ?, ?)`,
+        [themeVersionId, savedAt, hypothesisNodes.length, JSON.stringify(summary)]
       );
+      hypothesisSpreadId = spreadResult.insertId;
     }
 
     let nodeOrder = 0;
     for (const node of hypothesisNodes) {
+      if (!hypothesisSpreadId) break;
       const normalizedNode = toObjectOrEmpty(node);
       const nodeText = String(normalizedNode.text || normalizedNode.label || "").trim();
       if (!nodeText) continue;
       nodeOrder += 1;
 
       await connection.execute(
-        `INSERT INTO ${V2_TABLES.hypothesisNodes} (theme_version_id, node_text, node_kind, node_order, based_keywords, scamper_tag, props_json) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO ${V2_TABLES.hypothesisNodes} (hypothesis_spread_id, node_text, node_kind, node_order, based_keywords, scamper_tag, props_json) VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
-          themeVersionId,
+          hypothesisSpreadId,
           nodeText,
           String(normalizedNode.kind || "hypothesis").slice(0, 32),
           nodeOrder,

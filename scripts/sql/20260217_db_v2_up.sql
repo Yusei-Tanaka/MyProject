@@ -69,7 +69,6 @@ CREATE TABLE IF NOT EXISTS keyword_edges (
 CREATE TABLE IF NOT EXISTS hypothesis_spreads (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   theme_version_id BIGINT NOT NULL,
-  hypothesis_html LONGTEXT NOT NULL,
   hypothesis_saved_at DATETIME NULL,
   hypothesis_node_count INT NOT NULL DEFAULT 0,
   hypothesis_summary_json JSON NULL,
@@ -81,7 +80,7 @@ CREATE TABLE IF NOT EXISTS hypothesis_spreads (
 
 CREATE TABLE IF NOT EXISTS hypothesis_nodes (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  theme_version_id BIGINT NOT NULL,
+  hypothesis_spread_id BIGINT NOT NULL,
   node_text TEXT NOT NULL,
   node_kind VARCHAR(32) NOT NULL DEFAULT 'hypothesis',
   node_order INT NOT NULL DEFAULT 0,
@@ -89,9 +88,9 @@ CREATE TABLE IF NOT EXISTS hypothesis_nodes (
   scamper_tag VARCHAR(255) NULL,
   props_json JSON NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_hypothesis_nodes_version FOREIGN KEY (theme_version_id) REFERENCES theme_versions(id) ON DELETE CASCADE,
-  INDEX idx_hypothesis_nodes_version_order (theme_version_id, node_order),
-  INDEX idx_hypothesis_nodes_version_created (theme_version_id, created_at)
+  CONSTRAINT fk_hypothesis_nodes_spread FOREIGN KEY (hypothesis_spread_id) REFERENCES hypothesis_spreads(id) ON DELETE CASCADE,
+  INDEX idx_hypothesis_nodes_spread_order (hypothesis_spread_id, node_order),
+  INDEX idx_hypothesis_nodes_spread_created (hypothesis_spread_id, created_at)
 );
 
 CREATE TABLE IF NOT EXISTS theme_version_payloads (

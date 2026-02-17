@@ -146,7 +146,7 @@ const normalizeHypothesisNode = (value, index) => {
 const extractHypothesis = (content) => {
   const source = toObjectOrEmpty(content);
   const hypothesis = toObjectOrEmpty(source.hypothesis);
-  const html = typeof hypothesis.html === "string" ? hypothesis.html.trim() : "";
+  const hasLegacyHtml = typeof hypothesis.html === "string" && Boolean(hypothesis.html.trim());
 
   const list = [];
 
@@ -188,7 +188,7 @@ const extractHypothesis = (content) => {
   const savedAt = savedAtDate && !Number.isNaN(savedAtDate.getTime()) ? savedAtDate : null;
 
   return {
-    html,
+    hasLegacyHtml,
     nodes,
     summary,
     savedAt,
@@ -279,24 +279,28 @@ const insertVersionBundle = async ({ connection, row, content }) => {
     );
   }
 
-  if (hypothesis.html) {
-    await connection.execute(
-      "INSERT INTO hypothesis_spreads (theme_version_id, hypothesis_html, hypothesis_saved_at, hypothesis_node_count, hypothesis_summary_json) VALUES (?, ?, ?, ?, ?)",
+  const hasHypothesisData = hypothesis.nodes.length > 0 || Boolean(hypothesis.savedAt) || hypothesis.hasLegacyHtml;
+  let hypothesisSpreadId = null;
+
+  if (hasHypothesisData) {
+    const [spreadResult] = await connection.execute(
+      "INSERT INTO hypothesis_spreads (theme_version_id, hypothesis_saved_at, hypothesis_node_count, hypothesis_summary_json) VALUES (?, ?, ?, ?)",
       [
         themeVersionId,
-        hypothesis.html,
         hypothesis.savedAt,
         hypothesis.nodes.length,
         JSON.stringify(hypothesis.summary),
       ]
     );
+    hypothesisSpreadId = spreadResult.insertId;
   }
 
   for (const node of hypothesis.nodes) {
+    if (!hypothesisSpreadId) break;
     await connection.execute(
-      "INSERT INTO hypothesis_nodes (theme_version_id, node_text, node_kind, node_order, based_keywords, scamper_tag, props_json) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO hypothesis_nodes (hypothesis_spread_id, node_text, node_kind, node_order, based_keywords, scamper_tag, props_json) VALUES (?, ?, ?, ?, ?, ?, ?)",
       [
-        themeVersionId,
+        hypothesisSpreadId,
         node.text,
         node.kind,
         node.order,
@@ -326,7 +330,7 @@ const insertVersionBundle = async ({ connection, row, content }) => {
     nodes: graph.nodes.length,
     edges: graph.edges.length,
     hypothesisNodes: hypothesis.nodes.length,
-    hasHypothesisHtml: Boolean(hypothesis.html),
+    hadLegacyHypothesisHtml: Boolean(hypothesis.hasLegacyHtml),
     createdTheme: theme.isNewTheme,
   };
 };
@@ -370,7 +374,7 @@ const insertVersionBundle = async ({ connection, row, content }) => {
     if (dryRun) {
       processed += 1;
       console.log(
-        `[DRY-RUN] user=${userId} theme=${themeName} nodes=${graph.nodes.length} edges=${graph.edges.length} hypothesisNodes=${hypothesis.nodes.length} hasHypothesisHtml=${Boolean(hypothesis.html)}`
+        `[DRY-RUN] user=${userId} theme=${themeName} nodes=${graph.nodes.length} edges=${graph.edges.length} hypothesisNodes=${hypothesis.nodes.length} hadLegacyHypothesisHtml=${Boolean(hypothesis.hasLegacyHtml)}`
       );
       continue;
     }

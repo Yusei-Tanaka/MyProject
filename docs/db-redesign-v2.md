@@ -34,7 +34,7 @@
 - `theme_versions (1) - (N) keyword_nodes`
 - `theme_versions (1) - (N) keyword_edges`
 - `theme_versions (1) - (0..1) hypothesis_spreads`
-- `theme_versions (1) - (N) hypothesis_nodes`
+- `hypothesis_spreads (1) - (N) hypothesis_nodes`
 - `theme_versions (1) - (0..1) theme_version_payloads`
 
 ## 3. 物理設計（DDL確定案）
@@ -107,7 +107,6 @@ CREATE TABLE IF NOT EXISTS keyword_edges (
 CREATE TABLE IF NOT EXISTS hypothesis_spreads (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   theme_version_id BIGINT NOT NULL,
-  hypothesis_html LONGTEXT NOT NULL,
   hypothesis_saved_at DATETIME NULL,
   hypothesis_node_count INT NOT NULL DEFAULT 0,
   hypothesis_summary_json JSON NULL,
@@ -119,7 +118,7 @@ CREATE TABLE IF NOT EXISTS hypothesis_spreads (
 
 CREATE TABLE IF NOT EXISTS hypothesis_nodes (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  theme_version_id BIGINT NOT NULL,
+  hypothesis_spread_id BIGINT NOT NULL,
   node_text TEXT NOT NULL,
   node_kind VARCHAR(32) NOT NULL DEFAULT 'hypothesis',
   node_order INT NOT NULL DEFAULT 0,
@@ -127,9 +126,9 @@ CREATE TABLE IF NOT EXISTS hypothesis_nodes (
   scamper_tag VARCHAR(255) NULL,
   props_json JSON NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_hypothesis_nodes_version FOREIGN KEY (theme_version_id) REFERENCES theme_versions(id) ON DELETE CASCADE,
-  INDEX idx_hypothesis_nodes_version_order (theme_version_id, node_order),
-  INDEX idx_hypothesis_nodes_version_created (theme_version_id, created_at)
+  CONSTRAINT fk_hypothesis_nodes_spread FOREIGN KEY (hypothesis_spread_id) REFERENCES hypothesis_spreads(id) ON DELETE CASCADE,
+  INDEX idx_hypothesis_nodes_spread_order (hypothesis_spread_id, node_order),
+  INDEX idx_hypothesis_nodes_spread_created (hypothesis_spread_id, created_at)
 );
 
 -- 互換維持/検証用途（移行期のみ）
@@ -174,7 +173,7 @@ erDiagram
     THEME_VERSIONS ||--o{ KEYWORD_NODES : contains
     THEME_VERSIONS ||--o{ KEYWORD_EDGES : contains
     THEME_VERSIONS ||--o| HYPOTHESIS_SPREADS : has
-    THEME_VERSIONS ||--o{ HYPOTHESIS_NODES : contains
+    HYPOTHESIS_SPREADS ||--o{ HYPOTHESIS_NODES : contains
     THEME_VERSIONS ||--o| THEME_VERSION_PAYLOADS : keeps
 
     USERS {
@@ -232,7 +231,6 @@ erDiagram
     HYPOTHESIS_SPREADS {
       bigint id PK
       bigint theme_version_id FK
-      longtext hypothesis_html
       datetime hypothesis_saved_at
       int hypothesis_node_count
       json hypothesis_summary_json
@@ -242,7 +240,7 @@ erDiagram
 
     HYPOTHESIS_NODES {
       bigint id PK
-      bigint theme_version_id FK
+      bigint hypothesis_spread_id FK
       text node_text
       varchar node_kind
       int node_order
@@ -269,7 +267,7 @@ erDiagram
 - `keyword_nodes.id` (PK), `keyword_nodes.theme_version_id -> theme_versions.id` (FK)
 - `keyword_edges.id` (PK), `keyword_edges.theme_version_id -> theme_versions.id` (FK)
 - `hypothesis_spreads.id` (PK), `hypothesis_spreads.theme_version_id -> theme_versions.id` (FK)
-- `hypothesis_nodes.id` (PK), `hypothesis_nodes.theme_version_id -> theme_versions.id` (FK)
+- `hypothesis_nodes.id` (PK), `hypothesis_nodes.hypothesis_spread_id -> hypothesis_spreads.id` (FK)
 - `theme_version_payloads.theme_version_id` (PK/FK, `-> theme_versions.id`)
 
 #### 一意制約
@@ -285,7 +283,7 @@ erDiagram
 - `theme_versions`: `idx_theme_versions_theme_saved_at (theme_id, saved_at)`
 - `keyword_nodes`: `idx_keyword_nodes_label (label)`
 - `keyword_edges`: `idx_keyword_edges_version_src (theme_version_id, src_client_node_id)`, `idx_keyword_edges_version_dst (theme_version_id, dst_client_node_id)`
-- `hypothesis_nodes`: `idx_hypothesis_nodes_version_order (theme_version_id, node_order)`, `idx_hypothesis_nodes_version_created (theme_version_id, created_at)`
+- `hypothesis_nodes`: `idx_hypothesis_nodes_spread_order (hypothesis_spread_id, node_order)`, `idx_hypothesis_nodes_spread_created (hypothesis_spread_id, created_at)`
 
 #### 代表的なJOIN経路
 
@@ -314,7 +312,7 @@ erDiagram
     THEME_VERSIONS ||--o{ KEYWORD_NODES : "FK keyword_nodes.theme_version_id"
     THEME_VERSIONS ||--o{ KEYWORD_EDGES : "FK keyword_edges.theme_version_id"
     THEME_VERSIONS ||--o| HYPOTHESIS_SPREADS : "FK hypothesis_spreads.theme_version_id"
-    THEME_VERSIONS ||--o{ HYPOTHESIS_NODES : "FK hypothesis_nodes.theme_version_id"
+    HYPOTHESIS_SPREADS ||--o{ HYPOTHESIS_NODES : "FK hypothesis_nodes.hypothesis_spread_id"
     THEME_VERSIONS ||--o| THEME_VERSION_PAYLOADS : "PK/FK theme_version_payloads.theme_version_id"
 
     USERS {
@@ -381,7 +379,6 @@ erDiagram
     HYPOTHESIS_SPREADS {
       bigint id PK
       bigint theme_version_id FK
-      longtext hypothesis_html
       datetime hypothesis_saved_at
       int hypothesis_node_count
       json hypothesis_summary_json
@@ -392,7 +389,7 @@ erDiagram
 
     HYPOTHESIS_NODES {
       bigint id PK
-      bigint theme_version_id FK
+      bigint hypothesis_spread_id FK
       text node_text
       varchar node_kind
       int node_order
@@ -400,8 +397,8 @@ erDiagram
       varchar scamper_tag
       json props_json
       timestamp created_at
-      string IDX_version_order
-      string IDX_version_created
+      string IDX_spread_order
+      string IDX_spread_created
     }
 
     THEME_VERSION_PAYLOADS {
@@ -438,7 +435,7 @@ erDiagram
 
 - テーマ件数一致（ユーザー単位/全体）
 - ノード/エッジ件数一致（テーマ単位）
-- 仮説HTML有無一致
+- 仮説件数/ノード件数一致
 - ランダムサンプリングで payload diff（N件）
 
 ### Phase 4: dual-write 有効化
