@@ -318,6 +318,7 @@ body {
     overflow-y: auto;
 }
 .user-admin-card {
+    position: relative;
     width: 100%;
     max-width: 560px;
     background: #fff;
@@ -327,10 +328,21 @@ body {
     padding: 24px;
     margin: 0 auto;
 }
+.user-admin-top-links {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
 .user-admin-card h1,
 .user-admin-card h2 {
     margin: 0 0 12px;
     color: #202124;
+}
+.user-admin-protected-card h1 {
+    padding-right: 260px;
 }
 .user-admin-auth-description {
     margin: 0 0 12px;

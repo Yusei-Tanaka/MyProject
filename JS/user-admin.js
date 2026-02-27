@@ -22,6 +22,7 @@ const passwordTargetUserIdInput = document.getElementById("passwordTargetUserId"
 const currentPasswordInput = document.getElementById("currentPassword");
 const updatedPasswordInput = document.getElementById("updatedPassword");
 const refreshUsersBtn = document.getElementById("refreshUsersBtn");
+const openPhpMyAdminBtn = document.getElementById("openPhpMyAdminBtn");
 const userList = document.getElementById("userList");
 const userAdminMessage = document.getElementById("userAdminMessage");
 
@@ -253,6 +254,10 @@ const loginForAdminPage = async (event) => {
 };
 
 const initializeAdmin = async () => {
+  if (openPhpMyAdminBtn) {
+    openPhpMyAdminBtn.href = `http://${userAdminHost}/phpmyadmin/`;
+  }
+
   if (userAdminAuthPage) {
     userAdminAuthPage.hidden = false;
     userAdminAuthPage.style.display = "flex";

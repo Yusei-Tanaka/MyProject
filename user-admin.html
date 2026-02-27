@@ -27,7 +27,11 @@
     </div>
 
     <div id="userAdminProtectedPage" class="user-admin-page" hidden>
-      <div class="user-admin-card">
+      <div class="user-admin-card user-admin-protected-card">
+        <div class="user-admin-top-links">
+          <a id="openPhpMyAdminBtn" class="user-admin-back" href="http://10.158.102.153/phpmyadmin" target="_blank" rel="noopener noreferrer">phpMyAdminを開く</a>
+          <a class="user-admin-back" href="index.html">ログイン画面へ戻る</a>
+        </div>
         <h1>ユーザ管理</h1>
 
         <form id="userCreateForm" class="user-admin-form">
@@ -47,7 +51,6 @@
 
         <div class="user-admin-actions">
           <button id="refreshUsersBtn" type="button">ユーザ一覧を更新</button>
-          <a class="user-admin-back" href="index.html">ログイン画面へ戻る</a>
         </div>
 
         <div id="userAdminMessage" class="user-admin-message" aria-live="polite"></div>
