@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?meta title="これからのエネルギーの作り方について考える"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="エネルギー" x="135" y="-118" />
+    <Node id="2" label="人口増加" x="340" y="-152" />
+    <Node id="3" label="石炭" x="-411" y="-127" />
+    <Node id="4" label="石油" x="-460" y="-8" />
+    <Node id="5" label="天然ガス" x="-463" y="86" />
+    <Node id="6" label="工業化" x="304" y="-34" />
+    <Node id="7" label="化石燃料" x="-202" y="-61" />
+    <Node id="8" label="発電方法" x="-63" y="283" />
+    <Node id="9" label="火力発電" x="-402" y="162" />
+    <Node id="10" label="原子力発電" x="-80" y="52" />
+    <Node id="11" label="水力発電" x="504" y="148" />
+    <Node id="12" label="太陽光発電" x="-225" y="139" />
+    <Node id="13" label="風力発電" x="-387" y="232" />
+    <Node id="14" label="地熱発電" x="-152" y="95" />
+    <Node id="15" label="バイオマス発電" x="232" y="276" />
+    <Node id="16" label="位置エネルギー" x="885" y="11" />
+    <Node id="17" label="運動エネルギー" x="802" y="199" />
+    <Node id="18" label="化学エネルギー" x="-693" y="211" />
+    <Node id="19" label="安全対策" x="-157" y="-18" />
+    <Node id="20" label="熱エネルギー" x="-646" y="283" />
+    <Node id="21" label="温度差" x="-996" y="277" />
+    <Node id="22" label="高さの差" x="734" y="-136" />
+    <Node id="23" label="天候" x="-623" y="124" />
+    <Node id="24" label="生物資源" x="548" y="265" />
+    <Node id="25" label="水素発電" x="23" y="154" />
+    <Node id="26" label="水素" x="55" y="-4" />
+    <Node id="27" label="酸素" x="165" y="23" />
+    <Node id="28" label="二酸化炭素" x="-69" y="-119" />
+    <Node id="29" label="クリーン水素" x="174" y="-36" />
+    <Node id="30" label="エネルギー保存" x="-379" y="329" />
+    <Node id="31" label="質量とエネルギーの等価性" x="-653" y="72" />
+    <Node id="32" label="温室効果ガス" x="435" y="25" />
+    <Node id="33" label="水不足" x="245" y="82" />
+    <Node id="34" label="ダム" x="195" y="150" />
+    <Node id="35" label="地形" x="511" y="-113" />
+    <Node id="36" label="熱力学" x="-928" y="153" />
+    <Node id="37" label="燃料電池" x="135" y="131" />
+    <Node id="38" label="再生可能エネルギー" x="-812" y="-65" />
+    <Node id="39" label="エネルギー供給の安定性" x="-120" y="342" />
+  </Nodes>
+  <Edges>
+    <Edge id="ecf7a13c-2741-4cbb-9fc7-4f564306efd4" from="1" to="2" label="に伴って不足する" arrows="" />
+    <Edge id="efd0424d-1142-4471-9a8f-12d2471c9a4f" from="1" to="6" label="に伴って不足する" arrows="" />
+    <Edge id="79cfd983-9f34-4f71-8b0a-170ae337ade9" from="1" to="7" label="に依存している" arrows="" />
+    <Edge id="a88cdcf7-c3d1-4f84-8cc2-00bb856c8584" from="7" to="3" label="を含む" arrows="to" />
+    <Edge id="d8c5e479-995a-4b25-b187-c4a72fba31a6" from="7" to="4" label="を含む" arrows="to" />
+    <Edge id="4be98488-7412-4280-b3d1-a3050b7b8178" from="7" to="5" label="を含む" arrows="to" />
+    <Edge id="919ce9f0-354b-4793-909f-a2d33995a26d" from="8" to="12" label="がある" arrows="to" />
+    <Edge id="0d17e2d2-96a5-4d9b-a2ec-31c08423157e" from="8" to="14" label="がある" arrows="to" />
+    <Edge id="4b232ab8-6c10-480d-a5d5-5205d3cc7ef1" from="8" to="13" label="がある" arrows="to" />
+    <Edge id="08683457-036e-456b-a85a-d5f50d522575" from="8" to="10" label="がある" arrows="to" />
+    <Edge id="4e55206f-3cdd-4827-bd0f-6ebc7dc9f8cf" from="8" to="15" label="がある" arrows="to" />
+    <Edge id="54b75fd8-780c-4ce8-98c3-fe5f01cbfeaa" from="8" to="11" label="がある" arrows="to" />
+    <Edge id="abe073c8-ed2d-4ff5-8b72-63de7c0d8efe" from="8" to="9" label="がある" arrows="to" />
+    <Edge id="86964d78-ad0b-40f2-8bf2-89e3c62a113e" from="9" to="7" label="を使用する" arrows="to" />
+    <Edge id="1ed57948-7571-41d2-a7a2-8d63466fbb09" from="11" to="16" label="を用いる" arrows="to" />
+    <Edge id="8f1e6e7e-505c-432a-96d4-041ca39e0667" from="11" to="17" label="を用いる" arrows="to" />
+    <Edge id="59cb652e-38c9-4da5-903a-710afad4cedd" from="9" to="18" label="を用いる" arrows="to" />
+    <Edge id="332b571d-3559-4c96-a9fe-d516a95a181d" from="10" to="19" label="に時間がかかる" arrows="to" />
+    <Edge id="eb2b4ef4-bdc4-4343-b585-d0f81ef9699e" from="8" to="20" label="を使用しにくい" arrows="to" />
+    <Edge id="b1e0a05e-1a81-46cc-8b95-53f9a5e16b72" from="9" to="20" label="に部分的になって拡散する" arrows="to" />
+    <Edge id="a52d55ab-582b-4bac-8640-7cc25fe1cc51" from="20" to="21" label="がないと使用できない" arrows="to" />
+    <Edge id="297adcc0-3f6a-4fd9-b8b2-6cde993eb0c8" from="16" to="22" label="を使用する" arrows="to" />
+    <Edge id="b2eb645c-009b-4e63-8f1e-26ae5b760201" from="19" to="9" label="日本に多くなった理由の一つである" arrows="to" />
+    <Edge id="2b5b9587-1be5-4dce-9010-aa56f379cbad" from="12" to="23" label="に影響される" arrows="to" />
+    <Edge id="251106f4-c68e-440a-b353-06333ecc6bcf" from="13" to="23" label="に影響される" arrows="to" />
+    <Edge id="8150e5fc-7161-4c27-b071-ee7dc6961342" from="15" to="24" label="を直接燃やす" arrows="to" />
+    <Edge id="ac6b92a5-60a3-4252-bb75-97c3ab2a5b63" from="8" to="25" label="の開発を目指す" arrows="to" />
+    <Edge id="c9d14bb3-d1d0-4b11-9d0a-0065b8fee4be" from="25" to="26" label="を利用する" arrows="to" />
+    <Edge id="ce146226-e411-46c8-baa8-9aed44babd12" from="25" to="27" label="を利用する" arrows="to" />
+    <Edge id="a485c93f-f65c-47f7-a3c2-9f4d02c3f500" from="25" to="28" label="を排出しない" arrows="to" />
+    <Edge id="b039f898-aac4-4275-9d41-db78ee06f2f0" from="9" to="28" label="を排出する" arrows="to" />
+    <Edge id="1fe31aeb-86c1-4ccf-b179-2fe993d931f2" from="26" to="29" label="の製造を目指す" arrows="to" />
+    <Edge id="ea1012d3-f89e-4859-a8e5-21e3bcd374f9" from="29" to="28" label="製造過程で排出が少ない" arrows="to" />
+    <Edge id="a81c66e0-bb46-4284-a8c4-5963cf178050" from="11" to="28" label="を排出しない" arrows="to" />
+    <Edge id="4a373d1f-f78b-4ffa-ac0a-0d34e8562744" from="8" to="30" label="が通用しない" arrows="to" />
+    <Edge id="ad2dce78-6d1f-4fb6-bc29-3ae6c4d2e84c" from="30" to="20" label="となって排出されてしまう" arrows="to" />
+    <Edge id="4d4dafe1-dbc6-43cb-a654-9a393039ad82" from="28" to="32" label="の一部である" arrows="to" />
+    <Edge id="b5b954f1-0ab9-412a-a7ef-bc01ab310b2c" from="11" to="33" label="が問題" arrows="to" />
+    <Edge id="06a31135-d55d-4044-827c-807691f81df7" from="33" to="23" label="が原因である" arrows="to" />
+    <Edge id="0010acc7-c25c-4b95-8617-d0632558916a" from="11" to="34" label="を利用する" arrows="to" />
+    <Edge id="1e05f579-83a1-4678-9945-0e68244f935f" from="11" to="35" label="に影響される" arrows="to" />
+    <Edge id="5e5bebf6-6230-4d1d-af53-8538fb802be2" from="35" to="22" label="が必要である" arrows="to" />
+    <Edge id="38d2e19f-13f9-49fb-922a-63878934d036" from="36" to="21" label="影響される" arrows="to" />
+    <Edge id="fce254d8-3e7f-410b-a884-94e88b89b120" from="25" to="37" label="の逆の仕組みである" arrows="to" />
+    <Edge id="409aac41-68e7-47ff-96e6-5ddebc9e0388" from="38" to="25" label="である" arrows="to" />
+    <Edge id="cbdc0956-f4fe-4826-bd14-b0ea1bebd469" from="38" to="12" label="である" arrows="to" />
+    <Edge id="5a3f81c5-8a62-4466-93e8-7e90c81d14f4" from="38" to="12" label="New Edge" arrows="to" />
+    <Edge id="0d381b32-de3b-4efb-bd57-6462ecde58bb" from="38" to="13" label="である" arrows="to" />
+    <Edge id="d03a895c-77cd-4fa0-a8ef-042a913b8cd4" from="10" to="39" label="が安定である" arrows="to" />
+    <Edge id="76bf7a03-f23b-4e4e-b439-a8f14e860caa" from="12" to="39" label="が安定でない" arrows="to" />
+    <Edge id="b19e79e5-6e7b-43b5-909c-37ffd9605245" from="13" to="39" label="が安定でない" arrows="to" />
+  </Edges>
+</ConceptMap>

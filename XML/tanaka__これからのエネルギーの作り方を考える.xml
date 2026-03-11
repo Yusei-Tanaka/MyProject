@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?meta title="これからのエネルギーの作り方を考える"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="枯渇性エネルギー" x="-215" y="16" />
+    <Node id="2" label="再生可能エネルギー" x="-362" y="-75" />
+    <Node id="3" label="エネルギー" x="-2" y="-23" />
+    <Node id="4" label="太陽光発電" x="-1" y="-178" />
+    <Node id="5" label="水力発電" x="-2" y="-100" />
+    <Node id="6" label="バイオマス発電" x="-4" y="-266" />
+    <Node id="7" label="原子力発電" x="-7" y="132" />
+    <Node id="8" label="火力発電" x="-4" y="51" />
+    <Node id="9" label="安定性" x="216" y="-98" />
+    <Node id="10" label="安全性" x="0" y="-65" />
+    <Node id="11" label="供給安定性" x="211" y="217" />
+    <Node id="12" label="コスト" x="216" y="147" />
+    <Node id="13" label="制度設計" x="224" y="77" />
+    <Node id="14" label="地域合意" x="213" y="0" />
+    <Node id="15" label="エネルギー論" x="-850" y="92" />
+    <Node id="16" label="エネルギー危機" x="-973" y="7" />
+  </Nodes>
+  <Edges>
+    <Edge id="71b62adc-695d-4d40-a10a-6a721200e01e" from="6" to="2" label="要素" arrows="" />
+    <Edge id="3cab802d-56f3-4efa-8ea9-4b3efb605b33" from="2" to="4" label="要素" arrows="" />
+    <Edge id="c0fafa1e-c193-48fa-b67f-102dc6275f0d" from="2" to="5" label="要素" arrows="" />
+    <Edge id="dda27c43-9e85-4a7a-8695-49a71fe1d25c" from="2" to="3" label="種類" arrows="" />
+    <Edge id="a147db54-c4ee-4970-9ad8-f2923ce06d27" from="3" to="1" label="種類" arrows="" />
+    <Edge id="0c297b76-7429-4018-9180-dada0f3cc1ba" from="1" to="7" label="要素" arrows="" />
+    <Edge id="4a73c71f-66b3-4e7b-a3b4-5b54a827bb55" from="1" to="8" label="要素" arrows="" />
+    <Edge id="f5dcfba0-e820-4716-af25-06c38f4facf1" from="9" to="7" label="要素" arrows="" />
+    <Edge id="aeaecb20-eff9-40a8-a1ef-125f378e032d" from="9" to="8" label="要素" arrows="" />
+    <Edge id="24d956b7-f4e7-4f5c-8d00-665cbafc94db" from="3" to="9" label="観点" arrows="" />
+    <Edge id="ad0f7fac-bcea-4cb6-88c9-e499197bdff8" from="5" to="9" label="引く" arrows="" />
+    <Edge id="45b85c85-925d-469a-b7d8-ce98b2bf0ea5" from="9" to="4" label="低い" arrows="" />
+    <Edge id="c57a16e8-827f-43b2-80de-37ded602446e" from="6" to="9" label="低い" arrows="" />
+    <Edge id="98a252c5-17b3-43c8-867d-831b923b63c4" from="7" to="14" label="行動" arrows="" />
+    <Edge id="319ef2a1-3592-47a9-af96-63d46529987a" from="7" to="13" label="対策" arrows="" />
+    <Edge id="ac605897-173a-4e87-b4b4-21b2c63c9caf" from="7" to="12" label="経済" arrows="" />
+    <Edge id="e8d31c84-c6c2-4681-aa42-d331d3571c80" from="7" to="11" label="課題" arrows="" />
+  </Edges>
+</ConceptMap>

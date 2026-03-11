@@ -224,6 +224,9 @@ const deleteSelectedTheme = async () => {
     return;
   }
 
+  const ok = window.confirm(`「${selectedTheme}」を削除します。よろしいですか？`);
+  if (!ok) return;
+
   try {
     await removeTheme(currentUser, selectedTheme);
     cachedThemes = await fetchThemeHistory(currentUser);
