@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?meta title="バイリンガル教育は認知能力に影響を与えるか"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="バイリンガル教育" x="922" y="96" />
+    <Node id="2" label="認知能力" x="777" y="197" />
+    <Node id="3" label="文化" x="1046" y="201" />
+    <Node id="4" label="2カ国語" x="775" y="32" />
+    <Node id="5" label="記憶力" x="564" y="258" />
+    <Node id="6" label="集中力" x="717" y="259" />
+    <Node id="7" label="問題解決能力" x="935" y="261" />
+    <Node id="8" label="言語" x="1240" y="227" />
+    <Node id="9" label="言語の混乱" x="629" y="140" />
+    <Node id="11" label="コスト" x="1102" y="40" />
+    <Node id="12" label="家庭環境" x="442" y="59" />
+    <Node id="13" label="教育方針" x="426" y="179" />
+    <Node id="14" label="ストレス" x="944" y="9" />
+    <Node id="15" label="セミリンガル" x="1378" y="160" />
+    <Node id="16" label="学習している言語" x="1675" y="172" />
+  </Nodes>
+  <Edges>
+    <Edge id="4577ad19-2449-4b5c-984f-1f49d28a1b97" from="1" to="2" label="向上" arrows="to" />
+    <Edge id="2e82754c-6811-4f3f-9334-1afea8011cdb" from="1" to="3" label="理解の深化" arrows="to" />
+    <Edge id="1d8c143f-d5e5-4186-934f-3f7553c3a9a5" from="1" to="4" label="同時に学ぶ" arrows="" />
+    <Edge id="157c379d-fbce-4b04-bb0b-867bfa39914b" from="2" to="5" label="向上" arrows="to" />
+    <Edge id="dc56dc96-ee99-4f02-a314-b13a78a9630c" from="2" to="6" label="向上" arrows="to" />
+    <Edge id="0ab9d82e-12de-4a32-8d83-554445206fbb" from="2" to="7" label="向上" arrows="to" />
+    <Edge id="3438ae99-3712-4a7f-bd07-27261f7371d5" from="3" to="8" label="密接に関係" arrows="" />
+    <Edge id="ad3bd543-0e71-4cf9-ae13-4c8bf1f80f25" from="1" to="9" label="可能性" arrows="to" />
+    <Edge id="1e222ffc-6103-47b3-a40a-dd88fc9b274c" from="1" to="11" label="かかる" arrows="to" />
+    <Edge id="67d2f784-9d9d-4c84-b0f2-87d359d5d74f" from="12" to="9" label="影響" arrows="to" />
+    <Edge id="0815a588-d61b-441c-b4e7-20c7aba1b8f0" from="13" to="9" label="影響" arrows="to" />
+    <Edge id="d30274e6-5095-4823-9c08-42dab140260f" from="1" to="14" label="かかる" arrows="to" />
+    <Edge id="f34823d3-da56-488e-aff9-259785a305b7" from="1" to="15" label="陥る可能性" arrows="to" />
+    <Edge id="d9f875c4-f4d5-45b3-a442-fa42e6d1f41b" from="15" to="16" label="習得できない" arrows="" />
+  </Edges>
+</ConceptMap>

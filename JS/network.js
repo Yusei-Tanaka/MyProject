@@ -196,7 +196,7 @@ document.getElementById("addNodeBtn").addEventListener("click", function () {
   // ネットワークの中心座標を取得
   var center = network.getViewPosition();
   var newNode = {
-    id: nodes.length + 1, // IDを自動生成
+    id: getNextNumericNodeId(), // 既存IDと衝突しないIDを採番
     label: "New Node",
     x: center.x,
     y: center.y,
@@ -254,6 +254,7 @@ document.getElementById("addEdgeBtn").addEventListener("click", function () {
   if (selectedNodes.length === 2) {
     var arrowEnabled = document.getElementById("arrowToggle").checked; // チェックボックスの状態を取得
     var newEdge = {
+      id: getNextEdgeId(),
       from: selectedNodes[0],
       to: selectedNodes[1],
       label: "New Edge",
@@ -372,6 +373,31 @@ network.on("click", function (event) {
 function parseNodeId(value) {
   const n = Number(value);
   return Number.isNaN(n) ? value : n;
+}
+
+function getNextNumericNodeId() {
+  const ids = nodes.getIds();
+  let maxId = 0;
+
+  ids.forEach((id) => {
+    const numericId = Number(id);
+    if (Number.isInteger(numericId) && numericId > maxId) {
+      maxId = numericId;
+    }
+  });
+
+  return maxId + 1;
+}
+
+function getNextEdgeId() {
+  const existingIds = new Set(edges.getIds().map((id) => String(id)));
+  let next = 1;
+
+  while (existingIds.has(`e${next}`) || existingIds.has(String(next))) {
+    next += 1;
+  }
+
+  return `e${next}`;
 }
 
 function buildConceptMapPayload() {
