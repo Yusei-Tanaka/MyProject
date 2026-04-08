@@ -2,7 +2,7 @@ const startSearchBtn = document.getElementById("startSearchBtn");
 const usernameInput = document.getElementById("username");
 const userPasswordInput = document.getElementById("userPassword");
 
-const saveXmlHost = window.location.hostname || "localhost";
+const saveXmlHost = window.location.hostname || "10.158.102.203";
 const authApiPort = 3000;
 const authenticateUser = async (id, password) => {
   const res = await fetch(`http://${saveXmlHost}:${authApiPort}/auth/login`, {

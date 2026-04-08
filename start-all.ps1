@@ -5,6 +5,11 @@ $root = "C:\Users\yuuse\MyProject"
 $jsDir = Join-Path $root "JS"
 $python = "python"
 $node = "node"
+$xamppApacheStart = "C:\xampp\apache_start.bat"
+
+if (Test-Path $xamppApacheStart) {
+	Start-Process -FilePath $xamppApacheStart -WindowStyle Minimized
+}
 
 # HTTP server (serves from repo root)
 Start-Process -FilePath $python -ArgumentList "-m","http.server","8008","--bind","0.0.0.0" -WorkingDirectory $root -WindowStyle Minimized

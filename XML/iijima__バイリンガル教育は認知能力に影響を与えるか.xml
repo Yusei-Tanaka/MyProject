@@ -2,21 +2,44 @@
 <?meta title="バイリンガル教育は認知能力に影響を与えるか"?>
 <ConceptMap>
   <Nodes>
-    <Node id="1" label="バイリンガル教育" x="922" y="96" />
+    <Node id="1" label="バイリンガル教育" x="914" y="100" />
     <Node id="2" label="認知能力" x="777" y="197" />
-    <Node id="3" label="文化" x="1046" y="201" />
-    <Node id="4" label="2カ国語" x="775" y="32" />
-    <Node id="5" label="記憶力" x="564" y="258" />
-    <Node id="6" label="集中力" x="717" y="259" />
-    <Node id="7" label="問題解決能力" x="935" y="261" />
-    <Node id="8" label="言語" x="1240" y="227" />
-    <Node id="9" label="言語の混乱" x="629" y="140" />
+    <Node id="3" label="文化" x="1000" y="216" />
+    <Node id="4" label="2カ国語" x="727" y="-55" />
+    <Node id="5" label="記憶力" x="528" y="302" />
+    <Node id="6" label="集中力" x="698" y="328" />
+    <Node id="7" label="問題解決能力" x="947" y="356" />
+    <Node id="8" label="言語" x="1015" y="295" />
+    <Node id="9" label="言語の混乱" x="615" y="198" />
     <Node id="11" label="コスト" x="1102" y="40" />
-    <Node id="12" label="家庭環境" x="442" y="59" />
-    <Node id="13" label="教育方針" x="426" y="179" />
-    <Node id="14" label="ストレス" x="944" y="9" />
-    <Node id="15" label="セミリンガル" x="1378" y="160" />
-    <Node id="16" label="学習している言語" x="1675" y="172" />
+    <Node id="12" label="家庭環境" x="478" y="154" />
+    <Node id="13" label="教育方針" x="451" y="248" />
+    <Node id="14" label="ストレス" x="897" y="-11" />
+    <Node id="15" label="セミリンガル" x="1281" y="174" />
+    <Node id="16" label="学習している言語" x="1648" y="221" />
+    <Node id="18" label="学業成績" x="1551" y="269" />
+    <Node id="19" label="母語" x="1356" y="89" />
+    <Node id="20" label="自身の喪失" x="1409" y="283" />
+    <Node id="21" label="言語学習の一貫性" x="1696" y="146" />
+    <Node id="22" label="移行型バイリンガル教育" x="1645" y="-23" />
+    <Node id="23" label="双方向イマージョン教育" x="450" y="-7" />
+    <Node id="24" label="第二言語" x="1336" y="-58" />
+    <Node id="25" label="幼児期" x="1209" y="348" />
+    <Node id="26" label="発音" x="1393" y="374" />
+    <Node id="27" label="イントネーション" x="1262" y="268" />
+    <Node id="28" label="どの言語でどう伝えるか" x="897" y="445" />
+    <Node id="29" label="脳" x="1074" y="397" />
+    <Node id="30" label="社会性" x="870" y="225" />
+    <Node id="31" label="モノリンガル" x="1793" y="9" />
+    <Node id="32" label="容量限界メタファー" x="163" y="246" />
+    <Node id="33" label="資料の共有" x="553" y="435" />
+    <Node id="34" label="グローバル教育" x="205" y="4" />
+    <Node id="35" label="外国語" x="152" y="142" />
+    <Node id="36" label="親の教育レベル" x="217" y="421" />
+    <Node id="37" label="バイリンガル" x="607" y="480" />
+    <Node id="38" label="言語保存" x="734" y="420" />
+    <Node id="39" label="言語の使用頻度" x="82" y="345" />
+    <Node id="40" label="語彙数" x="1093" y="-71" />
   </Nodes>
   <Edges>
     <Edge id="4577ad19-2449-4b5c-984f-1f49d28a1b97" from="1" to="2" label="向上" arrows="to" />
@@ -33,5 +56,36 @@
     <Edge id="d30274e6-5095-4823-9c08-42dab140260f" from="1" to="14" label="かかる" arrows="to" />
     <Edge id="f34823d3-da56-488e-aff9-259785a305b7" from="1" to="15" label="陥る可能性" arrows="to" />
     <Edge id="d9f875c4-f4d5-45b3-a442-fa42e6d1f41b" from="15" to="16" label="習得できない" arrows="" />
+    <Edge id="e1" from="1" to="19" label="発達の遅れが生じる可能性" arrows="to" />
+    <Edge id="e2" from="15" to="20" label="影響" arrows="to" />
+    <Edge id="e4" from="15" to="18" label="悪影響" arrows="to" />
+    <Edge id="e3" from="15" to="19" label="発達の遅れが生じる可能性" arrows="to" />
+    <Edge id="e5" from="21" to="15" label="防ぐ" arrows="to" />
+    <Edge id="e6" from="1" to="23" label="種類" arrows="to" />
+    <Edge id="e7" from="1" to="22" label="種類" arrows="to" />
+    <Edge id="e8" from="22" to="19" label="最初に十分に身に付けさせる" arrows="to" />
+    <Edge id="e9" from="22" to="24" label="2番目に学習" arrows="to" />
+    <Edge id="e11" from="22" to="14" label="よりかからない" arrows="to" />
+    <Edge id="e10" from="23" to="4" label="同時使用" arrows="to" />
+    <Edge id="e12" from="23" to="3" label="より理解の深化" arrows="to" />
+    <Edge id="e13" from="23" to="2" label="より向上が期待" arrows="to" />
+    <Edge id="e14" from="25" to="26" label="敏感" arrows="to" />
+    <Edge id="e15" from="25" to="27" label="敏感" arrows="to" />
+    <Edge id="e16" from="7" to="28" label="向上する原因" arrows="to" />
+    <Edge id="e17" from="25" to="29" label="柔軟" arrows="to" />
+    <Edge id="e18" from="25" to="8" label="吸収が早い" arrows="to" />
+    <Edge id="e19" from="1" to="25" label="実施すると効果的" arrows="to" />
+    <Edge id="e20" from="1" to="30" label="向上" arrows="to" />
+    <Edge id="e21" from="31" to="19" label="だけを学習" arrows="to" />
+    <Edge id="e22" from="5" to="32" label="昔は主流" arrows="" />
+    <Edge id="e23" from="32" to="4" label="別の容量を使用" arrows="" />
+    <Edge id="e24" from="33" to="5" label="現在の研究結果" arrows="" />
+    <Edge id="e25" from="34" to="35" label="学習" arrows="to" />
+    <Edge id="e26" from="34" to="3" label="学習" arrows="to" />
+    <Edge id="e27" from="1" to="36" label="影響" arrows="to" />
+    <Edge id="e28" from="36" to="9" label="影響" arrows="to" />
+    <Edge id="e29" from="36" to="37" label="必要？" arrows="to" />
+    <Edge id="e30" from="12" to="39" label="影響" arrows="to" />
+    <Edge id="e31" from="1" to="40" label="1つの言語では少ない" arrows="to" />
   </Edges>
 </ConceptMap>

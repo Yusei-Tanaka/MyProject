@@ -1,4 +1,4 @@
-const saveLogHost = window.location.hostname || "localhost";
+const saveLogHost = window.location.hostname || "10.158.102.203";
 const saveLogPort = 3005;
 
 const saveUserLog = async (logText) => {

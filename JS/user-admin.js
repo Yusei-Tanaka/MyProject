@@ -1,4 +1,4 @@
-const userAdminHost = window.location.hostname || "127.0.0.1";
+const userAdminHost = window.location.hostname || "10.158.102.203";
 const userAdminApiPort = 3000;
 const userAdminBaseUrl = `http://${userAdminHost}:${userAdminApiPort}`;
 const USER_ADMIN_ACCESS_PASSWORD = "kslabkslab";

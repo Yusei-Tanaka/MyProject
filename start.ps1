@@ -6,6 +6,11 @@ $jsDir = Join-Path $root "JS"
 $pidFile = Join-Path $root ".start-all.pids"
 $python = "python"
 $node = "node"
+$xamppApacheStart = "C:\xampp\apache_start.bat"
+
+if (Test-Path $xamppApacheStart) {
+    Start-Process -FilePath $xamppApacheStart -WindowStyle Minimized
+}
 
 $http = Start-Process -FilePath $python -ArgumentList "-m","http.server","8008","--bind","0.0.0.0" -WorkingDirectory $root -PassThru -WindowStyle Minimized
 $api  = Start-Process -FilePath $python -ArgumentList "api.py" -WorkingDirectory $root -PassThru -WindowStyle Minimized

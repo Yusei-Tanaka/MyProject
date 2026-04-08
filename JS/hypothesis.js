@@ -40,7 +40,7 @@ function logHypothesisAction(message) {
   }
 }
 
-const hypothesisHost = window.location.hostname || "localhost";
+const hypothesisHost = window.location.hostname || "10.158.102.203";
 const hypothesisSaveBaseUrl = `http://${hypothesisHost}:3005`;
 const hypothesisDbApiBaseUrl = `http://${hypothesisHost}:3000`;
 const HYPOTHESIS_SNAPSHOT_DIR = "XML";

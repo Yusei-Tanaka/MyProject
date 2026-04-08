@@ -1,6 +1,6 @@
 window.addEventListener('DOMContentLoaded', function() {
   const $ = go.GraphObject.make;
-  const host = window.location.hostname || "localhost";
+  const host = window.location.hostname || "10.158.102.203";
   const saveApiBaseUrl = `http://${host}:3005`;
   const themeApiBaseUrl = `http://${host}:3000`;
   const MINDMAP_SNAPSHOT_DIR = "XML";

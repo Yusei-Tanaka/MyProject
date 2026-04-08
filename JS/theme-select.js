@@ -5,7 +5,7 @@ const themeHistoryList = document.getElementById("themeHistoryList");
 const deleteSelectedThemeBtn = document.getElementById("deleteSelectedThemeBtn");
 const clearThemeHistoryBtn = document.getElementById("clearThemeHistoryBtn");
 
-const apiHost = window.location.hostname || "localhost";
+const apiHost = window.location.hostname || "10.158.102.203";
 const authApiPort = 3000;
 const saveXmlPort = 3005;
 

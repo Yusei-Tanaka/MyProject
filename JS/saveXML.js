@@ -7,26 +7,34 @@ const app = express();
 const PORT = Number(process.env.SAVE_XML_PORT || 3005);
 const HOST = "0.0.0.0";
 
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+  try {
+    const { hostname } = new URL(origin);
+    if (hostname === "localhost" || hostname === "127.0.0.1") return true;
+    if (/^10\.158\.102\.\d{1,3}$/.test(hostname)) return true;
+    return false;
+  } catch (_error) {
+    return false;
+  }
+};
+
 // CORSを有効化
 const corsOptions = {
   origin: (origin, callback) => {
-    if (
-      !origin ||
-      origin.startsWith("http://localhost") ||
-      origin.startsWith("http://127.0.0.1") ||
-      origin.startsWith("http://10.158.102.153")
-    ) {
+    if (isAllowedOrigin(origin)) {
       callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));
     }
   },
-  methods: ["GET", "POST"], // 許可するHTTPメソッド
+  methods: ["GET", "POST", "OPTIONS"], // 許可するHTTPメソッド
   allowedHeaders: ["Content-Type"], // 許可するヘッダー
 };
 
 app.use(cors(corsOptions)); // この行でCORSを有効化
 app.options("/save-xml", cors(corsOptions)); // preflight
+app.options("/xml-exists", cors(corsOptions)); // preflight
 
 app.get("/xml-exists", (req, res) => {
   const safeName = sanitizeFileName(req.query.filename || "");

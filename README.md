@@ -103,7 +103,7 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:3000/auth/login" -ContentT
 
 ## 7. DB管理画面
 ブラウザで以下を開く:
-- `http://localhost/phpmyadmin/`
+- `http://10.158.102.203/phpmyadmin/`
 
 `index.html` / `main.html` のボタンからも同URLを開けます。
 
