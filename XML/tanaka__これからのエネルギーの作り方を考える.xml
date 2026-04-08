@@ -3,7 +3,7 @@
 <ConceptMap>
   <Nodes>
     <Node id="1" label="枯渇性エネルギー" x="-215" y="16" />
-    <Node id="2" label="再生可能エネルギー" x="-362" y="-75" />
+    <Node id="2" label="再生可能エネルギー" x="-432" y="-55" />
     <Node id="3" label="エネルギー" x="-2" y="-23" />
     <Node id="4" label="太陽光発電" x="-1" y="-178" />
     <Node id="5" label="水力発電" x="-2" y="-100" />

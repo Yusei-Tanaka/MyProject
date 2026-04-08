@@ -30,6 +30,15 @@
     --color-node-border: #3498DB;
     --color-node-highlight: #E67E22;
     --color-node-highlight-text: #FFFFFF;
+
+    --login-page-bg: linear-gradient(140deg, #eef5ff 0%, #f7fbff 100%);
+    --login-title-color: #202124;
+    --login-input-border: #dfe1e5;
+    --login-input-focus: #4285f4;
+    --login-button-bg: #4285f4;
+    --login-button-hover: #357ae8;
+    --login-panel-bg: rgba(255, 255, 255, 0.74);
+    --login-panel-border: rgba(66, 133, 244, 0.18);
 }
 
 /* ===================== タイトル入力・独自UI（style-sub.css由来） ===================== */
@@ -39,6 +48,15 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
+}
+.login-page .title-input-container {
+    width: min(560px, 92vw);
+    padding: 28px;
+    border-radius: 18px;
+    background: var(--login-panel-bg);
+    border: 1px solid var(--login-panel-border);
+    box-sizing: border-box;
+    box-shadow: 0 20px 45px rgba(31, 42, 68, 0.12);
 }
 .title-input-container h1 {
     font-size: 2.2rem;
@@ -59,6 +77,9 @@
     margin-bottom: 24px;
     transition: border-color 0.2s;
 }
+.login-page .title-input-container h1 {
+    color: var(--login-title-color);
+}
 .login-form {
     width: 360px;
     max-width: 90vw;
@@ -76,7 +97,7 @@
     box-shadow: 0 1px 6px rgba(32,33,36,0.12);
 }
 .login-form input:focus {
-    border-color: #4285f4;
+    border-color: var(--login-input-focus);
 }
 .theme-history-container {
     width: 480px;
@@ -158,13 +179,13 @@
     font-size: 0.95rem;
 }
 #titleInput:focus {
-    border-color: #4285f4;
+    border-color: var(--login-input-focus);
 }
 #startSearchBtn {
     padding: 10px 32px;
     font-size: 1rem;
     color: #fff;
-    background: #4285f4;
+    background: var(--login-button-bg);
     border: none;
     border-radius: 24px;
     cursor: pointer;
@@ -172,7 +193,7 @@
     transition: background 0.2s;
 }
 #startSearchBtn:hover {
-    background: #357ae8;
+    background: var(--login-button-hover);
 }
 .admin-link-container {
     position: fixed;
@@ -209,6 +230,16 @@
 body {
     background: #f8f9fa;
     font-family: 'Roboto', 'Arial', sans-serif;
+}
+.login-page {
+    background: var(--login-page-bg);
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.login-page .title-input-container {
+    min-height: 0;
 }
 /* ===================== 共通・全体レイアウト ===================== */
 html, body {
@@ -321,8 +352,8 @@ body {
     position: relative;
     width: 100%;
     max-width: 560px;
-    background: #fff;
-    border: 1px solid #dfe1e5;
+    background: var(--color-main-button-bg);
+    border: 1px solid var(--color-main-border);
     border-radius: 12px;
     box-shadow: 0 1px 6px rgba(32,33,36,0.15);
     padding: 24px;
@@ -339,14 +370,14 @@ body {
 .user-admin-card h1,
 .user-admin-card h2 {
     margin: 0 0 12px;
-    color: #202124;
+    color: var(--color-heading-text);
 }
 .user-admin-protected-card h1 {
     padding-right: 260px;
 }
 .user-admin-auth-description {
     margin: 0 0 12px;
-    color: #5f6368;
+    color: var(--color-main-button-text);
 }
 .user-admin-form {
     display: grid;
@@ -357,17 +388,23 @@ body {
 .user-admin-form select {
     padding: 10px 12px;
     border-radius: 8px;
-    border: 1px solid #dfe1e5;
+    border: 1px solid var(--color-main-border);
+    background: var(--color-main-button-bg);
+    color: var(--color-heading-text);
     font-size: 14px;
 }
 .user-admin-form button,
 .user-admin-actions button {
     padding: 10px 14px;
     border-radius: 8px;
-    border: 1px solid #4285f4;
-    background: #4285f4;
+    border: 1px solid var(--color-button-primary);
+    background: var(--color-button-primary);
     color: #fff;
     cursor: pointer;
+}
+.user-admin-form button:hover,
+.user-admin-actions button:hover {
+    background: var(--color-button-primary-hover);
 }
 .user-admin-actions {
     margin-top: 10px;
@@ -376,13 +413,13 @@ body {
     gap: 10px;
 }
 .user-admin-back {
-    color: #1a73e8;
+    color: var(--color-button-primary);
     text-decoration: none;
 }
 .user-admin-message {
     margin: 12px 0;
     font-size: 14px;
-    color: #188038;
+    color: var(--color-button-primary);
     min-height: 20px;
 }
 .user-admin-message.is-error {
@@ -393,6 +430,7 @@ body {
     padding-left: 20px;
 }
 .user-list li {
+    color: var(--color-heading-text);
     margin-bottom: 6px;
 }
 .h4 {
@@ -849,3 +887,76 @@ select {
     padding: 6px 14px;
     font-size: 14px;
 }
+
+.theme-switcher {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+}
+.theme-switcher-label {
+    font-size: 12px;
+    color: #475569;
+    margin-right: 2px;
+    -webkit-user-select: none;
+    user-select: none;
+}
+.theme-switcher-palette {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.theme-switcher-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.95);
+    outline: 1px solid rgba(100, 116, 139, 0.45);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.theme-switcher-dot:hover {
+    transform: scale(1.08);
+}
+.theme-switcher-dot.is-active {
+    transform: scale(1.12);
+    box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.18);
+}
+.theme-switcher-dot:focus-visible {
+    outline: 2px solid #1d4ed8;
+    outline-offset: 2px;
+}
+.has-app-header .theme-switcher {
+    top: 44px;
+}
+
+.main-page .theme-switcher {
+    top: 4px;
+    bottom: auto;
+    left: 120px;
+    padding: 4px 8px;
+}
+
+.main-page .theme-switcher .theme-switcher-label {
+    display: none;
+}
+
+.main-page .theme-switcher .theme-switcher-palette {
+    gap: 6px;
+}
+
+.main-page .theme-switcher .theme-switcher-dot {
+    width: 16px;
+    height: 16px;
+}
+
