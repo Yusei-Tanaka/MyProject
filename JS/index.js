@@ -26,6 +26,8 @@ const login = async () => {
 
   const isAuthenticated = await authenticateUser(id, password);
   if (!isAuthenticated) {
+    userPasswordInput.value = "";
+    userPasswordInput.focus();
     alert("ログインに失敗しました。登録済みユーザのID/パスワードを確認してください。");
     return;
   }

@@ -211,7 +211,12 @@ const updatePassword = async (event) => {
     updatedPasswordInput.value = "";
     await fetchUsers();
   } catch (error) {
-    setMessage(error.message || "パスワード変更に失敗しました。", true);
+    const message = error.message || "パスワード変更に失敗しました。";
+    if (message.includes("invalid current password")) {
+      currentPasswordInput.value = "";
+      currentPasswordInput.focus();
+    }
+    setMessage(message, true);
   }
 };
 
@@ -244,6 +249,8 @@ const loginForAdminPage = async (event) => {
   const normalizedExpected = normalizeAdminPasswordInput(USER_ADMIN_ACCESS_PASSWORD);
 
   if (normalizedInput !== normalizedExpected) {
+    adminPasswordInput.value = "";
+    adminPasswordInput.focus();
     setAuthMessage("パスワードが正しくありません。", true);
     return;
   }
