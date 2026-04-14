@@ -1,35 +1,35 @@
 /* ===================== テーマカラーパレット ===================== */
 :root {
-    --color-header-bg: #2C3E50;
-    --color-header-text: #FFFFFF;
-    --color-header-subtext: #CBD5E1;
-    --color-sidebar-bg: #F8FAFC;
-    --color-heading-bg: #E1E8ED;
-    --color-heading-text: #34495E;
-    --color-keyword-bg: #F8FAFC;
-    --color-keyword-border: #E1E8ED;
-    --color-keyword-button: #3498DB;
-    --color-main-bg: #F8FAFC;
-    --color-main-border: #E5E7EB;
-    --color-main-button-bg: #FFFFFF;
-    --color-main-button-text: #7F8C8D;
-    --color-canvas-bg: #FFFFFF;
-    --color-canvas-grid: #F1F5F9;
-    --color-hypothesis-bg: #EFF6FF;
-    --color-hypothesis-border: #BFDBFE;
-    --color-hypothesis-heading: #1E3A8A;
-    --color-hypothesis-button: #1D4ED8;
-    --color-extra-bg: #F1F5F9;
-    --color-extra-border: #CBD5E1;
-    --color-button-primary: #3498DB;
-    --color-button-primary-hover: #2B7AB1;
-    --color-button-secondary-border: #BDC3C7;
-    --color-button-secondary-text: #7F8C8D;
-    --color-button-secondary-hover: #EBF5FB;
-    --color-edge: #95A5A6;
-    --color-node-border: #3498DB;
-    --color-node-highlight: #E67E22;
-    --color-node-highlight-text: #FFFFFF;
+    --color-header-bg: #2c3e50;
+    --color-header-text: #fff;
+    --color-header-subtext: #cbd5e1;
+    --color-sidebar-bg: #f8fafc;
+    --color-heading-bg: #e1e8ed;
+    --color-heading-text: #34495e;
+    --color-keyword-bg: #f8fafc;
+    --color-keyword-border: #e1e8ed;
+    --color-keyword-button: #3498db;
+    --color-main-bg: #f8fafc;
+    --color-main-border: #e5e7eb;
+    --color-main-button-bg: #fff;
+    --color-main-button-text: #7f8c8d;
+    --color-canvas-bg: #fff;
+    --color-canvas-grid: #f1f5f9;
+    --color-hypothesis-bg: #eff6ff;
+    --color-hypothesis-border: #bfdbfe;
+    --color-hypothesis-heading: #1e3a8a;
+    --color-hypothesis-button: #1d4ed8;
+    --color-extra-bg: #f1f5f9;
+    --color-extra-border: #cbd5e1;
+    --color-button-primary: #3498db;
+    --color-button-primary-hover: #2b7ab1;
+    --color-button-secondary-border: #bdc3c7;
+    --color-button-secondary-text: #7f8c8d;
+    --color-button-secondary-hover: #ebf5fb;
+    --color-edge: #95a5a6;
+    --color-node-border: #3498db;
+    --color-node-highlight: #e67e22;
+    --color-node-highlight-text: #fff;
 
     --login-page-bg: linear-gradient(140deg, #eef5ff 0%, #f7fbff 100%);
     --login-title-color: #202124;
@@ -73,7 +73,7 @@
     border: 1px solid #dfe1e5;
     border-radius: 24px;
     outline: none;
-    box-shadow: 0 1px 6px rgba(32,33,36,0.28);
+    box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
     margin-bottom: 24px;
     transition: border-color 0.2s;
 }
@@ -94,7 +94,7 @@
     border: 1px solid #dfe1e5;
     border-radius: 24px;
     outline: none;
-    box-shadow: 0 1px 6px rgba(32,33,36,0.12);
+    box-shadow: 0 1px 6px rgba(32, 33, 36, 0.12);
 }
 .login-form input:focus {
     border-color: var(--login-input-focus);
@@ -189,7 +189,7 @@
     border: none;
     border-radius: 24px;
     cursor: pointer;
-    box-shadow: 0 1px 3px rgba(60,64,67,0.15);
+    box-shadow: 0 1px 3px rgba(60, 64, 67, 0.15);
     transition: background 0.2s;
 }
 #startSearchBtn:hover {
@@ -227,10 +227,6 @@
 }
 
 /* ===================== body追加（style-sub.css由来） ===================== */
-body {
-    background: #f8f9fa;
-    font-family: 'Roboto', 'Arial', sans-serif;
-}
 .login-page {
     background: var(--login-page-bg);
     min-height: 100dvh;
@@ -245,11 +241,13 @@ body {
 html, body {
     height: 100%;
     margin: 0;
-    overflow: auto; /* ← hiddenをautoへ */
+    overflow: auto;
     display: flex;
     flex-direction: column;
 }
 body {
+    background: #f8f9fa;
+    font-family: 'Roboto', 'Arial', sans-serif;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -277,20 +275,23 @@ body {
     padding: 2px 10px;
     border-radius: 12px;
     background: var(--color-header-subtext);
-    border: 1px solid rgba(255,255,255,0.4);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     min-width: 80px;
     text-align: center;
     box-sizing: border-box;
 }
-.header span { margin-right: 10px; }
-.header input, #myTitle {
+.header span {
+    margin-right: 10px;
+}
+.header input,
+#myTitle {
     font-size: 16px;
     padding: 4px 10px;
     width: 100%;
     max-width: 900px;
-    border: 1px solid rgba(255,255,255,0.4);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: 4px;
-    background: rgba(255,255,255,0.15);
+    background: rgba(255, 255, 255, 0.15);
     margin: 4px auto;
     text-align: center;
     display: block;
@@ -300,14 +301,15 @@ body {
 }
 #myTitle::placeholder,
 .header input::placeholder {
-    color: rgba(255,255,255,0.7);
+    color: rgba(255, 255, 255, 0.7);
 }
-#serchBtn, .header button {
+#serchBtn,
+.header button {
     padding: 8px 16px;
     font-size: 16px;
     border-radius: 4px;
-    border: 1px solid rgba(255,255,255,0.4);
-    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.2);
     color: var(--color-header-text);
     cursor: pointer;
 }
@@ -315,21 +317,21 @@ body {
     padding: 8px 16px;
     font-size: 16px;
     border-radius: 4px;
-    border: 1px solid rgba(255,255,255,0.4);
-    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.2);
     color: var(--color-header-text);
     text-decoration: none;
     display: inline-block;
 }
 .header-admin-link:hover {
-    background: rgba(255,255,255,0.3);
+    background: rgba(255, 255, 255, 0.3);
 }
 .header-admin-select {
     padding: 6px 10px;
     font-size: 14px;
     border-radius: 4px;
-    border: 1px solid rgba(255,255,255,0.4);
-    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.2);
     color: var(--color-header-text);
     height: 30px;
     cursor: pointer;
@@ -355,7 +357,7 @@ body {
     background: var(--color-main-button-bg);
     border: 1px solid var(--color-main-border);
     border-radius: 12px;
-    box-shadow: 0 1px 6px rgba(32,33,36,0.15);
+    box-shadow: 0 1px 6px rgba(32, 33, 36, 0.15);
     padding: 24px;
     margin: 0 auto;
 }
@@ -625,7 +627,7 @@ button#keywordCreationBtn:hover,
     margin-top: 10px;
     padding: 10px;
     border: 2px solid var(--color-hypothesis-border);
-    background: #ffffff;
+    background: #fff;
     box-sizing: border-box;
     height: 100%;
     overflow-y: auto;
@@ -643,8 +645,15 @@ button#keywordCreationBtn:hover,
     flex-direction: column;
     gap: 8px;
 }
-.hypothesis-combined { background: #fff; border-color: #ffffff; }
-.hypothesis-title { font-size: 1.2em; margin-bottom: 8px; color: var(--color-hypothesis-heading); }
+.hypothesis-combined {
+    background: #fff;
+    border-color: #fff;
+}
+.hypothesis-title {
+    font-size: 1.2em;
+    margin-bottom: 8px;
+    color: var(--color-hypothesis-heading);
+}
 .hypothesis-text {
     width: 100%;
     min-height: 60px;
@@ -790,8 +799,8 @@ button#keywordCreationBtn:hover,
 .question-dialog__close {
     width: 100%;
     text-align: left;
-    background: #FDFDFD;
-    border: 1px solid #DCDDE1;
+    background: #fdfdfd;
+    border: 1px solid #dcdde1;
     border-radius: 6px;
     padding: 10px 14px;
     margin-bottom: 8px;
@@ -801,7 +810,7 @@ button#keywordCreationBtn:hover,
 }
 .question-dialog__option:hover,
 .question-dialog__close:hover {
-    background: #EBF5FB;
+    background: #ebf5fb;
     border-color: var(--color-button-primary);
 }
 .question-dialog__close {
@@ -969,12 +978,13 @@ button#keywordCreationBtn:hover,
 }
 
 /* ===================== SCAMPERメニュー・タグ ===================== */
-.scamper-menu, .scamper-menu-inline {
+.scamper-menu,
+.scamper-menu-inline {
     position: absolute;
     z-index: 2000;
     background: #fff;
     border: 1px solid #ccc;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
     padding: 4px;
     border-radius: 4px;
     min-width: 200px;
@@ -989,10 +999,20 @@ button#keywordCreationBtn:hover,
     border-bottom: 1px solid #eee;
     white-space: nowrap;
 }
-.scamper-option:last-child { border-bottom: none; }
-.scamper-letter { width: 20px; text-align: center; font-weight: bold; }
-.scamper-label { font-size: 12px; color: #111; }
-.scamper-tags, .scamper-tag-container {
+.scamper-option:last-child {
+    border-bottom: none;
+}
+.scamper-letter {
+    width: 20px;
+    text-align: center;
+    font-weight: bold;
+}
+.scamper-label {
+    font-size: 12px;
+    color: #111;
+}
+.scamper-tags,
+.scamper-tag-container {
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -1006,7 +1026,7 @@ button#keywordCreationBtn:hover,
     border-radius: 12px;
     font-size: 12px;
     cursor: pointer;
-    border: 1px solid rgba(0,0,0,0.08);
+    border: 1px solid rgba(0, 0, 0, 0.08);
     white-space: nowrap;
     width: 142px;
 }
@@ -1042,7 +1062,10 @@ select {
     .main {
         flex-direction: column;
     }
-    .left-navi, .right-navi, .main-contents, .extra-content {
+    .left-navi,
+    .right-navi,
+    .main-contents,
+    .extra-content {
         min-width: 0;
         width: 100%;
         flex: 1 1 100%;
