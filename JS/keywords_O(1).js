@@ -10,20 +10,34 @@ function handleKeywordClick(keyword) {
     });
 
     if (existingNode.length === 0) {
-        // ネットワークの中心座標を取得
-        var center = network.getViewPosition();
+        var position = typeof window.getNonOverlappingNodePosition === "function"
+            ? window.getNonOverlappingNodePosition()
+            : network.getViewPosition();
         // 新しいノードを作成
-        var newId = nodes.length + 1;
-        while (nodes.get(newId)) {
-            newId++;
-        }
+        var newId = typeof window.getNextNumericNodeId === "function"
+            ? window.getNextNumericNodeId()
+            : (function() {
+                var ids = nodes.getIds();
+                var maxId = 0;
+                ids.forEach(function(id) {
+                    var numericId = Number(id);
+                    if (Number.isInteger(numericId) && numericId > maxId) {
+                        maxId = numericId;
+                    }
+                });
+                return maxId + 1;
+            })();
         var newNode = {
             id: newId,
             label: keyword,
-            x: center.x,
-            y: center.y
+            nodeType: "keyword",
+            x: position.x,
+            y: position.y
         };
         nodes.add(newNode); // ノードを追加
+        if (typeof window.emphasizeNodeTemporarily === "function") {
+            window.emphasizeNodeTemporarily(newNode.id);
+        }
         if (typeof window.addSystemLog === "function") {
             window.addSystemLog(`生成キーワード: ノード追加 label="${keyword}"`);
         }

@@ -1054,16 +1054,33 @@ function handleKeywordClick(keyword) {
 
     if (existingNode.length === 0) {
         // 新しいノードを作成
-      var newId = nodes.length + 1;
-      while (nodes.get(newId)) {
-        newId++;
-      }
+      var position = typeof window.getNonOverlappingNodePosition === "function"
+        ? window.getNonOverlappingNodePosition()
+        : network.getViewPosition();
+      var newId = typeof window.getNextNumericNodeId === "function"
+        ? window.getNextNumericNodeId()
+        : (function () {
+          var ids = nodes.getIds();
+          var maxId = 0;
+          ids.forEach(function (id) {
+            var numericId = Number(id);
+            if (Number.isInteger(numericId) && numericId > maxId) {
+              maxId = numericId;
+            }
+          });
+          return maxId + 1;
+        })();
         var newNode = {
         id: newId,
             label: keyword,
           nodeType: "keyword",
+          x: position.x,
+          y: position.y,
         };
         nodes.add(newNode); // ノードを追加
+      if (typeof window.emphasizeNodeTemporarily === "function") {
+        window.emphasizeNodeTemporarily(newNode.id);
+      }
       logHypothesisAction(`キーワード: ノード追加 label="${keyword}"`);
         console.log(`キーワード "${keyword}" をノードとして追加しました。`);
     } else {

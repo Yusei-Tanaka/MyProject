@@ -141,6 +141,45 @@ function applyDefaultNodeStyle(nodeId) {
   });
 }
 
+const NODE_EMPHASIS_DURATION_MS = 1600;
+const nodeEmphasisTimers = new Map();
+
+function emphasizeNodeTemporarily(nodeId) {
+  if (!nodes.get(nodeId)) return;
+
+  const existingTimer = nodeEmphasisTimers.get(nodeId);
+  if (existingTimer) {
+    clearTimeout(existingTimer);
+  }
+
+  nodes.update({
+    id: nodeId,
+    color: {
+      background: "#FFF7E6",
+      border: "#E67E22"
+    },
+    borderWidth: 5,
+    font: {
+      color: "#34495E"
+    }
+  });
+
+  const timer = setTimeout(function () {
+    nodeEmphasisTimers.delete(nodeId);
+    if (!nodes.get(nodeId)) return;
+
+    if (Array.isArray(selectedNodes) && selectedNodes.includes(nodeId)) {
+      highlightNodes(selectedNodes);
+      return;
+    }
+    applyDefaultNodeStyle(nodeId);
+  }, NODE_EMPHASIS_DURATION_MS);
+
+  nodeEmphasisTimers.set(nodeId, timer);
+}
+
+window.emphasizeNodeTemporarily = emphasizeNodeTemporarily;
+
 // ノードをハイライトする関数
 function highlightNodes(nodeIds) {
   // すべてのノードをデフォルトスタイルに戻す
@@ -193,13 +232,12 @@ network.on("doubleClick", function (event) {
 
 // ノード追加ボタン
 document.getElementById("addNodeBtn").addEventListener("click", function () {
-  // ネットワークの中心座標を取得
-  var center = network.getViewPosition();
+  var position = getNonOverlappingNodePosition();
   var newNode = {
     id: getNextNumericNodeId(), // 既存IDと衝突しないIDを採番
     label: "New Node",
-    x: center.x,
-    y: center.y,
+    x: position.x,
+    y: position.y,
     color: {
       background: "#FFFFFF",
       border: "#3498DB"
@@ -210,6 +248,7 @@ document.getElementById("addNodeBtn").addEventListener("click", function () {
     }
   };
   nodes.add(newNode); // 新しいノードを追加
+  emphasizeNodeTemporarily(newNode.id);
   logAction(`キーワードマップ: ノード追加 id=${newNode.id} label="${newNode.label}"`);
 });
 
@@ -233,20 +272,79 @@ document.getElementById("recenterMapBtn").addEventListener("click", function () 
   logAction("キーワードマップ: 中央表示");
 });
 
+function deleteSelectedNodesWithConfirm() {
+  if (selectedNodes.length === 0) {
+    alert("削除するノードを選択してください。");
+    return false;
+  }
+
+  const nodesToDelete = selectedNodes
+    .map((id) => nodes.get(id))
+    .filter((node) => !!node);
+
+  if (nodesToDelete.length === 0) {
+    alert("削除対象ノードを取得できませんでした。");
+    return false;
+  }
+
+  const confirmMessage = [
+    `以下の ${nodesToDelete.length} 件のノードを削除します。`,
+    "",
+    ...nodesToDelete.map((node) => `- [${node.id}] ${node.label || "(ラベルなし)"}`),
+    "",
+    "本当に削除してよいですか？"
+  ].join("\n");
+
+  if (!confirm(confirmMessage)) {
+    return false;
+  }
+
+  const deleteIdSet = new Set(nodesToDelete.map((node) => String(node.id)));
+  const edgesToDelete = edges.get({
+    filter: function (edge) {
+      return deleteIdSet.has(String(edge.from)) || deleteIdSet.has(String(edge.to));
+    }
+  });
+
+  if (edgesToDelete.length > 0) {
+    edges.remove(edgesToDelete.map((edge) => edge.id));
+  }
+  nodes.remove(nodesToDelete.map((node) => node.id));
+
+  selectedNodes = []; // 選択リセット
+  window.selectedNodes = selectedNodes;
+  if (typeof highlightNodes === "function") {
+    highlightNodes(selectedNodes);
+  }
+  updateCopiedContent(selectedNodes);
+
+  logAction(`キーワードマップ: ノード複数削除 count=${nodesToDelete.length} edges=${edgesToDelete.length}`);
+  nodesToDelete.forEach(function (node) {
+    logAction(`キーワードマップ: ノード削除 id=${node.id} label="${node.label || ""}"`);
+  });
+  return true;
+}
+
+function isEditableElement(target) {
+  if (!target) return false;
+  if (target.isContentEditable) return true;
+  const tagName = target.tagName ? target.tagName.toLowerCase() : "";
+  return tagName === "input" || tagName === "textarea" || tagName === "select";
+}
+
 // ノード削除ボタン
 document.getElementById("deleteNodeBtn").addEventListener("click", function () {
-  if (selectedNodes.length === 1) {
-    var nodeId = selectedNodes[0];
-    var nodeData = nodes.get(nodeId);
-    nodes.remove({ id: nodeId }); // 選択されたノードを削除
-    selectedNodes = []; // 選択リセット
-    window.selectedNodes = selectedNodes;
-    if (nodeData) {
-      logAction(`キーワードマップ: ノード削除 id=${nodeId} label="${nodeData.label}"`);
-    }
-  } else {
-    alert("削除するノードを選択してください。");
-  }
+  deleteSelectedNodesWithConfirm();
+});
+
+// Delete / Backspaceキーでも選択ノード削除
+document.addEventListener("keydown", function (event) {
+  const isDeleteKey = event.key === "Delete" || event.key === "Backspace";
+  if (!isDeleteKey) return;
+  if (isEditableElement(event.target)) return;
+
+  event.preventDefault();
+  deleteSelectedNodesWithConfirm();
 });
 
 // エッジ追加ボタン
@@ -388,6 +486,51 @@ function getNextNumericNodeId() {
 
   return maxId + 1;
 }
+
+function getNonOverlappingNodePosition() {
+  const center = network.getViewPosition();
+  const existingIds = nodes.getIds();
+  const existingPositions = network.getPositions(existingIds);
+  const minDistance = 120;
+  const maxAttempts = 180;
+  const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+
+  function isTooClose(x, y) {
+    for (let i = 0; i < existingIds.length; i += 1) {
+      const id = existingIds[i];
+      const pos = existingPositions[id];
+      if (!pos) continue;
+      const dx = x - pos.x;
+      const dy = y - pos.y;
+      if (Math.hypot(dx, dy) < minDistance) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  if (!isTooClose(center.x, center.y)) {
+    return { x: center.x, y: center.y };
+  }
+
+  for (let i = 1; i <= maxAttempts; i += 1) {
+    const radius = minDistance * Math.sqrt(i);
+    const angle = i * goldenAngle;
+    const candidateX = center.x + Math.cos(angle) * radius;
+    const candidateY = center.y + Math.sin(angle) * radius;
+
+    if (!isTooClose(candidateX, candidateY)) {
+      return { x: candidateX, y: candidateY };
+    }
+  }
+
+  return {
+    x: center.x + minDistance,
+    y: center.y + minDistance,
+  };
+}
+
+window.getNonOverlappingNodePosition = getNonOverlappingNodePosition;
 
 function getNextEdgeId() {
   const existingIds = new Set(edges.getIds().map((id) => String(id)));
