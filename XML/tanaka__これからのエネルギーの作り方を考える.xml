@@ -11,7 +11,6 @@
     <Node id="7" label="原子力発電" x="-7" y="132" />
     <Node id="8" label="火力発電" x="-4" y="51" />
     <Node id="9" label="安定性" x="216" y="-98" />
-    <Node id="10" label="安全性" x="0" y="-65" />
     <Node id="11" label="供給安定性" x="211" y="217" />
     <Node id="12" label="コスト" x="216" y="147" />
     <Node id="13" label="制度設計" x="224" y="77" />

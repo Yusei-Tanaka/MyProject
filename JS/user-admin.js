@@ -223,11 +223,9 @@ const updatePassword = async (event) => {
 const unlockAdminPage = async () => {
   if (userAdminAuthPage) {
     userAdminAuthPage.hidden = true;
-    userAdminAuthPage.style.display = "none";
   }
   if (userAdminProtectedPage) {
     userAdminProtectedPage.hidden = false;
-    userAdminProtectedPage.style.display = "flex";
   }
   await fetchUsers();
 };
@@ -267,11 +265,9 @@ const initializeAdmin = async () => {
 
   if (userAdminAuthPage) {
     userAdminAuthPage.hidden = false;
-    userAdminAuthPage.style.display = "flex";
   }
   if (userAdminProtectedPage) {
     userAdminProtectedPage.hidden = true;
-    userAdminProtectedPage.style.display = "none";
   }
 
   if (userAdminLoginForm) {

@@ -33,11 +33,8 @@ function addSystemLog(message) {
 
     // 新しいログエントリを作成
     const logItem = document.createElement("div");
+    logItem.className = "log-item-latest";
     logItem.innerText = logText;
-
-    // 新しいログアイテムを強調するためのスタイル
-    logItem.style.backgroundColor = "#f0f8ff";
-    logItem.style.fontWeight = "bold";
 
     // ログボックスの一番上に新しいログを追加
     logBox.insertBefore(logItem, logBox.firstChild);
@@ -49,8 +46,7 @@ function addSystemLog(message) {
     const logItems = logBox.querySelectorAll("div");
     logItems.forEach((item, index) => {
         if (index !== 0) {
-            item.style.backgroundColor = "";
-            item.style.fontWeight = "";
+            item.classList.remove("log-item-latest");
         }
     });
 }

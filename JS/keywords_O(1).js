@@ -58,28 +58,10 @@ function showKeywordLoading() {
 
     const overlay = document.createElement("div");
     overlay.className = "keyword-loading-overlay";
-    overlay.style.position = "absolute";
-    overlay.style.top = "0";
-    overlay.style.left = "0";
-    overlay.style.right = "0";
-    overlay.style.bottom = "0";
-    overlay.style.background = "rgba(0, 0, 0, 0.25)";
-    overlay.style.zIndex = "20";
-    overlay.style.display = "flex";
-    overlay.style.alignItems = "center";
-    overlay.style.justifyContent = "center";
 
     const message = document.createElement("div");
     message.className = "keyword-loading";
     message.textContent = "思考中...";
-    message.style.background = "#eef6ff";
-    message.style.border = "1px solid #b7d5f2";
-    message.style.padding = "16px 28px";
-    message.style.borderRadius = "12px";
-    message.style.fontSize = "1.4em";
-    message.style.fontWeight = "bold";
-    message.style.color = "#1f4b74";
-    message.style.boxShadow = "0 10px 30px rgba(0,0,0,0.2)";
 
     overlay.appendChild(message);
     container.appendChild(overlay);
@@ -445,8 +427,8 @@ function renderAiKeywords(resultBox, aiResponses) {
                         return;
                     }
                     const listItem = document.createElement("li");
+                    listItem.className = "keyword-result-item";
                     listItem.textContent = relatedWord;
-                    listItem.style.cursor = "pointer";
                     listItem.addEventListener("click", () => {
                         console.log(`生成キーワード "${relatedWord}" がクリックされました`);
                         handleKeywordClick(relatedWord);
@@ -491,8 +473,8 @@ function renderUnifiedKeywords(resultBox, unifiedKeywords) {
     const list = document.createElement("ul");
     unifiedKeywords.forEach(label => {
         const listItem = document.createElement("li");
+        listItem.className = "keyword-result-item";
         listItem.textContent = label;
-        listItem.style.cursor = "pointer";
         listItem.addEventListener("click", () => {
             console.log(`キーワード \"${label}\" がクリックされました`);
             handleKeywordClick(label);
@@ -500,7 +482,7 @@ function renderUnifiedKeywords(resultBox, unifiedKeywords) {
         list.appendChild(listItem);
     });
 
-    list.style.textAlign = "left";
+    list.className = "keyword-result-list";
     resultBox.appendChild(list);
 }
 

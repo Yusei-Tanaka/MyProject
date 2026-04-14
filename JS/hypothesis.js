@@ -25,8 +25,7 @@ function ensureHypothesisContainer() {
 
     // 補助テキスト
     var help = document.createElement("div");
-    help.style.fontSize = "12px";
-    help.style.marginTop = "6px";
+    help.className = "hypothesis-help-text";
     help.innerText = "「仮説立案」ボタンを押すとこの中に新しい仮説が追加されます。";
     container.appendChild(help);
   }
@@ -550,9 +549,7 @@ function addHypothesisEntry(nodeIds) {
   entry.appendChild(hdr);
 
   var sub = document.createElement("div");
-  sub.style.fontSize = "12px";
-  sub.style.color = "#333";
-  sub.style.marginBottom = "6px";
+  sub.className = "hypothesis-meta-text";
   // 各エントリの下にのみ基づくキーワードを表示（先頭の一覧は削除）
   sub.innerText = "基づくキーワード: " + keywordLabels.join("、");
   entry.appendChild(sub);
@@ -571,7 +568,7 @@ function addHypothesisEntry(nodeIds) {
 
   // 操作ボタン（削除）
   var controls = document.createElement("div");
-  controls.style.marginTop = "6px";
+  controls.className = "hypothesis-controls";
   var delBtn = document.createElement("button");
   delBtn.type = "button";
   delBtn.innerText = "削除";
@@ -716,41 +713,26 @@ function addNodeToNetwork(entry, sourceTextarea) {
   }
 
   const overlay = document.createElement("div");
-  overlay.style.position = "fixed";
-  overlay.style.top = 0;
-  overlay.style.left = 0;
-  overlay.style.right = 0;
-  overlay.style.bottom = 0;
-  overlay.style.background = "rgba(0,0,0,0.3)";
-  overlay.style.zIndex = 9998;
+  overlay.className = "mindmap-overlay";
 
   const dialog = document.createElement("div");
-  dialog.style.position = "absolute";
+  dialog.className = "mindmap-dialog";
   dialog.style.top = "50%";
   dialog.style.left = "50%";
   dialog.style.transform = "translate(-50%, -50%)";
-  dialog.style.background = "#fff";
-  dialog.style.border = "2px solid #555";
-  dialog.style.borderRadius = "8px";
-  dialog.style.padding = "20px";
-  dialog.style.width = "360px";
-  dialog.style.boxShadow = "0 8px 24px rgba(0,0,0,0.2)";
-  dialog.style.fontSize = "14px";
 
   const title = document.createElement("h3");
+  title.className = "mindmap-dialog-title";
   title.innerText = "マインドマップにノードを追加";
-  title.style.marginTop = 0;
   dialog.appendChild(title);
 
   const parentLabel = document.createElement("label");
+  parentLabel.className = "mindmap-dialog-label";
   parentLabel.innerText = "親ノードを選択";
-  parentLabel.style.display = "block";
-  parentLabel.style.marginBottom = "4px";
   dialog.appendChild(parentLabel);
 
   const select = document.createElement("select");
-  select.style.width = "100%";
-  select.style.marginBottom = "12px";
+  select.className = "mindmap-dialog-select";
 
   mindmapNodes.forEach((node, index) => {
     const option = document.createElement("option");
@@ -763,28 +745,22 @@ function addNodeToNetwork(entry, sourceTextarea) {
   dialog.appendChild(select);
 
   const textLabel = document.createElement("label");
+  textLabel.className = "mindmap-dialog-label";
   textLabel.innerText = "追加する仮説";
-  textLabel.style.display = "block";
-  textLabel.style.marginBottom = "4px";
   dialog.appendChild(textLabel);
 
   const textArea = document.createElement("textarea");
-  textArea.style.width = "100%";
-  textArea.style.minHeight = "80px";
+  textArea.className = "mindmap-dialog-textarea";
   textArea.readOnly = true;
-  textArea.style.background = "#f7f7f7";
-  textArea.style.cursor = "not-allowed";
   textArea.value = candidateText;
   dialog.appendChild(textArea);
 
   const buttonRow = document.createElement("div");
-  buttonRow.style.display = "flex";
-  buttonRow.style.justifyContent = "flex-end";
-  buttonRow.style.gap = "8px";
-  buttonRow.style.marginTop = "16px";
+  buttonRow.className = "mindmap-dialog-buttons";
 
   const cancelBtn = document.createElement("button");
   cancelBtn.type = "button";
+  cancelBtn.className = "mindmap-dialog-cancel";
   cancelBtn.innerText = "キャンセル";
   cancelBtn.addEventListener("click", () => {
     document.body.removeChild(overlay);
@@ -792,12 +768,8 @@ function addNodeToNetwork(entry, sourceTextarea) {
 
   const addBtn = document.createElement("button");
   addBtn.type = "button";
+  addBtn.className = "mindmap-dialog-confirm";
   addBtn.innerText = "追加";
-  addBtn.style.background = "#4caf50";
-  addBtn.style.color = "#fff";
-  addBtn.style.border = "none";
-  addBtn.style.padding = "6px 16px";
-  addBtn.style.borderRadius = "4px";
   addBtn.addEventListener("click", () => {
     const trimmed = textArea.value.trim();
     if (!trimmed) {
@@ -834,10 +806,6 @@ function attachHypothesisActions(targetTextarea, entry, parentContainer = null, 
 
   const actionBar = document.createElement("div");
   actionBar.className = "hypothesis-action-bar";
-  actionBar.style.display = "flex";
-  actionBar.style.justifyContent = "flex-end";
-  actionBar.style.gap = "6px";
-  actionBar.style.marginBottom = "4px";
 
   const addNodeBtn = document.createElement("button");
   addNodeBtn.type = "button";
@@ -924,14 +892,15 @@ function applyScamperToEntry(entry, option, parentContainer = null) {
   if (!tagWrap) {
     tagWrap = document.createElement("div");
     tagWrap.className = "scamper-tags";
-    tagWrap.style.marginTop = "6px";
     entry.insertBefore(tagWrap, entry.querySelector(".hypothesis-box-body").nextSibling);
   }
 
   // タグとテキストボックスをコンテナに追加
   var tagContainer = document.createElement("div");
   tagContainer.className = "scamper-tag-container";
-  tagContainer.style.marginLeft = parentContainer ? "20px" : "0px"; // インデントを追加
+  if (parentContainer) {
+    tagContainer.classList.add("is-nested");
+  }
 
   var tagLabel = document.createElement("span");
   tagLabel.className = "scamper-tag";
@@ -976,7 +945,6 @@ function createScamperMenu(x, y, entry, targetBox, parentContainer = null, ancho
   var left = window.scrollX + rect.left + 6;
   var top = window.scrollY + rect.bottom + 6;
 
-  menu.style.position = "absolute";
   menu.style.left = left + "px";
   menu.style.top = top + "px";
 
@@ -1168,28 +1136,10 @@ function showScamperLoading() {
 
   const overlay = document.createElement("div");
   overlay.className = "scamper-loading-overlay";
-  overlay.style.position = "fixed";
-  overlay.style.top = "0";
-  overlay.style.left = "0";
-  overlay.style.right = "0";
-  overlay.style.bottom = "0";
-  overlay.style.background = "rgba(0, 0, 0, 0.35)";
-  overlay.style.zIndex = "10000";
-  overlay.style.display = "flex";
-  overlay.style.alignItems = "center";
-  overlay.style.justifyContent = "center";
 
   const message = document.createElement("div");
   message.className = "scamper-loading";
   message.textContent = "思考中...";
-  message.style.background = "#eef6ff";
-  message.style.border = "1px solid #b7d5f2";
-  message.style.padding = "16px 28px";
-  message.style.borderRadius = "12px";
-  message.style.fontSize = "1.4em";
-  message.style.fontWeight = "bold";
-  message.style.color = "#1f4b74";
-  message.style.boxShadow = "0 10px 30px rgba(0,0,0,0.2)";
 
   overlay.appendChild(message);
   document.body.appendChild(overlay);
@@ -1263,7 +1213,6 @@ function triggerScamperQuestion(targetTag, scamperLabel) {
 
       const dialog = document.createElement("div");
       dialog.className = "question-dialog";
-      dialog.style.position = "fixed";
       const minWidth = 320;
       let left = Math.floor(window.innerWidth * 0.2);
       let top = Math.floor(window.innerHeight * 0.5);
@@ -1272,7 +1221,6 @@ function triggerScamperQuestion(targetTag, scamperLabel) {
       if (top > window.innerHeight - 200) top = window.innerHeight - 200;
       dialog.style.left = left + "px";
       dialog.style.top = top + "px";
-      dialog.style.minWidth = minWidth + "px";
 
       const dragBar = document.createElement("div");
       dragBar.className = "question-dialog__header";
@@ -1320,12 +1268,6 @@ function triggerScamperQuestion(targetTag, scamperLabel) {
           const span = document.createElement("span");
           span.className = "scamper-question-view";
           span.textContent = li.textContent;
-          span.style.marginLeft = "12px";
-          span.style.background = "#ffffe0";
-          span.style.border = "1px solid #ccc";
-          span.style.padding = "2px 8px";
-          span.style.borderRadius = "6px";
-          span.style.fontSize = "0.95em";
           targetTag.insertAdjacentElement("afterend", span);
           logHypothesisAction(`仮説: 生成質問を選択 "${li.textContent}"`);
           document.body.removeChild(dialog);

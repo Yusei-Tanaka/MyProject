@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wikidata Entity Search</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="wikidata-page">
+    <div class="wikidata-card">
     <h1>Wikidata Entity Search</h1>
 
     <form method="POST">
@@ -17,6 +19,7 @@
     {% if entity_id %}
         <h2>Entity ID: {{ entity_id }}</h2>
     {% endif %}
+    </div>
 
 </body>
 </html>

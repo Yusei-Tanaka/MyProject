@@ -426,7 +426,7 @@ function updateCopiedContent(_nodeIds) {
   var copiedContentElement = document.getElementById("copiedContent");
   if (!copiedContentElement) return;
   copiedContentElement.innerText = "";
-  copiedContentElement.style.display = "none";
+  copiedContentElement.classList.add("is-hidden");
 }
 
 function getCurrentTitleText() {
