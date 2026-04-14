@@ -82,17 +82,6 @@ async function requestKeywordsFromOutput(keywords) {
         return;
     }
 
-    const { validKeywords, missingKeywords } = await filterKeywordsByWikidata(uniqueKeywords);
-
-    if (missingKeywords.length > 0) {
-        console.warn("Wikidataに存在しないキーワード:", missingKeywords);
-    }
-
-    if (validKeywords.length === 0) {
-        alert("Wikidataに存在するキーワードがありません。");
-        return;
-    }
-
     const themeValue = (window.theme || document.querySelector("#myTitle")?.value || "未設定のテーマ").trim();
     const relationPerspectives = [
         { id: "P01", label: "背景" },
@@ -116,8 +105,8 @@ async function requestKeywordsFromOutput(keywords) {
     const failedChunks = [];
 
     const keywordChunks = [];
-    for (let i = 0; i < validKeywords.length; i += KEYWORDS_PER_REQUEST) {
-        keywordChunks.push(validKeywords.slice(i, i + KEYWORDS_PER_REQUEST));
+    for (let i = 0; i < uniqueKeywords.length; i += KEYWORDS_PER_REQUEST) {
+        keywordChunks.push(uniqueKeywords.slice(i, i + KEYWORDS_PER_REQUEST));
     }
 
     const perspectiveLegend = relationPerspectives.map(p => `${p.id}:${p.label}`).join(" / ");
@@ -541,7 +530,12 @@ document.addEventListener("DOMContentLoaded", function () {
             ...collectAiKeywords(aiResponses),
             ...(commonKeywords || [])
         ]));
-        const shuffled = shuffleArray(unified);
+        const { validKeywords: displayKeywords, missingKeywords } = await filterKeywordsByWikidata(unified);
+        if (missingKeywords.length > 0) {
+            console.warn("表示対象から除外したWikidata未登録語:", missingKeywords);
+        }
+
+        const shuffled = shuffleArray(displayKeywords);
         renderUnifiedKeywords(resultBox, shuffled);
     });
 });

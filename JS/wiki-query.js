@@ -9,7 +9,6 @@ async function getWikidataEntityId(searchTerm) {
         if (data.search && data.search.length > 0) {
             return data.search[0].id; // 最初のエンティティのIDを返す
         } else {
-            console.warn("Wikidata にエンティティが見つかりませんでした:", searchTerm);
             return null;
         }
     } catch (error) {
