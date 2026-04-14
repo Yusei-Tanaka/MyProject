@@ -1,7 +1,7 @@
 (() => {
   const rawConfig = {
   "protocol": "http",
-  "host": "auto",
+  "host": "10.158.102.203",
   "apiPort": 3000,
   "saveXmlPort": 3005,
   "flaskApiPort": 8000,
