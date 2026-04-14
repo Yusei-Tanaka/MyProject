@@ -2,10 +2,10 @@ const startSearchBtn = document.getElementById("startSearchBtn");
 const usernameInput = document.getElementById("username");
 const userPasswordInput = document.getElementById("userPassword");
 
-const saveXmlHost = window.location.hostname || "10.158.102.203";
-const authApiPort = 3000;
+const appConfig = window.APP_CONFIG || {};
+const authApiBase = appConfig.apiBaseUrl || `http://${window.location.hostname || "127.0.0.1"}:${Number(appConfig.apiPort || 3000)}`;
 const authenticateUser = async (id, password) => {
-  const res = await fetch(`http://${saveXmlHost}:${authApiPort}/auth/login`, {
+  const res = await fetch(`${authApiBase}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id, password }),

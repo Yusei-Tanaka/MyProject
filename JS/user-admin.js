@@ -1,6 +1,9 @@
-const userAdminHost = window.location.hostname || "10.158.102.203";
-const userAdminApiPort = 3000;
-const userAdminBaseUrl = `http://${userAdminHost}:${userAdminApiPort}`;
+const appConfig = window.APP_CONFIG || {};
+const userAdminHost = appConfig.host || window.location.hostname || "127.0.0.1";
+const userAdminApiPort = Number(appConfig.apiPort || 3000);
+const userAdminBaseUrl =
+  appConfig.apiBaseUrl ||
+  `http://${userAdminHost}:${userAdminApiPort}`;
 const USER_ADMIN_ACCESS_PASSWORD = "kslabkslab";
 const normalizeAdminPasswordInput = (value) =>
   String(value || "")
@@ -260,7 +263,7 @@ const loginForAdminPage = async (event) => {
 
 const initializeAdmin = async () => {
   if (openPhpMyAdminBtn) {
-    openPhpMyAdminBtn.href = `http://${userAdminHost}/phpmyadmin/`;
+    openPhpMyAdminBtn.href = appConfig.phpMyAdminUrl || `http://${userAdminHost}/phpmyadmin`;
   }
 
   if (userAdminAuthPage) {

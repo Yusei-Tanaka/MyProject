@@ -70,6 +70,7 @@
     "vary": "^1.1.2"
   },
   "scripts": {
+    "config:client": "node scripts/generate-client-config.js",
     "start": "node JS/server.js",
     "migrate:xml": "node scripts/migrate-xml-to-db.js",
     "backfill:hypothesis": "node scripts/backfill-user-themes-to-hypotheses.js",

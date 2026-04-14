@@ -39,9 +39,14 @@ function logHypothesisAction(message) {
   }
 }
 
-const hypothesisHost = window.location.hostname || "10.158.102.203";
-const hypothesisSaveBaseUrl = `http://${hypothesisHost}:3005`;
-const hypothesisDbApiBaseUrl = `http://${hypothesisHost}:3000`;
+const hypothesisConfig = window.APP_CONFIG || {};
+const hypothesisHost = hypothesisConfig.host || window.location.hostname || "127.0.0.1";
+const hypothesisSaveBaseUrl =
+  hypothesisConfig.saveXmlBaseUrl ||
+  `http://${hypothesisHost}:${Number(hypothesisConfig.saveXmlPort || 3005)}`;
+const hypothesisDbApiBaseUrl =
+  hypothesisConfig.apiBaseUrl ||
+  `http://${hypothesisHost}:${Number(hypothesisConfig.apiPort || 3000)}`;
 const HYPOTHESIS_SNAPSHOT_DIR = "XML";
 const HYPOTHESIS_LEGACY_SNAPSHOT_DIR = "JS/XML";
 let hypothesisSaveTimer = null;
@@ -1347,5 +1352,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
-const hypothesisApiHost = window.location.hostname;
-const hypothesisApiBaseUrl = `http://${hypothesisApiHost}:8000`;
+const hypothesisApiHost = hypothesisHost;
+const hypothesisApiBaseUrl =
+  hypothesisConfig.flaskApiBaseUrl ||
+  `http://${hypothesisApiHost}:${Number(hypothesisConfig.flaskApiPort || 8000)}`;

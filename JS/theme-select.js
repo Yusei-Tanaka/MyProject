@@ -5,9 +5,10 @@ const themeHistoryList = document.getElementById("themeHistoryList");
 const deleteSelectedThemeBtn = document.getElementById("deleteSelectedThemeBtn");
 const clearThemeHistoryBtn = document.getElementById("clearThemeHistoryBtn");
 
-const apiHost = window.location.hostname || "10.158.102.203";
-const authApiPort = 3000;
-const saveXmlPort = 3005;
+const appConfig = window.APP_CONFIG || {};
+const fallbackHost = window.location.hostname || "127.0.0.1";
+const authApiPort = Number(appConfig.apiPort || 3000);
+const saveXmlPort = Number(appConfig.saveXmlPort || 3005);
 
 const currentUser = (localStorage.getItem("userName") || "").trim();
 if (!currentUser) {
@@ -16,8 +17,8 @@ if (!currentUser) {
 
 const normalizeThemeName = (value) => String(value || "").trim();
 
-const themeApiBase = `http://${apiHost}:${authApiPort}`;
-const saveXmlBase = `http://${apiHost}:${saveXmlPort}`;
+const themeApiBase = appConfig.apiBaseUrl || `http://${fallbackHost}:${authApiPort}`;
+const saveXmlBase = appConfig.saveXmlBaseUrl || `http://${fallbackHost}:${saveXmlPort}`;
 let cachedThemes = [];
 let selectedThemeName = "";
 const MAX_FILE_PART_LENGTH = 24;

@@ -11,6 +11,8 @@ if (Test-Path $xamppApacheStart) {
 	Start-Process -FilePath $xamppApacheStart -WindowStyle Minimized
 }
 
+& $node ".\scripts\generate-client-config.js"
+
 # HTTP server (serves from repo root)
 Start-Process -FilePath $python -ArgumentList "-m","http.server","8008","--bind","0.0.0.0" -WorkingDirectory $root -WindowStyle Minimized
 

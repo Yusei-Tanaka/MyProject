@@ -1,8 +1,13 @@
 window.addEventListener('DOMContentLoaded', function() {
   const $ = go.GraphObject.make;
-  const host = window.location.hostname || "10.158.102.203";
-  const saveApiBaseUrl = `http://${host}:3005`;
-  const themeApiBaseUrl = `http://${host}:3000`;
+  const appConfig = window.APP_CONFIG || {};
+  const host = appConfig.host || window.location.hostname || "127.0.0.1";
+  const saveApiBaseUrl =
+    appConfig.saveXmlBaseUrl ||
+    `http://${host}:${Number(appConfig.saveXmlPort || 3005)}`;
+  const themeApiBaseUrl =
+    appConfig.apiBaseUrl ||
+    `http://${host}:${Number(appConfig.apiPort || 3000)}`;
   const MINDMAP_SNAPSHOT_DIR = "XML";
   const MINDMAP_LEGACY_SNAPSHOT_DIR = "JS/XML";
   let isRestoringMindmap = false;

@@ -20,7 +20,15 @@ DB_NAME=myapp
 PORT=3000
 DB_CONN_LIMIT=10
 SAVE_XML_PORT=3005
+FLASK_API_PORT=8000
+APP_PROTOCOL=http
+APP_HOST=auto
+PHPMYADMIN_PATH=/phpmyadmin
 ```
+
+IPアドレスを固定で使いたい場合は `APP_HOST` に設定してください（例: `APP_HOST=10.158.102.203`）。
+PC変更などでIPが変わる場合は `.env` の `APP_HOST` だけを変更すれば、ログイン画面/管理画面/各API呼び出し先へ一括反映されます。
+`APP_HOST=auto` の場合はブラウザのアクセス先ホスト名を自動利用します。
 
 ## 3. MariaDB 初期準備
 MariaDB にログイン:
@@ -103,7 +111,7 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:3000/auth/login" -ContentT
 
 ## 7. DB管理画面
 ブラウザで以下を開く:
-- `http://10.158.102.203/phpmyadmin/`
+- `${APP_PROTOCOL}://${APP_HOST}/phpmyadmin/`（`.env` の設定値に従う）
 
 `index.html` / `main.html` のボタンからも同URLを開けます。
 

@@ -12,6 +12,8 @@ if (Test-Path $xamppApacheStart) {
     Start-Process -FilePath $xamppApacheStart -WindowStyle Minimized
 }
 
+& $node ".\scripts\generate-client-config.js"
+
 $http = Start-Process -FilePath $python -ArgumentList "-m","http.server","8008","--bind","0.0.0.0" -WorkingDirectory $root -PassThru -WindowStyle Minimized
 $api  = Start-Process -FilePath $python -ArgumentList "api.py" -WorkingDirectory $root -PassThru -WindowStyle Minimized
 $nodeProc = Start-Process -FilePath $node -ArgumentList ".\saveXML.js" -WorkingDirectory $jsDir -PassThru -WindowStyle Minimized

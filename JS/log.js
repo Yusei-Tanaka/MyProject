@@ -1,5 +1,7 @@
-const saveLogHost = window.location.hostname || "10.158.102.203";
-const saveLogPort = 3005;
+const appConfig = window.APP_CONFIG || {};
+const saveLogBaseUrl =
+    appConfig.saveXmlBaseUrl ||
+    `http://${window.location.hostname || "127.0.0.1"}:${Number(appConfig.saveXmlPort || 3005)}`;
 
 const saveUserLog = async (logText) => {
     const userName = localStorage.getItem("userName");
@@ -7,7 +9,7 @@ const saveUserLog = async (logText) => {
     if (!userName) return;
 
     try {
-        const fileRes = await fetch(`http://${saveLogHost}:${saveLogPort}/save-log`, {
+        const fileRes = await fetch(`${saveLogBaseUrl}/save-log`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ userName, themeName, logText }),

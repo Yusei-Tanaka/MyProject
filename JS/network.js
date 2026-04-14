@@ -66,10 +66,17 @@ window.addEventListener("app-layout-resized", () => {
   setTimeout(handleNetworkResize, 0);
 });
 
-const host = window.location.hostname;
-const apiBaseUrl = `http://${host}:8000`;
-const themeApiBaseUrl = `http://${host}:3000`;
-const saveXmlBaseUrl = `http://${host}:3005`;
+const appConfig = window.APP_CONFIG || {};
+const host = appConfig.host || window.location.hostname || "127.0.0.1";
+const apiBaseUrl =
+  appConfig.flaskApiBaseUrl ||
+  `http://${host}:${Number(appConfig.flaskApiPort || 8000)}`;
+const themeApiBaseUrl =
+  appConfig.apiBaseUrl ||
+  `http://${host}:${Number(appConfig.apiPort || 3000)}`;
+const saveXmlBaseUrl =
+  appConfig.saveXmlBaseUrl ||
+  `http://${host}:${Number(appConfig.saveXmlPort || 3005)}`;
 
 let isRestoringConceptMap = false;
 let conceptMapSaveTimer = null;
