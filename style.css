@@ -557,6 +557,11 @@ body {
     border-color: var(--color-button-primary);
     color: var(--color-heading-text);
 }
+#recenterMapBtn.is-active {
+    background: var(--color-button-primary);
+    border-color: var(--color-button-primary);
+    color: #fff;
+}
 button#keywordCreationBtn,
 #createHypothesisBtn {
     padding: 8px 16px;

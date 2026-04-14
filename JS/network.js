@@ -253,7 +253,15 @@ document.getElementById("addNodeBtn").addEventListener("click", function () {
 });
 
 // マップを中央表示するボタン
-document.getElementById("recenterMapBtn").addEventListener("click", function () {
+const recenterMapBtn = document.getElementById("recenterMapBtn");
+
+function setRecenterMapButtonPressed(isPressed) {
+  if (!recenterMapBtn) return;
+  recenterMapBtn.classList.toggle("is-active", !!isPressed);
+  recenterMapBtn.setAttribute("aria-pressed", isPressed ? "true" : "false");
+}
+
+function recenterMap() {
   const allNodes = nodes.get();
   if (!allNodes || allNodes.length === 0) {
     network.moveTo({
@@ -270,7 +278,19 @@ document.getElementById("recenterMapBtn").addEventListener("click", function () 
     animation: { duration: 400, easingFunction: "easeInOutQuad" }
   });
   logAction("キーワードマップ: 中央表示");
-});
+}
+
+if (recenterMapBtn) {
+  recenterMapBtn.addEventListener("click", function () {
+    setRecenterMapButtonPressed(true);
+    recenterMap();
+  });
+
+  // main.html を開いた直後に中央表示を実行し、ボタンを押下状態にする
+  window.addEventListener("load", function () {
+    recenterMapBtn.click();
+  });
+}
 
 function deleteSelectedNodesWithConfirm() {
   if (selectedNodes.length === 0) {
