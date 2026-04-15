@@ -4,16 +4,11 @@ const userAdminApiPort = Number(appConfig.apiPort || 3000);
 const userAdminBaseUrl =
   appConfig.apiBaseUrl ||
   `http://${userAdminHost}:${userAdminApiPort}`;
-const USER_ADMIN_ACCESS_PASSWORD = "kslabkslab";
-const normalizeAdminPasswordInput = (value) =>
-  String(value || "")
-    .normalize("NFKC")
-    .replace(/\s+/g, "")
-    .toLowerCase();
 
 const userAdminAuthPage = document.getElementById("userAdminAuthPage");
 const userAdminProtectedPage = document.getElementById("userAdminProtectedPage");
 const userAdminLoginForm = document.getElementById("userAdminLoginForm");
+const openUserAdminBtn = document.getElementById("openUserAdminBtn");
 const adminPasswordInput = document.getElementById("adminPassword");
 const userAdminAuthMessage = document.getElementById("userAdminAuthMessage");
 
@@ -28,6 +23,8 @@ const refreshUsersBtn = document.getElementById("refreshUsersBtn");
 const openPhpMyAdminBtn = document.getElementById("openPhpMyAdminBtn");
 const userList = document.getElementById("userList");
 const userAdminMessage = document.getElementById("userAdminMessage");
+
+let isAdminLoginInProgress = false;
 
 const setAuthMessage = (message, isError = false) => {
   if (!userAdminAuthMessage) return;
@@ -233,8 +230,54 @@ const unlockAdminPage = async () => {
   await fetchUsers();
 };
 
+const fetchWithTimeout = async (url, options = {}, timeoutMs = 8000) => {
+  const controller = new AbortController();
+  const timerId = window.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+  } finally {
+    window.clearTimeout(timerId);
+  }
+};
+
+const authenticateAdminAccess = async (password) => {
+  let response;
+  try {
+    response = await fetchWithTimeout(
+      `${userAdminBaseUrl}/admin/auth`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      },
+      8000
+    );
+  } catch (error) {
+    if (error && error.name === "AbortError") {
+      throw new Error("認証サーバへの接続がタイムアウトしました。もう一度お試しください。");
+    }
+    throw new Error("認証サーバへ接続できません。サーバ起動状態を確認してください。");
+  }
+
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(body.error || "認証に失敗しました。API接続を確認してください。");
+  }
+
+  return true;
+};
+
 const loginForAdminPage = async (event) => {
-  event.preventDefault();
+  if (event) {
+    event.preventDefault();
+  }
+
+  if (isAdminLoginInProgress) {
+    return;
+  }
 
   if (!adminPasswordInput) return;
 
@@ -245,19 +288,30 @@ const loginForAdminPage = async (event) => {
   }
 
   setAuthMessage("認証中...");
+  isAdminLoginInProgress = true;
+  if (openUserAdminBtn) {
+    openUserAdminBtn.disabled = true;
+  }
 
-  const normalizedInput = normalizeAdminPasswordInput(password);
-  const normalizedExpected = normalizeAdminPasswordInput(USER_ADMIN_ACCESS_PASSWORD);
-
-  if (normalizedInput !== normalizedExpected) {
+  try {
+    await authenticateAdminAccess(password);
+  } catch (error) {
     adminPasswordInput.value = "";
     adminPasswordInput.focus();
-    setAuthMessage("パスワードが正しくありません。", true);
+    setAuthMessage(error.message || "パスワードが正しくありません。", true);
+    isAdminLoginInProgress = false;
+    if (openUserAdminBtn) {
+      openUserAdminBtn.disabled = false;
+    }
     return;
   }
 
   setAuthMessage("");
   adminPasswordInput.value = "";
+  isAdminLoginInProgress = false;
+  if (openUserAdminBtn) {
+    openUserAdminBtn.disabled = false;
+  }
   await unlockAdminPage();
 };
 
@@ -275,6 +329,9 @@ const initializeAdmin = async () => {
 
   if (userAdminLoginForm) {
     userAdminLoginForm.addEventListener("submit", loginForAdminPage);
+  }
+  if (openUserAdminBtn) {
+    openUserAdminBtn.addEventListener("click", loginForAdminPage);
   }
   if (adminPasswordInput) {
     adminPasswordInput.focus();

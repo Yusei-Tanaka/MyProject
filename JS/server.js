@@ -37,6 +37,11 @@ const USER_ID_PATTERN = /^[a-zA-Z0-9_-]{3,32}$/;
 const normalizeUserId = (value) => String(value || "").trim();
 const normalizePassword = (value) => String(value || "").trim();
 const normalizeThemeName = (value) => String(value || "").trim();
+const normalizeAdminPanelPassword = (value) =>
+  String(value || "")
+    .normalize("NFKC")
+    .replace(/\s+/g, "")
+    .toLowerCase();
 
 const isValidUserId = (id) => USER_ID_PATTERN.test(id);
 const isValidPassword = (password) => password.length >= 1;
@@ -1100,6 +1105,21 @@ app.post("/auth/login", async (req, res) => {
     console.error("login failed", err);
     res.status(500).json({ error: "db error" });
   }
+});
+
+app.post("/admin/auth", async (req, res) => {
+  const inputPassword = normalizeAdminPanelPassword(req.body.password);
+  const expectedPassword = normalizeAdminPanelPassword(process.env.ADMIN_PANEL_PASSWORD || "kslabkslab");
+
+  if (!inputPassword) {
+    return res.status(400).json({ error: "missing password" });
+  }
+
+  if (inputPassword !== expectedPassword) {
+    return res.status(401).json({ error: "invalid admin password" });
+  }
+
+  return res.json({ authenticated: true });
 });
 
 app.get("/health", async (_req, res) => {

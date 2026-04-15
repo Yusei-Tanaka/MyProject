@@ -350,6 +350,9 @@ body {
     box-sizing: border-box;
     overflow-y: auto;
 }
+.user-admin-page[hidden] {
+    display: none !important;
+}
 .user-admin-card {
     position: relative;
     width: 100%;
