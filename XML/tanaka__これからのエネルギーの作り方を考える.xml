@@ -3,7 +3,7 @@
 <ConceptMap>
   <Nodes>
     <Node id="1" label="枯渇性エネルギー" x="-215" y="16" />
-    <Node id="2" label="再生可能エネルギー" x="-432" y="-55" />
+    <Node id="2" label="再生可能エネルギー" x="-358" y="-98" />
     <Node id="3" label="エネルギー" x="-2" y="-23" />
     <Node id="4" label="太陽光発電" x="-1" y="-178" />
     <Node id="5" label="水力発電" x="-2" y="-100" />
@@ -17,6 +17,7 @@
     <Node id="14" label="地域合意" x="213" y="0" />
     <Node id="15" label="エネルギー論" x="-437" y="54" />
     <Node id="16" label="エネルギー危機" x="-574" y="-96" />
+    <Node id="18" label="iii" x="-859" y="-54" />
   </Nodes>
   <Edges>
     <Edge id="71b62adc-695d-4d40-a10a-6a721200e01e" from="6" to="2" label="要素" arrows="" />

@@ -501,7 +501,9 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log("処理後のキーワード:", keywords);
 
         //【追加】ログエリアにキーワードを表示
-        displayKeywordsLog(keywords);
+        if (typeof window.displayKeywordsLog === "function") {
+            window.displayKeywordsLog(keywords);
+        }
 
         let resultBox = document.getElementById("resultBox");
         resultBox.innerHTML = ""; // 初期化

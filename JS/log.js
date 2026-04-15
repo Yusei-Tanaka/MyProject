@@ -58,3 +58,4 @@ function displayKeywordsLog(keywords) {
 }
 
 window.addSystemLog = addSystemLog;
+window.displayKeywordsLog = displayKeywordsLog;
