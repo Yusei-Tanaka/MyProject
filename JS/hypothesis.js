@@ -1092,29 +1092,7 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("タイトル入力フィールドが見つかりませんでした。");
   }
 
-  // XMLファイルを定期的に取得してコンソールに表示
-  const fetchXML = () => {
-    const xmlFilePath = getUserXmlRelativePath(); // XMLファイルのパスを指定
-    fetch(xmlFilePath)
-      .then(response => {
-        if (response.status === 404) {
-          return "";
-        }
-        if (!response.ok) {
-          throw new Error(`HTTPエラー: ${response.status}`);
-        }
-        return response.text();
-      })
-      .then(xmlText => {
-        //console.log("取得したXMLデータ:", xmlText); // XMLデータをコンソールに出力
-      })
-      .catch(error => {
-        console.error("XMLファイルの取得中にエラーが発生しました:", error);
-      });
-  };
-
-  // 10秒ごとにXMLファイルを取得
-  setInterval(fetchXML, 10000);
+  // XML監視は下側の集約ロジックで実施する（重複ポーリング防止）
 });
 
 // 仮説のテキストボックスが右クリックされたときに基づいているキーワードと内容を取得してコンソールに表示
@@ -1315,7 +1293,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // XMLデータの取得
+  let xmlFetchInFlight = false;
   const fetchXML = () => {
+    if (xmlFetchInFlight) return;
+    const { userId, themeName } = getCurrentUserThemeRaw();
+    if (!userId || !themeName) return;
+
+    xmlFetchInFlight = true;
     const xmlFilePath = getUserXmlRelativePath();
     fetch(xmlFilePath)
       .then(response => {
@@ -1335,9 +1319,12 @@ document.addEventListener("DOMContentLoaded", () => {
           hasShownXmlFetchWarning = true;
           console.warn("XMLファイルの取得中にエラーが発生しました:", error.message);
         }
+      })
+      .finally(() => {
+        xmlFetchInFlight = false;
       });
   };
-  setInterval(fetchXML, 1000); // 1秒ごとに更新
+  setInterval(fetchXML, 5000); // 5秒ごとに更新
 
   // 仮説の情報を取得
   document.body.addEventListener("contextmenu", (event) => {

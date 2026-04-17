@@ -7,17 +7,21 @@
     <Node id="3" label="風力発電" x="336" y="-98" />
     <Node id="4" label="原子力発電" x="261" y="58" />
     <Node id="5" label="太陽光発電" x="362" y="-202" />
-    <Node id="6" label="安全性の確保" x="435" y="179" />
+    <Node id="6" label="安全性の確保" x="333" y="177" />
     <Node id="8" label="環境に左右" x="571" y="-133" />
     <Node id="9" label="火力発電" x="-419" y="-85" />
     <Node id="10" label="現在の主力な発電" x="-674" y="-84" />
-    <Node id="11" label="安定供給" x="-206" y="-166" />
-    <Node id="12" label="環境負荷" x="-358" y="11" />
-    <Node id="13" label="二酸化炭素排出による地球温暖化" x="-155" y="50" />
+    <Node id="11" label="安定供給" x="-187" y="-166" />
+    <Node id="12" label="環境負荷" x="-422" y="39" />
+    <Node id="13" label="二酸化炭素排出による地球温暖化" x="-279" y="120" />
     <Node id="14" label="資源枯渇" x="-217" y="-84" />
-    <Node id="15" label="化石燃料" x="-107" y="-40" />
-    <Node id="16" label="核融合炉" x="530" y="58" />
-    <Node id="17" label="新基準の法整備" x="105" y="172" />
+    <Node id="15" label="化石燃料" x="-126" y="15" />
+    <Node id="16" label="核融合炉" x="545" y="22" />
+    <Node id="17" label="新基準の法整備" x="69" y="172" />
+    <Node id="18" label="コストが安い" x="-298" y="-197" />
+    <Node id="20" label="バイオ燃料" x="65" y="45" />
+    <Node id="22" label="核分裂" x="547" y="108" />
+    <Node id="23" label="経済成長" x="-237" y="47" />
   </Nodes>
   <Edges>
     <Edge id="e1" from="2" to="5" label="要素" arrows="" />
@@ -36,5 +40,10 @@
     <Edge id="e14" from="11" to="4" label="メリット" arrows="" />
     <Edge id="e15" from="4" to="16" label="新技術" arrows="" />
     <Edge id="e16" from="17" to="6" label="方法" arrows="" />
+    <Edge id="e17" from="9" to="18" label="メリット" arrows="" />
+    <Edge id="e18" from="15" to="20" label="代替" arrows="" />
+    <Edge id="e19" from="20" to="2" label="要素" arrows="" />
+    <Edge id="e20" from="22" to="4" label="既存技術" arrows="" />
+    <Edge id="e21" from="9" to="23" label="支える" arrows="" />
   </Edges>
 </ConceptMap>

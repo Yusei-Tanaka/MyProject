@@ -1,26 +1,64 @@
-const appConfig = window.APP_CONFIG || {};
-const saveLogBaseUrl =
-    appConfig.saveXmlBaseUrl ||
-    `http://${window.location.hostname || "127.0.0.1"}:${Number(appConfig.saveXmlPort || 3005)}`;
+const logAppConfig = window.APP_CONFIG || {};
+const saveXmlPort = Number(logAppConfig.saveXmlPort || 3005);
+const saveLogProtocol = logAppConfig.protocol || window.location.protocol.replace(":", "") || "http";
+
+const buildSaveLogBaseUrls = () => {
+    const candidates = [
+        logAppConfig.saveXmlBaseUrl,
+        `${saveLogProtocol}://${window.location.hostname || "127.0.0.1"}:${saveXmlPort}`,
+        `http://127.0.0.1:${saveXmlPort}`,
+        `http://localhost:${saveXmlPort}`,
+    ].filter(Boolean);
+
+    return [...new Set(candidates)];
+};
+
+const fetchWithTimeout = async (url, options, timeoutMs = 2000) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        return await fetch(url, {
+            ...options,
+            signal: controller.signal,
+        });
+    } finally {
+        clearTimeout(timer);
+    }
+};
 
 const saveUserLog = async (logText) => {
-    const userName = localStorage.getItem("userName");
-    const themeName = localStorage.getItem("searchTitle");
-    if (!userName) return;
-
-    try {
-        const fileRes = await fetch(`${saveLogBaseUrl}/save-log`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userName, themeName, logText }),
-        });
-
-        if (!fileRes.ok) {
-            console.error("ログの保存に失敗しました");
-        }
-    } catch (error) {
-        console.error("ログ送信中にエラーが発生しました:", error);
+    const userName = String(localStorage.getItem("userName") || "").trim();
+    const themeName = String(localStorage.getItem("searchTitle") || "").trim();
+    if (!userName) {
+        console.warn("ログ保存をスキップしました: localStorage.userName が未設定です");
+        return;
     }
+
+    const baseUrls = buildSaveLogBaseUrls();
+    let lastError = null;
+
+    for (const baseUrl of baseUrls) {
+        try {
+            const fileRes = await fetchWithTimeout(`${baseUrl}/save-log`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userName, themeName, logText }),
+            });
+
+            if (fileRes.ok) {
+                return;
+            }
+
+            const errorText = await fileRes.text().catch(() => "");
+            lastError = new Error(`HTTP ${fileRes.status} ${errorText}`);
+            console.warn(`ログ保存失敗: ${baseUrl}/save-log`);
+        } catch (error) {
+            lastError = error;
+            console.warn(`ログ送信失敗: ${baseUrl}/save-log`, error);
+        }
+    }
+
+    console.error("ログ送信中にエラーが発生しました:", lastError);
 };
 
 function addSystemLog(message) {
