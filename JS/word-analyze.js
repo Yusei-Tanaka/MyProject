@@ -5,9 +5,71 @@ const WORD_WIKIDATA_RETRY_COUNT = 1;
 const WORD_WIKIDATA_BASE_DELAY_MS = 700;
 const WORD_WIKIDATA_COOLDOWN_MS = 120000;
 const nounWikidataCache = new Map();
+const ENGLISH_NOUN_FALLBACK_STOPWORDS = new Set([
+    "a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has", "have",
+    "he", "in", "is", "it", "its", "of", "on", "or", "that", "the", "their", "them",
+    "they", "this", "to", "was", "were", "will", "with", "you", "your"
+]);
 
 let analyzeDebounceTimer = null;
 let wikidataCooldownUntil = 0;
+
+function getWordAnalyzeLanguage() {
+    if (window.APP_I18N && typeof window.APP_I18N.getLanguage === "function") {
+        return window.APP_I18N.getLanguage();
+    }
+    const htmlLang = (document.documentElement.getAttribute("lang") || "").trim();
+    return htmlLang || "ja";
+}
+
+function isWordAnalyzeEnglish() {
+    return String(getWordAnalyzeLanguage()).toLowerCase().startsWith("en");
+}
+
+function wordAnalyzeMessage(ja, en) {
+    return isWordAnalyzeEnglish() ? en : ja;
+}
+
+function normalizeEnglishCandidate(rawValue) {
+    return String(rawValue || "")
+        .trim()
+        .replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, "")
+        .replace(/\s+/g, " ");
+}
+
+function extractEnglishNouns(text) {
+    const input = String(text || "");
+    const collected = [];
+    const seen = new Set();
+
+    const pushUnique = (value) => {
+        const normalized = normalizeEnglishCandidate(value);
+        if (!normalized) return;
+        if (/^\d+$/.test(normalized)) return;
+        const lowered = normalized.toLowerCase();
+        if (ENGLISH_NOUN_FALLBACK_STOPWORDS.has(lowered)) return;
+        if (seen.has(lowered)) return;
+        seen.add(lowered);
+        collected.push(normalized);
+    };
+
+    if (typeof window.nlp === "function") {
+        try {
+            const doc = window.nlp(input);
+            doc.match("#Noun").out("array").forEach(pushUnique);
+            if (collected.length === 0) {
+                doc.nouns().out("array").forEach(pushUnique);
+            }
+            return collected;
+        } catch (error) {
+            console.warn("英語名詞抽出で compromise の処理に失敗しました。", error);
+        }
+    }
+
+    // ライブラリ未ロード時の最小フォールバック
+    input.split(/[^A-Za-z0-9'-]+/).forEach(pushUnique);
+    return collected;
+}
 
 window.onload = (event) => {
     const myTitleInput = document.getElementById("myTitle"); // テキスト入力欄
@@ -30,7 +92,7 @@ window.onload = (event) => {
             if (analyzeDebounceTimer) {
                 clearTimeout(analyzeDebounceTimer);
             }
-            output.textContent = "テキストが入力されていません。";
+            output.textContent = wordAnalyzeMessage("テキストが入力されていません。", "No text has been entered.");
             return;
         }
 
@@ -47,13 +109,25 @@ window.onload = (event) => {
 // テキストを形態素解析する関数
 function analyzeText(text) {
     const output = document.getElementById("output"); // 結果表示エリア
-    output.textContent = "解析中...";
+    output.textContent = wordAnalyzeMessage("解析中...", "Analyzing...");
+
+    if (isWordAnalyzeEnglish()) {
+        const nouns = extractEnglishNouns(text);
+
+        if (nouns.length === 0) {
+            output.textContent = wordAnalyzeMessage("名詞は見つかりませんでした。", "No nouns were found.");
+            return;
+        }
+
+        displayNounsWithWikidata(nouns, output);
+        return;
+    }
 
     // Kuromoji.js で形態素解析を実行
     kuromoji.builder({ dicPath: DICT_PATH }).build((err, tokenizer) => {
         if (err) {
             console.error(err); // エラーメッセージをコンソールに表示
-            output.textContent = "形態素解析エラー";
+            output.textContent = wordAnalyzeMessage("形態素解析エラー", "Morphological analysis error.");
             return;
         }
 
@@ -64,7 +138,7 @@ function analyzeText(text) {
 
         // 名詞が見つからない場合
         if (nouns.length === 0) {
-            output.textContent = "名詞は見つかりませんでした。";
+            output.textContent = wordAnalyzeMessage("名詞は見つかりませんでした。", "No nouns were found.");
         } else {
             displayNounsWithWikidata(nouns, output);
         }
@@ -79,23 +153,23 @@ async function displayNounsWithWikidata(nouns, output) {
         return;
     }
 
-    output.textContent = "Wikidata を確認しています...";
+    output.textContent = wordAnalyzeMessage("Wikidata を確認しています...", "Checking Wikidata...");
 
     try {
         const nounsWithEntries = await filterNounsByWikidata(nouns);
 
         if (nounsWithEntries.length === 0) {
-            output.textContent = "Wikidata に一致する名詞は見つかりませんでした。";
+            output.textContent = wordAnalyzeMessage("Wikidata に一致する名詞は見つかりませんでした。", "No Wikidata-matched nouns were found.");
         } else {
             output.textContent = nounsWithEntries.join(", ");
         }
 
         if (Date.now() < wikidataCooldownUntil) {
-            output.textContent += " (Wikidata混雑中のため一部は未検証)";
+            output.textContent += wordAnalyzeMessage(" (Wikidata混雑中のため一部は未検証)", " (Some terms are unverified due to Wikidata rate limits)");
         }
     } catch (error) {
         console.error("Wikidata チェック中にエラーが発生しました", error);
-        output.textContent = "Wikidata 照会でエラーが発生しました。";
+        output.textContent = wordAnalyzeMessage("Wikidata 照会でエラーが発生しました。", "An error occurred while querying Wikidata.");
     }
 }
 
@@ -143,7 +217,8 @@ async function hasWikidataEntry(term) {
         return null;
     }
 
-    const url = `https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodeURIComponent(normalizedTerm)}&language=ja&format=json&origin=*`;
+    const wikidataLanguage = isWordAnalyzeEnglish() ? "en" : "ja";
+    const url = `https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodeURIComponent(normalizedTerm)}&language=${encodeURIComponent(wikidataLanguage)}&format=json&origin=*`;
     let lastError = null;
 
     for (let attempt = 1; attempt <= WORD_WIKIDATA_RETRY_COUNT; attempt++) {

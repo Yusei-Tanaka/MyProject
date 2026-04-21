@@ -26,7 +26,11 @@ function ensureHypothesisContainer() {
     // 補助テキスト
     var help = document.createElement("div");
     help.className = "hypothesis-help-text";
-    help.innerText = "「仮説立案」ボタンを押すとこの中に新しい仮説が追加されます。";
+    help.innerText = t(
+      "hypothesis.helpText",
+      {},
+      "「仮説立案」ボタンを押すとこの中に新しい仮説が追加されます。"
+    );
     container.appendChild(help);
   }
 
@@ -56,6 +60,88 @@ let lastSavedHypothesisFingerprint = "";
 const HYPOTHESIS_MAX_FILE_PART_LENGTH = 24;
 let hasShownHypothesisUserMissingWarning = false;
 let hasShownXmlFetchWarning = false;
+
+var t = (key, vars = {}, fallback = "") => {
+  if (window.APP_I18N && typeof window.APP_I18N.t === "function") {
+    return window.APP_I18N.t(key, vars, fallback);
+  }
+  return fallback || key;
+};
+
+function getHypothesisUiLanguage() {
+  if (window.APP_I18N && typeof window.APP_I18N.getLanguage === "function") {
+    return window.APP_I18N.getLanguage();
+  }
+  const htmlLang = (document.documentElement.getAttribute("lang") || "").trim();
+  return htmlLang || "ja";
+}
+
+function isHypothesisEnglishUi() {
+  return String(getHypothesisUiLanguage()).toLowerCase().startsWith("en");
+}
+
+function buildScamperPrompt({
+  theme,
+  hypothesisText,
+  keywords,
+  scamperLabel,
+  xmlSnapshot,
+  useEnglishPrompt,
+}) {
+  if (useEnglishPrompt) {
+    return `
+        ## Task
+        You are an assistant that supports learner activities in integrated inquiry learning.
+
+        ## Context
+        - The learner is exploring: [${theme}]
+        - The learner proposed this hypothesis: [${hypothesisText}]
+        - The hypothesis is based on these keywords: [${keywords}]
+        - The learner's concept-map state is shown in this XML: [${xmlSnapshot}]
+
+        ## Input
+        - Expand the hypothesis from a SCAMPER perspective.
+        - Generate questions based on SCAMPER [${scamperLabel}] to encourage idea expansion.
+
+        ## Constraints
+        - Questions should help produce hypotheses that can solve [${theme}].
+        - If useful, implicitly suggest using other existing map keywords or adding new concepts.
+        - Do not explicitly instruct what to add; guide only through questions.
+
+        ## Language requirement
+        - Output must be in English.
+        - Avoid Japanese unless an untranslated proper noun is required.
+
+        ## Output format
+        - Provide about three questions.
+        - Wrap each question with <li></li> tags.
+        - Output only the list. No extra explanation.
+      `;
+  }
+
+  return `
+        ##タスク
+        ・総合的な探究の時間における，学習者の活動を⽀援するシステム
+        ##背景・文脈
+        ・学習者は[${theme}]を目標に探究活動を行っている
+        ・今，学習者は[${hypothesisText}]という仮説を[${keywords}]のキーワードを基に立案した
+        ・また学習者が作成した概念マップによって読み取ることの出来，その学習者の理解状態は次のXMLファイルの通りである　[${xmlSnapshot}]
+        ##入力
+        ・この仮説に対して，SCAMPER法に基づく観点から仮説を発散させる
+        ・あなたはSCAMPER法の[${scamperLabel}]に基づき，仮説を発散させることを促す質問を与えよ．
+        ##条件
+        ・[${theme}]という課題を解決しうるような仮説を生成することを⽬的とする
+        ・仮説を発散させるうえで，概念マップ内の他のキーワードを使うことや，新たな概念を概念マップ内に追加させることで仮説の発散につながる場合はそれを暗に⽰唆した質問を⽣成せよ
+        ・必ずしもそうしなくても良い
+        ・何を追加するかや何を加えたら良いかなどは明⽰せず，あくまで質問をもとに促すようにせよ
+        ##言語要件
+        ・出力は日本語とすること
+        ##出力形式
+        ・ 条件に合う質問を，三つ程度提示せよ
+        ・各項目は<li></li>タグで囲め
+        ・リストのみでよい．その他の記述や説明は一切いらない
+      `;
+}
 
 function sanitizeFilePart(value) {
   return String(value || "")
@@ -216,7 +302,13 @@ async function saveHypothesisStateToDb(serializedHtml, hypothesisNodes) {
     if (putRes.status === 404) {
       if (!hasShownHypothesisUserMissingWarning) {
         hasShownHypothesisUserMissingWarning = true;
-        alert(`ユーザー「${userId}」がDBに存在しないため、仮説のDB保存をスキップしました。\nログインし直して（auth_user / host）利用してください。`);
+        alert(
+          t(
+            "alerts.hypothesisDbUserMissing",
+            { userId },
+            `ユーザー「${userId}」がDBに存在しないため、仮説のDB保存をスキップしました。\nログインし直して（auth_user / host）利用してください。`
+          )
+        );
       }
       return;
     }
@@ -412,7 +504,9 @@ function bindScamperTagDelete(tagLabel, tagContainer) {
 
   const onContextMenu = function (e) {
     e.preventDefault();
-    var confirmDelete = confirm(`「${tagLabel.innerText}」タグを削除しますか？`);
+    var confirmDelete = confirm(
+      t("confirms.deleteTag", { tag: tagLabel.innerText }, `「${tagLabel.innerText}」タグを削除しますか？`)
+    );
     if (confirmDelete && tagContainer.parentNode) {
       tagContainer.parentNode.removeChild(tagContainer);
       scheduleHypothesisSave();
@@ -541,7 +635,7 @@ function addHypothesisEntry(nodeIds) {
   var nodeDataSet = window.nodes;
   var keywordLabels = nodeIds.map(function (id) {
     var n = nodeDataSet && typeof nodeDataSet.get === "function" ? nodeDataSet.get(id) : null;
-    return n ? n.label : "(未定義)";
+    return n ? n.label : t("labels.undefined", {}, "(未定義)");
   });
 
   // エントリ作成
@@ -550,20 +644,24 @@ function addHypothesisEntry(nodeIds) {
 
   var hdr = document.createElement("div");
   hdr.className = "hypothesis-box-header";
-  hdr.innerText = "仮説 #" + (wrapper.children.length + 1);
+  hdr.innerText = t("labels.hypothesisNumber", { index: wrapper.children.length + 1 }, "仮説 #" + (wrapper.children.length + 1));
   entry.appendChild(hdr);
 
   var sub = document.createElement("div");
   sub.className = "hypothesis-meta-text";
   // 各エントリの下にのみ基づくキーワードを表示（先頭の一覧は削除）
-  sub.innerText = "基づくキーワード: " + keywordLabels.join("、");
+  sub.innerText = t(
+    "labels.basedKeywords",
+    { keywords: keywordLabels.join("、") },
+    "基づくキーワード: " + keywordLabels.join("、")
+  );
   entry.appendChild(sub);
 
   var body = document.createElement("div");
   body.className = "hypothesis-box-body";
   var ta = document.createElement("textarea");
   ta.className = "hypothesis-text";
-  ta.placeholder = "ここに仮説を入力";
+  ta.placeholder = t("placeholders.hypothesisInput", {}, "ここに仮説を入力");
   ta.value = ""; // 初期は空白
   attachHypothesisTextareaLogging(ta, function (current) {
     return `仮説: 入力 "${current}"`;
@@ -576,7 +674,7 @@ function addHypothesisEntry(nodeIds) {
   controls.className = "hypothesis-controls";
   var delBtn = document.createElement("button");
   delBtn.type = "button";
-  delBtn.innerText = "削除";
+  delBtn.innerText = t("buttons.delete", {}, "削除");
   delBtn.className = "hypothesis-delete-btn";
   controls.appendChild(delBtn);
   entry.appendChild(controls);
@@ -593,7 +691,7 @@ function addHypothesisEntry(nodeIds) {
 function updateHypothesisNumbers(wrapper) {
   for (var i = 0; i < wrapper.children.length; i++) {
     var h = wrapper.children[i].querySelector(".hypothesis-box-header");
-    if (h) h.innerText = "仮説 #" + (i + 1);
+    if (h) h.innerText = t("labels.hypothesisNumber", { index: i + 1 }, "仮説 #" + (i + 1));
   }
 }
 
@@ -630,13 +728,13 @@ window.handleCreateHypothesisClick = function () {
   try {
     var currentSelectedNodes = getSelectedNodeIdsForHypothesis();
     if (currentSelectedNodes.length === 0) {
-      alert("少なくとも1つのノードを選択してください。");
+      alert(t("alerts.selectAtLeastOneNode", {}, "少なくとも1つのノードを選択してください。"));
       return;
     }
     addHypothesisEntry(currentSelectedNodes);
   } catch (error) {
     console.error("仮説立案ボタン処理でエラーが発生しました:", error);
-    alert("仮説立案の処理中にエラーが発生しました。ページを再読み込みしてください。");
+    alert(t("alerts.hypothesisProcessFailed", {}, "仮説立案の処理中にエラーが発生しました。ページを再読み込みしてください。"));
   }
 };
 
@@ -664,13 +762,13 @@ if (window.edges && typeof window.edges.get === "function") {
 
 // SCAMPER の選択肢（日本語ラベル）
 var SCAMPER_OPTIONS = [
-  { key: "Substitute", label: "置換 (Substitute)" },
-  { key: "Combine", label: "結合 (Combine)" },
-  { key: "Adapt", label: "適応 (Adapt)" },
-  { key: "Modify", label: "修正 (Modify)" },
-  { key: "PutToOtherUse", label: "転用 (Put to other use)" },
-  { key: "Eliminate", label: "削除 (Eliminate)" },
-  { key: "Reverse", label: "再構成 (Reverse)" }
+  { key: "Substitute", label: t("scamper.substitute", {}, "置換 (Substitute)") },
+  { key: "Combine", label: t("scamper.combine", {}, "結合 (Combine)") },
+  { key: "Adapt", label: t("scamper.adapt", {}, "適応 (Adapt)") },
+  { key: "Modify", label: t("scamper.modify", {}, "修正 (Modify)") },
+  { key: "PutToOtherUse", label: t("scamper.putToOtherUse", {}, "転用 (Put to other use)") },
+  { key: "Eliminate", label: t("scamper.eliminate", {}, "削除 (Eliminate)") },
+  { key: "Reverse", label: t("scamper.reverse", {}, "再構成 (Reverse)") }
 ];
 
 // SCAMPER関連の共有状態
@@ -684,7 +782,7 @@ function updateHypothesisContextFromEntry(entry, customText, customKeywordLabel)
   if (!entry) return;
   const textArea = entry.querySelector(".hypothesis-text");
   const keywordElement = entry.querySelector("div:nth-child(2)");
-  const baseKeywords = keywordElement ? keywordElement.innerText : "(キーワードなし)";
+  const baseKeywords = keywordElement ? keywordElement.innerText : t("labels.noKeywords", {}, "(キーワードなし)");
   const keywordsToUse =
     customKeywordLabel !== undefined && customKeywordLabel !== null
       ? `${baseKeywords} / ${customKeywordLabel}`
@@ -702,18 +800,18 @@ function addNodeToNetwork(entry, sourceTextarea) {
   const rawText = sourceTextarea ? sourceTextarea.value : fallbackTextarea?.value;
   const candidateText = (rawText || "").trim();
   if (!candidateText) {
-    alert("追加する仮説の内容を入力してください。");
+    alert(t("alerts.enterHypothesisToAdd", {}, "追加する仮説の内容を入力してください。"));
     return;
   }
 
   if (typeof window.getMindmapNodes !== "function" || typeof window.addMindmapChild !== "function") {
-    alert("マインドマップが利用できません。ページを再読み込みしてください。");
+    alert(t("alerts.mindmapUnavailable", {}, "マインドマップが利用できません。ページを再読み込みしてください。"));
     return;
   }
 
   const mindmapNodes = window.getMindmapNodes();
   if (!mindmapNodes || mindmapNodes.length === 0) {
-    alert("マインドマップに親ノードがありません。");
+    alert(t("alerts.noMindmapParent", {}, "マインドマップに親ノードがありません。"));
     return;
   }
 
@@ -728,12 +826,12 @@ function addNodeToNetwork(entry, sourceTextarea) {
 
   const title = document.createElement("h3");
   title.className = "mindmap-dialog-title";
-  title.innerText = "マインドマップにノードを追加";
+  title.innerText = t("labels.mapNodeAddTitle", {}, "マインドマップにノードを追加");
   dialog.appendChild(title);
 
   const parentLabel = document.createElement("label");
   parentLabel.className = "mindmap-dialog-label";
-  parentLabel.innerText = "親ノードを選択";
+  parentLabel.innerText = t("labels.selectParentNode", {}, "親ノードを選択");
   dialog.appendChild(parentLabel);
 
   const select = document.createElement("select");
@@ -742,8 +840,8 @@ function addNodeToNetwork(entry, sourceTextarea) {
   mindmapNodes.forEach((node, index) => {
     const option = document.createElement("option");
     option.value = String(index);
-    const prefix = node.parent == null ? "(ルート)" : "";
-    option.innerText = `${prefix}${node.text || "(無題ノード)"}`;
+    const prefix = node.parent == null ? t("labels.rootPrefix", {}, "(ルート)") : "";
+    option.innerText = `${prefix}${node.text || t("labels.untitledNode", {}, "(無題ノード)")}`;
     select.appendChild(option);
   });
 
@@ -751,7 +849,7 @@ function addNodeToNetwork(entry, sourceTextarea) {
 
   const textLabel = document.createElement("label");
   textLabel.className = "mindmap-dialog-label";
-  textLabel.innerText = "追加する仮説";
+  textLabel.innerText = t("labels.hypothesisToAdd", {}, "追加する仮説");
   dialog.appendChild(textLabel);
 
   const textArea = document.createElement("textarea");
@@ -766,7 +864,7 @@ function addNodeToNetwork(entry, sourceTextarea) {
   const cancelBtn = document.createElement("button");
   cancelBtn.type = "button";
   cancelBtn.className = "mindmap-dialog-cancel";
-  cancelBtn.innerText = "キャンセル";
+  cancelBtn.innerText = t("buttons.cancel", {}, "キャンセル");
   cancelBtn.addEventListener("click", () => {
     document.body.removeChild(overlay);
   });
@@ -774,11 +872,11 @@ function addNodeToNetwork(entry, sourceTextarea) {
   const addBtn = document.createElement("button");
   addBtn.type = "button";
   addBtn.className = "mindmap-dialog-confirm";
-  addBtn.innerText = "追加";
+  addBtn.innerText = t("buttons.add", {}, "追加");
   addBtn.addEventListener("click", () => {
     const trimmed = textArea.value.trim();
     if (!trimmed) {
-      alert("仮説が空です。");
+      alert(t("alerts.emptyHypothesis", {}, "仮説が空です。"));
       return;
     }
 
@@ -786,7 +884,7 @@ function addNodeToNetwork(entry, sourceTextarea) {
     const parentNode = mindmapNodes[selectedIndex] || mindmapNodes[0];
     const success = window.addMindmapChild(parentNode.key, trimmed);
     if (!success) {
-      alert("ノードの追加に失敗しました。");
+      alert(t("alerts.mindmapNodeAddFailed", {}, "ノードの追加に失敗しました。"));
       return;
     }
 
@@ -815,10 +913,10 @@ function attachHypothesisActions(targetTextarea, entry, parentContainer = null, 
   const addNodeBtn = document.createElement("button");
   addNodeBtn.type = "button";
   addNodeBtn.className = "hypothesis-action-button add-node-button";
-  addNodeBtn.innerText = "ノード追加";
+  addNodeBtn.innerText = t("buttons.addNode", {}, "ノード追加");
   addNodeBtn.addEventListener("click", function () {
     if (!targetTextarea.value.trim()) {
-      alert("仮説を入力してください。");
+      alert(t("alerts.enterHypothesis", {}, "仮説を入力してください。"));
       return;
     }
     addNodeToNetwork(entry, targetTextarea);
@@ -827,11 +925,11 @@ function attachHypothesisActions(targetTextarea, entry, parentContainer = null, 
   const scamperBtn = document.createElement("button");
   scamperBtn.type = "button";
   scamperBtn.className = "hypothesis-action-button scamper-button";
-  scamperBtn.innerText = "仮説を発散";
+  scamperBtn.innerText = t("buttons.expandHypothesis", {}, "仮説を発散");
   scamperBtn.addEventListener("click", function (e) {
     e.preventDefault();
     if (!targetTextarea.value.trim()) {
-      alert("仮説を入力してください。");
+      alert(t("alerts.enterHypothesis", {}, "仮説を入力してください。"));
       return;
     }
     const currentText = targetTextarea.value;
@@ -858,19 +956,19 @@ function attachHypothesisActions(targetTextarea, entry, parentContainer = null, 
 function generateScamperTemplate(option) {
   switch (option.key) {
     case "Substitute":
-      return "何かを別のもので置き換えることで新しい解決策が得られるか検討する。";
+      return t("scamper.templateSubstitute", {}, "何かを別のもので置き換えることで新しい解決策が得られるか検討する。");
     case "Combine":
-      return "他の要素と結合して性能や価値を高められないか検討する。";
+      return t("scamper.templateCombine", {}, "他の要素と結合して性能や価値を高められないか検討する。");
     case "Adapt":
-      return "他分野のアイデアを適用できないか検討する。";
+      return t("scamper.templateAdapt", {}, "他分野のアイデアを適用できないか検討する。");
     case "Modify":
-      return "形状・大きさ・性質を変更して改善できないか検討する。";
+      return t("scamper.templateModify", {}, "形状・大きさ・性質を変更して改善できないか検討する。");
     case "PutToOtherUse":
-      return "別用途に転用することで新たな価値が生まれないか検討する。";
+      return t("scamper.templatePutToOtherUse", {}, "別用途に転用することで新たな価値が生まれないか検討する。");
     case "Eliminate":
-      return "不要な要素を削除して簡素化やコスト削減が図れないか検討する。";
+      return t("scamper.templateEliminate", {}, "不要な要素を削除して簡素化やコスト削減が図れないか検討する。");
     case "Reverse":
-      return "順序や役割を入れ替えることで新しい発想が生まれないか検討する。";
+      return t("scamper.templateReverse", {}, "順序や役割を入れ替えることで新しい発想が生まれないか検討する。");
     default:
       return "";
   }
@@ -914,7 +1012,7 @@ function applyScamperToEntry(entry, option, parentContainer = null) {
 
   var editBox = document.createElement("textarea");
   editBox.className = "scamper-edit-box";
-  editBox.placeholder = "発散させた仮説を記入してください";
+  editBox.placeholder = t("placeholders.scamperInput", {}, "発散させた仮説を記入してください");
   attachHypothesisTextareaLogging(editBox, function (current) {
     return `仮説: SCAMPER入力 (${option.label}) "${current}"`;
   });
@@ -1122,7 +1220,7 @@ function showScamperLoading() {
 
   const message = document.createElement("div");
   message.className = "scamper-loading";
-  message.textContent = "思考中...";
+  message.textContent = t("loading.thinking", {}, "思考中...");
 
   overlay.appendChild(message);
   document.body.appendChild(overlay);
@@ -1143,26 +1241,14 @@ function triggerScamperQuestion(targetTag, scamperLabel) {
   // SCAMPER選択時に毎回最新のタイトル値を取得
   window.theme = document.querySelector("#myTitle")?.value || "";
 
-  const prompt = `
-        ##タスク
-        ・総合的な探究の時間における，学習者の活動を⽀援するシステム
-        ##背景・文脈
-        ・学習者は[${window.theme}]を目標に探究活動を行っている
-        ・今，学習者は[${hypothesisData}]という仮説を[${selectedKeywords}]のキーワードを基に立案した
-        ・また学習者が作成した概念マップによって読み取ることの出来，その学習者の理解状態は次のXMLファイルの通りである　[${xmlData}]
-        ##入力
-        ・この仮説に対して，SCAMPER法に基づく観点から仮説を発散させる
-        ・あなたはSCAMPER法の[${selectedScamper}]に基づき，仮説を発散させることを促す質問を与えよ．
-        ##条件
-        ・[${window.theme}]という課題を解決しうるような仮説を生成することを⽬的とする
-        ・仮説を発散させるうえで，概念マップ内の他のキーワードを使うことや，新たな概念を概念マップ内に追加させることで仮説の発散につながる場合はそれを暗に⽰唆した質問を⽣成せよ
-        ・必ずしもそうしなくても良い
-        ・何を追加するかや何を加えたら良いかなどは明⽰せず，あくまで質問をもとに促すようにせよ
-        ##出力形式
-        ・ 条件に合う質問を，三つ程度提示せよ
-        ・各項目は<li></li>タグで囲め
-        ・リストのみでよい．その他の記述や説明は一切いらない
-      `;
+  const prompt = buildScamperPrompt({
+    theme: window.theme,
+    hypothesisText: hypothesisData,
+    keywords: selectedKeywords,
+    scamperLabel: selectedScamper,
+    xmlSnapshot: xmlData,
+    useEnglishPrompt: isHypothesisEnglishUi(),
+  });
 
   console.log("生成されたプロンプト:", prompt);
 
@@ -1185,7 +1271,7 @@ function triggerScamperQuestion(targetTag, scamperLabel) {
       tempDiv.innerHTML = data.result;
       const items = Array.from(tempDiv.querySelectorAll("li"));
       if (items.length === 0) {
-        alert("質問が取得できませんでした。");
+        alert(t("alerts.questionFetchFailed", {}, "質問が取得できませんでした。"));
         return;
       }
       console.log(data.result);
@@ -1207,7 +1293,7 @@ function triggerScamperQuestion(targetTag, scamperLabel) {
 
       const dragBar = document.createElement("div");
       dragBar.className = "question-dialog__header";
-      dragBar.textContent = "質問を選択してください";
+      dragBar.textContent = t("labels.selectQuestion", {}, "質問を選択してください");
       dialog.appendChild(dragBar);
 
       const dialogBody = document.createElement("div");
@@ -1259,7 +1345,7 @@ function triggerScamperQuestion(targetTag, scamperLabel) {
       });
 
       const closeBtn = document.createElement("button");
-      closeBtn.textContent = "キャンセル";
+      closeBtn.textContent = t("buttons.cancel", {}, "キャンセル");
       closeBtn.className = "question-dialog__close";
       closeBtn.onclick = () => {
         document.body.removeChild(dialog);
@@ -1270,7 +1356,7 @@ function triggerScamperQuestion(targetTag, scamperLabel) {
     })
     .catch((error) => {
       removeScamperLoading();
-      alert("API呼び出し中にエラーが発生しました: " + error.message);
+      alert(t("alerts.apiCallFailed", { message: error.message }, "API呼び出し中にエラーが発生しました: " + error.message));
     });
 }
 
@@ -1333,7 +1419,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const hypothesisBox = clickedElement.closest(".hypothesis-box");
       const keywordElement = hypothesisBox.querySelector("div:nth-child(2)");
       hypothesisData = clickedElement.value;
-      selectedKeywords = keywordElement ? keywordElement.innerText : "(キーワードなし)";
+      selectedKeywords = keywordElement ? keywordElement.innerText : t("labels.noKeywords", {}, "(キーワードなし)");
     }
   });
 

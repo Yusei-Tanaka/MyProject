@@ -1,0 +1,63 @@
+      [2026/4/22 2:57:29] System start: opened main.html (user: tanaka, title: How to generate energy in the future?)
+      [2026/4/22 2:57:29] Keyword map: centered (no nodes)
+      [2026/4/22 2:57:29] キーワードマップ: DBから復元しました (theme=How to generate energy in the future?)
+      [2026/4/22 2:57:34] UI: left side view shown
+      [2026/4/22 2:57:51] 生成されたキーワードの組み合わせ: How, to, generate, energy, in, the, future, ?
+      [2026/4/22 3:01:46] システム起動: main.html を開きました (ユーザ: tanaka, タイトル: How to generate energy in the future?)
+      [2026/4/22 3:01:46] キーワードマップ: 中央表示（ノードなし）
+      [2026/4/22 3:01:46] キーワードマップ: DBから復元しました (theme=How to generate energy in the future?)
+      [2026/4/22 3:02:02] System start: opened main.html (user: tanaka, title: How to generate energy in the future?)
+      [2026/4/22 3:02:02] Keyword map: centered (no nodes)
+      [2026/4/22 3:02:02] キーワードマップ: DBから復元しました (theme=How to generate energy in the future?)
+      [2026/4/22 3:02:04] UI: left side view shown
+      [2026/4/22 3:02:07] キーワードマップ: ノード追加 id=1 label="New Node"
+      [2026/4/22 3:02:08] 仮説: 追加 (基づくキーワード: New Node)
+      [2026/4/22 3:02:11] 仮説: 入力 "a"
+      [2026/4/22 3:02:13] 仮説: マインドマップへノード追加 parent=0 "How to generate energy in the future?" text="a"
+      [2026/4/22 3:02:13] マインドマップ: 子ノード追加 parent=0 "How to generate energy in the future?" text="a"
+      [2026/4/22 3:02:17] 仮説: SCAMPER選択 Substitute
+      [2026/4/22 3:02:20] 仮説: 生成質問一覧 [What if we substitute traditional energy sources with renewable alternatives, such as solar or wind energy? How might this change our energy generation methods in the future? / Can we replace current energy storage technologies with more advanced options, like solid-state batteries or hydrogen fuel cells? What impact would this have on energy efficiency? / What if we used different materials or technologies in energy generation, such as bioenergy or geothermal systems? How could these innovations reshape our approach to generating energy?]
+      [2026/4/22 3:02:29] 仮説: 生成質問を選択 "What if we substitute traditional energy sources with renewable alternatives, such as solar or wind energy? How might this change our energy generation methods in the future?"
+      [2026/4/22 3:02:32] 仮説: SCAMPER入力 (Substitute) "s"
+      [2026/4/22 3:02:34] 仮説: マインドマップへノード追加 parent=-2 "a" text="s"
+      [2026/4/22 3:02:34] マインドマップ: 子ノード追加 parent=-2 "a" text="s"
+      [2026/4/22 3:02:44] System start: opened main.html (user: tanaka, title: How to generate energy in the future?)
+      [2026/4/22 3:02:44] Keyword map: centered (no nodes)
+      [2026/4/22 3:02:44] マインドマップ: 復元しました (tanaka__How_to_generate_cce905e4.mindmap.json)
+      [2026/4/22 3:02:44] キーワードマップ: DBから復元しました (theme=How to generate energy in the future?)
+      [2026/4/22 3:02:44] 仮説: 復元しました
+      [2026/4/22 3:02:46] System start: opened main.html (user: tanaka, title: How to generate energy in the future?)
+      [2026/4/22 3:02:46] Keyword map: centered (no nodes)
+      [2026/4/22 3:02:46] マインドマップ: 復元しました (tanaka__How_to_generate_cce905e4.mindmap.json)
+      [2026/4/22 3:02:46] 仮説: 復元しました
+      [2026/4/22 3:02:46] キーワードマップ: DBから復元しました (theme=How to generate energy in the future?)
+      [2026/4/22 3:02:47] UI: left side view shown
+      [2026/4/22 3:03:24] System start: opened main.html (user: tanaka, title: How to generate energy in the future?)
+      [2026/4/22 3:03:24] Keyword map: centered (no nodes)
+      [2026/4/22 3:03:24] 仮説: 復元しました
+      [2026/4/22 3:03:24] キーワードマップ: DBから復元しました (theme=How to generate energy in the future?)
+      [2026/4/22 3:03:24] マインドマップ: 復元しました (tanaka__How_to_generate_cce905e4.mindmap.json)
+      [2026/4/22 3:03:26] System start: opened main.html (user: tanaka, title: How to generate energy in the future?)
+      [2026/4/22 3:03:26] Keyword map: centered (no nodes)
+      [2026/4/22 3:03:26] マインドマップ: 復元しました (tanaka__How_to_generate_cce905e4.mindmap.json)
+      [2026/4/22 3:03:26] 仮説: 復元しました
+      [2026/4/22 3:03:26] キーワードマップ: DBから復元しました (theme=How to generate energy in the future?)
+      [2026/4/22 3:03:27] UI: left side view shown
+      [2026/4/22 3:03:30] 生成されたキーワードの組み合わせ: energy, future
+      [2026/4/22 3:12:31] System start: opened main.html (user: tanaka, title: How to generate energy in the future?)
+      [2026/4/22 3:12:31] Keyword map: centered (no nodes)
+      [2026/4/22 3:12:31] 仮説: 復元しました
+      [2026/4/22 3:12:31] キーワードマップ: DBから復元しました (theme=How to generate energy in the future?)
+      [2026/4/22 3:12:31] マインドマップ: 復元しました (tanaka__How_to_generate_cce905e4.mindmap.json)
+      [2026/4/22 3:12:32] UI: left side view shown
+      [2026/4/22 3:12:33] 生成されたキーワードの組み合わせ: energy, future
+      [2026/4/22 3:13:18] 生成キーワード: ノード追加 label="pollution levels"
+      [2026/4/22 3:13:18] 生成キーワード: ノード追加 label="market dynamics"
+      [2026/4/22 3:13:19] 生成キーワード: ノード追加 label="sustainable agriculture"
+      [2026/4/22 3:13:19] 生成キーワード: ノード追加 label="resource depletion"
+      [2026/4/22 3:13:30] キーワードマップ: ノード複数削除 count=5 edges=0
+      [2026/4/22 3:13:30] キーワードマップ: ノード削除 id=3 label="market dynamics"
+      [2026/4/22 3:13:30] キーワードマップ: ノード削除 id=2 label="pollution levels"
+      [2026/4/22 3:13:30] キーワードマップ: ノード削除 id=5 label="resource depletion"
+      [2026/4/22 3:13:30] キーワードマップ: ノード削除 id=1 label="New Node"
+      [2026/4/22 3:13:30] キーワードマップ: ノード削除 id=4 label="sustainable agriculture"

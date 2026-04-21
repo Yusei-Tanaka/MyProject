@@ -99,6 +99,30 @@
 .login-form input:focus {
     border-color: var(--login-input-focus);
 }
+.language-select-row {
+    width: 360px;
+    max-width: 90vw;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.language-select-row label {
+    color: #5f6368;
+    font-size: 0.95rem;
+    padding-right: 0;
+    white-space: nowrap;
+}
+.language-select-row select {
+    min-width: 150px;
+    padding: 8px 12px;
+    border-radius: 14px;
+    border: 1px solid #dfe1e5;
+    background: #fff;
+    color: #202124;
+    font-size: 0.95rem;
+}
 .theme-history-container {
     width: 480px;
     max-width: 90vw;

@@ -1,13 +1,24 @@
 // main.js
 
-const activeUser = (localStorage.getItem("userName") || "").trim();
+var t = (key, vars = {}, fallback = "") => {
+    if (window.APP_I18N && typeof window.APP_I18N.t === "function") {
+        return window.APP_I18N.t(key, vars, fallback);
+    }
+    return fallback || key;
+};
+
+let activeUser = (localStorage.getItem("userName") || "").trim();
 if (!activeUser) {
-    window.location.replace("index.html");
+    activeUser = t("common.guest", {}, "ゲスト");
+    localStorage.setItem("userName", activeUser);
+    console.warn("userName が未設定のため、ゲストユーザで main.html を開きます。");
 }
 
-const activeTheme = (localStorage.getItem("searchTitle") || "").trim();
+let activeTheme = (localStorage.getItem("searchTitle") || "").trim();
 if (!activeTheme) {
-    window.location.replace("theme-select.html");
+    activeTheme = t("defaults.unsetTheme", {}, "未設定のテーマ");
+    localStorage.setItem("searchTitle", activeTheme);
+    console.warn("searchTitle が未設定のため、未設定テーマで main.html を開きます。");
 }
 
 // 1. レイアウト設定
@@ -140,11 +151,17 @@ function logLayoutAction(message) {
 
 document.addEventListener("DOMContentLoaded", function () {
     if (typeof window.addSystemLog === "function") {
-        const userName = (localStorage.getItem("userName") || "").trim() || "未設定";
+        const userName = (localStorage.getItem("userName") || "").trim() || t("common.unset", {}, "未設定");
         const titleFromStorage = (localStorage.getItem("searchTitle") || "").trim();
         const titleFromInput = (document.getElementById("myTitle")?.value || "").trim();
-        const title = titleFromInput || titleFromStorage || "未設定";
-        window.addSystemLog(`システム起動: main.html を開きました (ユーザ: ${userName}, タイトル: ${title})`);
+        const title = titleFromInput || titleFromStorage || t("common.unset", {}, "未設定");
+        window.addSystemLog(
+            t(
+                "logs.systemStart",
+                { userName, title },
+                `システム起動: main.html を開きました (ユーザ: ${userName}, タイトル: ${title})`
+            )
+        );
     }
 });
 
@@ -174,6 +191,6 @@ $(function(){
         row.callDownwards('setSize');
         updateLayoutSize();
         $('#createHypothesisBtn').removeAttr('hidden').removeClass('is-hidden');
-        logLayoutAction("画面: 左サイドビュー表示");
+        logLayoutAction(t("logs.showSideView", {}, "画面: 左サイドビュー表示"));
     });
 });

@@ -21,6 +21,13 @@ window.addEventListener('DOMContentLoaded', function() {
   let initialOffsetApplied = false;
   const MAX_FILE_PART_LENGTH = 24;
 
+  const t = (key, vars = {}, fallback = "") => {
+    if (window.APP_I18N && typeof window.APP_I18N.t === "function") {
+      return window.APP_I18N.t(key, vars, fallback);
+    }
+    return fallback || key;
+  };
+
   function sanitizeFilePart(value) {
     return String(value || "")
       .trim()
@@ -160,7 +167,13 @@ window.addEventListener('DOMContentLoaded', function() {
     if (putResponse.status === 404) {
       if (!hasShownMindmapUserMissingWarning) {
         hasShownMindmapUserMissingWarning = true;
-        alert(`ユーザー「${userId}」がDBに存在しないため、仮説関係性マップのDB保存をスキップしました。\nログインし直して（auth_user / host）利用してください。`);
+        alert(
+          t(
+            "alerts.mindmapDbUserMissing",
+            { userId },
+            `ユーザー「${userId}」がDBに存在しないため、仮説関係性マップのDB保存をスキップしました。\nログインし直して（auth_user / host）利用してください。`
+          )
+        );
       }
       return;
     }
@@ -377,7 +390,7 @@ window.addEventListener('DOMContentLoaded', function() {
       {
         doubleClick: (e, node) => {
           const oldText = node.data.text;
-          const newText = prompt("ノードのテキストを変更:", oldText);
+          const newText = prompt(t("prompts.editMindmapNodeText", {}, "ノードのテキストを変更:"), oldText);
           if (newText !== null && newText.trim() !== "" && newText !== oldText) {
             diagram.startTransaction("edit text");
             diagram.model.set(node.data, "text", newText);
@@ -390,11 +403,11 @@ window.addEventListener('DOMContentLoaded', function() {
         contextMenu:
           $("ContextMenu",
             $("ContextMenuButton",
-              $(go.TextBlock, "子ノードを追加"),
+              $(go.TextBlock, t("buttons.addNode", {}, "ノード追加")),
               { click: (e, obj) => addChild(obj.part.adornedPart) }
             ),
             $("ContextMenuButton",
-              $(go.TextBlock, "ノードを削除"),
+              $(go.TextBlock, t("buttons.delete", {}, "削除")),
               { click: (e, obj) => removeNode(obj.part.adornedPart) }
             )
           )
@@ -406,11 +419,11 @@ window.addEventListener('DOMContentLoaded', function() {
 
   /* 子ノードの追加 */
   function addChild(node) {
-    const inputText = prompt("追加するノードのテキスト:", "");
+    const inputText = prompt(t("prompts.addMindmapNodeText", {}, "追加するノードのテキスト:"), "");
     if (inputText === null) return;
     const normalizedText = String(inputText || "").trim();
     if (!normalizedText) {
-      alert("ノード名を入力してください。");
+      alert(t("alerts.enterNodeName", {}, "ノード名を入力してください。"));
       return;
     }
 
@@ -425,7 +438,7 @@ window.addEventListener('DOMContentLoaded', function() {
   function removeNode(node) {
     if (!node) return;
     if (node.data && node.data.key === 0) {
-      alert("タイトルノードは削除できません。");
+      alert(t("alerts.cannotDeleteTitleNode", {}, "タイトルノードは削除できません。"));
       return;
     }
     const removedKey = node.data && node.data.key !== undefined ? node.data.key : "";
@@ -441,7 +454,7 @@ window.addEventListener('DOMContentLoaded', function() {
   // localStorageからsearchTitleを取得
   var searchTitle = localStorage.getItem('searchTitle');
   var titleInput = document.getElementById('myTitle');
-  var initialText = searchTitle || (titleInput && titleInput.value) || "新しいマインドマップ";
+  var initialText = searchTitle || (titleInput && titleInput.value) || t("defaults.newMindmapTitle", {}, "新しいマインドマップ");
   var lastTitleText = initialText;
   diagram.model = new go.TreeModel([
     { key: 0, text: initialText, loc: "0 -200" }
@@ -458,11 +471,12 @@ window.addEventListener('DOMContentLoaded', function() {
   // myTitleの値が変更されたらルートノードも更新
   if (titleInput) {
     titleInput.addEventListener('input', function() {
-      diagram.model.set(diagram.model.nodeDataArray[0], "text", titleInput.value || "新しいマインドマップ");
-      localStorage.setItem('searchTitle', titleInput.value || "新しいマインドマップ");
+      const title = titleInput.value || t("defaults.newMindmapTitle", {}, "新しいマインドマップ");
+      diagram.model.set(diagram.model.nodeDataArray[0], "text", title);
+      localStorage.setItem('searchTitle', title);
     });
     titleInput.addEventListener('change', function() {
-      const newTitle = titleInput.value || "新しいマインドマップ";
+      const newTitle = titleInput.value || t("defaults.newMindmapTitle", {}, "新しいマインドマップ");
       if (newTitle !== lastTitleText) {
         logMindmapAction(`マインドマップ: タイトル変更 "${lastTitleText}" → "${newTitle}"`);
         lastTitleText = newTitle;

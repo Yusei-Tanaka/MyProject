@@ -24,6 +24,13 @@ const openPhpMyAdminBtn = document.getElementById("openPhpMyAdminBtn");
 const userList = document.getElementById("userList");
 const userAdminMessage = document.getElementById("userAdminMessage");
 
+var t = (key, vars = {}, fallback = "") => {
+  if (window.APP_I18N && typeof window.APP_I18N.t === "function") {
+    return window.APP_I18N.t(key, vars, fallback);
+  }
+  return fallback || key;
+};
+
 let isAdminLoginInProgress = false;
 
 const setAuthMessage = (message, isError = false) => {
@@ -43,7 +50,8 @@ const renderUsers = (users) => {
   userList.innerHTML = "";
   if (!Array.isArray(users) || users.length === 0) {
     const empty = document.createElement("li");
-    empty.textContent = "ユーザが登録されていません。";
+    empty.dataset.emptyState = "true";
+    empty.textContent = t("userAdmin.noUsers", {}, "ユーザが登録されていません。");
     userList.appendChild(empty);
     return;
   }
@@ -51,7 +59,8 @@ const renderUsers = (users) => {
   users.forEach((user) => {
     const item = document.createElement("li");
     item.textContent = user.id;
-    item.title = "右クリックで削除";
+    item.dataset.userId = String(user.id || "").trim();
+    item.title = t("userAdmin.rightClickDelete", {}, "右クリックで削除");
     userList.appendChild(item);
   });
 };
@@ -60,7 +69,7 @@ const deleteUserById = async (id) => {
   const userId = String(id || "").trim();
   if (!userId) return;
 
-  setMessage(`ユーザ「${userId}」を削除中...`);
+  setMessage(t("userAdmin.deletingUser", { userId }, `ユーザ「${userId}」を削除中...`));
 
   try {
     const response = await fetch(`${userAdminBaseUrl}/users/${encodeURIComponent(userId)}`, {
@@ -69,13 +78,13 @@ const deleteUserById = async (id) => {
     const body = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      throw new Error(body.error || "ユーザ削除に失敗しました。");
+      throw new Error(body.error || t("userAdmin.deleteUserFailed", {}, "ユーザ削除に失敗しました。"));
     }
 
-    setMessage(`ユーザ「${userId}」を削除しました。`);
+    setMessage(t("userAdmin.userDeleted", { userId }, `ユーザ「${userId}」を削除しました。`));
     await fetchUsers();
   } catch (error) {
-    setMessage(error.message || "ユーザ削除に失敗しました。", true);
+    setMessage(error.message || t("userAdmin.deleteUserFailed", {}, "ユーザ削除に失敗しました。"), true);
   }
 };
 
@@ -85,10 +94,14 @@ const handleUserListContextMenu = async (event) => {
 
   event.preventDefault();
 
-  const userId = String(targetItem.textContent || "").trim();
-  if (!userId || userId === "ユーザが登録されていません。") return;
+  if (targetItem.dataset.emptyState === "true") return;
 
-  const shouldDelete = window.confirm(`ユーザ「${userId}」を削除します。\nよろしいですか？`);
+  const userId = String(targetItem.dataset.userId || targetItem.textContent || "").trim();
+  if (!userId) return;
+
+  const shouldDelete = window.confirm(
+    t("userAdmin.confirmDeleteUser", { userId }, `ユーザ「${userId}」を削除します。\nよろしいですか？`)
+  );
   if (!shouldDelete) return;
 
   await deleteUserById(userId);
@@ -102,7 +115,7 @@ const syncPasswordTargetUsersFromList = () => {
 
   const placeholderOption = document.createElement("option");
   placeholderOption.value = "";
-  placeholderOption.textContent = "変更対象ユーザIDを選択";
+  placeholderOption.textContent = t("userAdmin.selectTargetUser", {}, "変更対象ユーザIDを選択");
   passwordTargetUserIdInput.appendChild(placeholderOption);
 
   const listItems = Array.from(userList.querySelectorAll("li"));
@@ -112,10 +125,11 @@ const syncPasswordTargetUsersFromList = () => {
   }
 
   listItems.forEach((item) => {
-    const id = String(item.textContent || "").trim();
-    if (!id || id === "ユーザが登録されていません。") return;
-    if (id === "undefined" || id === "null") return;
+    if (item.dataset.emptyState === "true") return;
+
+    const id = String(item.dataset.userId || item.textContent || "").trim();
     if (!id) return;
+    if (id === "undefined" || id === "null") return;
     const option = document.createElement("option");
     option.value = id;
     option.textContent = id;
@@ -127,23 +141,23 @@ const syncPasswordTargetUsersFromList = () => {
 };
 
 const fetchUsers = async () => {
-  setMessage("ユーザ一覧を取得中...");
+  setMessage(t("userAdmin.fetchingUsers", {}, "ユーザ一覧を取得中..."));
   try {
     const response = await fetch(`${userAdminBaseUrl}/users`);
     const body = await response.json().catch(() => []);
 
     if (!response.ok) {
-      throw new Error(body.error || "ユーザ一覧の取得に失敗しました。");
+      throw new Error(body.error || t("userAdmin.fetchUsersFailed", {}, "ユーザ一覧の取得に失敗しました。"));
     }
 
     const users = Array.isArray(body) ? body : [];
     renderUsers(users);
     syncPasswordTargetUsersFromList();
-    setMessage(`ユーザ一覧を更新しました（${users.length}件）。`);
+    setMessage(t("userAdmin.usersUpdated", { count: users.length }, `ユーザ一覧を更新しました（${users.length}件）。`));
   } catch (error) {
     renderUsers([]);
     syncPasswordTargetUsersFromList();
-    setMessage(error.message || "ユーザ一覧の取得に失敗しました。", true);
+    setMessage(error.message || t("userAdmin.fetchUsersFailed", {}, "ユーザ一覧の取得に失敗しました。"), true);
   }
 };
 
@@ -153,11 +167,11 @@ const createUser = async (event) => {
   const id = newUserIdInput.value.trim();
   const passwordHash = newUserPasswordInput.value.trim();
   if (!id || !passwordHash) {
-    setMessage("ユーザIDとパスワードを入力してください。", true);
+    setMessage(t("userAdmin.enterUserAndPassword", {}, "ユーザIDとパスワードを入力してください。"), true);
     return;
   }
 
-  setMessage("ユーザを登録中...");
+  setMessage(t("userAdmin.creatingUser", {}, "ユーザを登録中..."));
 
   try {
     const response = await fetch(`${userAdminBaseUrl}/users`, {
@@ -168,15 +182,15 @@ const createUser = async (event) => {
 
     const body = await response.json().catch(() => ({}));
     if (!response.ok) {
-      throw new Error(body.error || "ユーザ登録に失敗しました。");
+      throw new Error(body.error || t("userAdmin.createUserFailed", {}, "ユーザ登録に失敗しました。"));
     }
 
-    setMessage(`ユーザ「${body.id}」を登録しました。`);
+    setMessage(t("userAdmin.userCreated", { userId: body.id }, `ユーザ「${body.id}」を登録しました。`));
     newUserIdInput.value = "";
     newUserPasswordInput.value = "";
     await fetchUsers();
   } catch (error) {
-    setMessage(error.message || "ユーザ登録に失敗しました。", true);
+    setMessage(error.message || t("userAdmin.createUserFailed", {}, "ユーザ登録に失敗しました。"), true);
   }
 };
 
@@ -187,11 +201,18 @@ const updatePassword = async (event) => {
   const currentPassword = currentPasswordInput.value.trim();
   const newPassword = updatedPasswordInput.value.trim();
   if (!id || !currentPassword || !newPassword) {
-    setMessage("変更対象ユーザID・現在のパスワード・新しいパスワードを入力してください。", true);
+    setMessage(
+      t(
+        "userAdmin.enterPasswordUpdateFields",
+        {},
+        "変更対象ユーザID・現在のパスワード・新しいパスワードを入力してください。"
+      ),
+      true
+    );
     return;
   }
 
-  setMessage("パスワードを変更中...");
+  setMessage(t("userAdmin.updatingPassword", {}, "パスワードを変更中..."));
 
   try {
     const response = await fetch(`${userAdminBaseUrl}/users/${encodeURIComponent(id)}/password`, {
@@ -202,16 +223,16 @@ const updatePassword = async (event) => {
 
     const body = await response.json().catch(() => ({}));
     if (!response.ok) {
-      throw new Error(body.error || "パスワード変更に失敗しました。");
+      throw new Error(body.error || t("userAdmin.updatePasswordFailed", {}, "パスワード変更に失敗しました。"));
     }
 
-    setMessage(`ユーザ「${id}」のパスワードを変更しました。`);
+    setMessage(t("userAdmin.passwordUpdated", { userId: id }, `ユーザ「${id}」のパスワードを変更しました。`));
     passwordTargetUserIdInput.value = "";
     currentPasswordInput.value = "";
     updatedPasswordInput.value = "";
     await fetchUsers();
   } catch (error) {
-    const message = error.message || "パスワード変更に失敗しました。";
+    const message = error.message || t("userAdmin.updatePasswordFailed", {}, "パスワード変更に失敗しました。");
     if (message.includes("invalid current password")) {
       currentPasswordInput.value = "";
       currentPasswordInput.focus();
@@ -257,14 +278,14 @@ const authenticateAdminAccess = async (password) => {
     );
   } catch (error) {
     if (error && error.name === "AbortError") {
-      throw new Error("認証サーバへの接続がタイムアウトしました。もう一度お試しください。");
+      throw new Error(t("userAdmin.authTimeout", {}, "認証サーバへの接続がタイムアウトしました。もう一度お試しください。"));
     }
-    throw new Error("認証サーバへ接続できません。サーバ起動状態を確認してください。");
+    throw new Error(t("userAdmin.authServerUnavailable", {}, "認証サーバへ接続できません。サーバ起動状態を確認してください。"));
   }
 
   const body = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(body.error || "認証に失敗しました。API接続を確認してください。");
+    throw new Error(body.error || t("userAdmin.authFailed", {}, "認証に失敗しました。API接続を確認してください。"));
   }
 
   return true;
@@ -283,11 +304,11 @@ const loginForAdminPage = async (event) => {
 
   const password = adminPasswordInput.value;
   if (!password) {
-    setAuthMessage("パスワードを入力してください。", true);
+    setAuthMessage(t("userAdmin.enterAdminPassword", {}, "パスワードを入力してください。"), true);
     return;
   }
 
-  setAuthMessage("認証中...");
+  setAuthMessage(t("userAdmin.authInProgress", {}, "認証中..."));
   isAdminLoginInProgress = true;
   if (openUserAdminBtn) {
     openUserAdminBtn.disabled = true;
@@ -298,7 +319,7 @@ const loginForAdminPage = async (event) => {
   } catch (error) {
     adminPasswordInput.value = "";
     adminPasswordInput.focus();
-    setAuthMessage(error.message || "パスワードが正しくありません。", true);
+    setAuthMessage(error.message || t("userAdmin.incorrectPassword", {}, "パスワードが正しくありません。"), true);
     isAdminLoginInProgress = false;
     if (openUserAdminBtn) {
       openUserAdminBtn.disabled = false;

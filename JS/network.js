@@ -95,6 +95,13 @@ function logAction(message) {
   }
 }
 
+var t = (key, vars = {}, fallback = "") => {
+  if (window.APP_I18N && typeof window.APP_I18N.t === "function") {
+    return window.APP_I18N.t(key, vars, fallback);
+  }
+  return fallback || key;
+};
+
 // ノードの選択イベント
 network.on("selectNode", function (event) {
   if (event.nodes.length > 0) {
@@ -217,7 +224,7 @@ network.on("doubleClick", function (event) {
     var nodeId = event.nodes[0];
     var nodeData = nodes.get(nodeId);
     var oldLabel = nodeData ? nodeData.label : "";
-    var newLabel = prompt("ノードのラベルを変更", nodeData.label);
+    var newLabel = prompt(t("prompts.editNodeLabel", {}, "ノードのラベルを変更"), nodeData.label);
     if (newLabel !== null && newLabel !== oldLabel) {
       nodeData.label = newLabel;
       nodes.update(nodeData); // ノードデータを更新
@@ -228,7 +235,7 @@ network.on("doubleClick", function (event) {
     var edgeId = event.edges[0];
     var edgeData = edges.get(edgeId);
     var oldEdgeLabel = edgeData ? edgeData.label : "";
-    var newLabel = prompt("エッジのラベルを変更", edgeData.label);
+    var newLabel = prompt(t("prompts.editEdgeLabel", {}, "エッジのラベルを変更"), edgeData.label);
     if (newLabel !== null && newLabel !== oldEdgeLabel) {
       edgeData.label = newLabel;
       edges.update(edgeData); // エッジデータを更新
@@ -242,7 +249,7 @@ document.getElementById("addNodeBtn").addEventListener("click", function () {
   var position = getNonOverlappingNodePosition();
   var newNode = {
     id: getNextNumericNodeId(), // 既存IDと衝突しないIDを採番
-    label: "New Node",
+    label: t("defaults.newNode", {}, "新しいノード"),
     x: position.x,
     y: position.y,
     color: {
@@ -276,7 +283,7 @@ function recenterMap() {
       scale: 1,
       animation: { duration: 300, easingFunction: "easeInOutQuad" }
     });
-    logAction("キーワードマップ: 中央表示（ノードなし）");
+    logAction(t("logs.mapCenterNoNodes", {}, "キーワードマップ: 中央表示（ノードなし）"));
     return;
   }
 
@@ -284,7 +291,7 @@ function recenterMap() {
     nodes: allNodes.map((n) => n.id),
     animation: { duration: 400, easingFunction: "easeInOutQuad" }
   });
-  logAction("キーワードマップ: 中央表示");
+  logAction(t("logs.mapCenter", {}, "キーワードマップ: 中央表示"));
 }
 
 if (recenterMapBtn) {
@@ -301,7 +308,7 @@ if (recenterMapBtn) {
 
 function deleteSelectedNodesWithConfirm() {
   if (selectedNodes.length === 0) {
-    alert("削除するノードを選択してください。");
+    alert(t("alerts.selectNodeToDelete", {}, "削除するノードを選択してください。"));
     return false;
   }
 
@@ -310,16 +317,16 @@ function deleteSelectedNodesWithConfirm() {
     .filter((node) => !!node);
 
   if (nodesToDelete.length === 0) {
-    alert("削除対象ノードを取得できませんでした。");
+    alert(t("alerts.failedGetDeleteNode", {}, "削除対象ノードを取得できませんでした。"));
     return false;
   }
 
   const confirmMessage = [
-    `以下の ${nodesToDelete.length} 件のノードを削除します。`,
+    t("confirms.deleteNodesHeader", { count: nodesToDelete.length }, `以下の ${nodesToDelete.length} 件のノードを削除します。`),
     "",
-    ...nodesToDelete.map((node) => `- [${node.id}] ${node.label || "(ラベルなし)"}`),
+    ...nodesToDelete.map((node) => `- [${node.id}] ${node.label || t("labels.noLabel", {}, "(ラベルなし)")}`),
     "",
-    "本当に削除してよいですか？"
+    t("confirms.deleteNodesFooter", {}, "本当に削除してよいですか？")
   ].join("\n");
 
   if (!confirm(confirmMessage)) {
@@ -382,7 +389,7 @@ document.getElementById("addEdgeBtn").addEventListener("click", function () {
       id: getNextEdgeId(),
       from: selectedNodes[0],
       to: selectedNodes[1],
-      label: "New Edge",
+      label: t("defaults.newEdge", {}, "新しいリンク"),
       arrows: arrowEnabled ? "to" : "" // 矢印の有無をチェックボックスで決定
     };
     try {
@@ -393,7 +400,7 @@ document.getElementById("addEdgeBtn").addEventListener("click", function () {
       console.error("エッジの追加に失敗しました:", error);
     }
   } else {
-    alert("2つのノードを選択してください。");
+    alert(t("alerts.selectTwoNodes", {}, "2つのノードを選択してください。"));
   }
 });
 
@@ -421,10 +428,10 @@ document.getElementById("deleteEdgeBtn").addEventListener("click", function () {
       logAction(`キーワードマップ: リンク削除 from=${fromNode} to=${toNode} count=${edgesToDelete.length}`);
       //alert("エッジを削除しました。");
     } else {
-      alert("選択されたノード間にエッジが存在しません。");
+      alert(t("alerts.edgeNotFoundBetweenNodes", {}, "選択されたノード間にエッジが存在しません。"));
     }
   } else {
-    alert("2つのノードを選択してください。");
+    alert(t("alerts.selectTwoNodes", {}, "2つのノードを選択してください。"));
   }
 });
 

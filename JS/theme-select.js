@@ -5,6 +5,13 @@ const themeHistoryList = document.getElementById("themeHistoryList");
 const deleteSelectedThemeBtn = document.getElementById("deleteSelectedThemeBtn");
 const clearThemeHistoryBtn = document.getElementById("clearThemeHistoryBtn");
 
+var t = (key, vars = {}, fallback = "") => {
+  if (window.APP_I18N && typeof window.APP_I18N.t === "function") {
+    return window.APP_I18N.t(key, vars, fallback);
+  }
+  return fallback || key;
+};
+
 const appConfig = window.APP_CONFIG || {};
 const fallbackHost = window.location.hostname || "127.0.0.1";
 const authApiPort = Number(appConfig.apiPort || 3000);
@@ -62,7 +69,7 @@ const ensureThemeXmlExists = async (userName, themeName) => {
     `${saveXmlBase}/xml-exists?filename=${encodeURIComponent(filename)}`
   );
   if (!existsRes.ok) {
-    throw new Error("XML存在確認に失敗しました");
+    throw new Error(t("errors.xmlExistsCheckFailed", {}, "XML存在確認に失敗しました"));
   }
 
   const existsBody = await existsRes.json();
@@ -75,14 +82,14 @@ const ensureThemeXmlExists = async (userName, themeName) => {
     body: JSON.stringify({ filename, content: initialXml }),
   });
   if (!createRes.ok) {
-    throw new Error("初期XMLの作成に失敗しました");
+    throw new Error(t("errors.initialXmlCreateFailed", {}, "初期XMLの作成に失敗しました"));
   }
 };
 
 const fetchThemeHistory = async (userName) => {
   const res = await fetch(`${themeApiBase}/users/${encodeURIComponent(userName)}/themes`);
   if (!res.ok) {
-    throw new Error("テーマ履歴の取得に失敗しました");
+    throw new Error(t("errors.themeHistoryFetchFailed", {}, "テーマ履歴の取得に失敗しました"));
   }
 
   const body = await res.json();
@@ -107,7 +114,7 @@ const saveTheme = async (userName, themeName) => {
     }),
   });
   if (!res.ok) {
-    throw new Error("テーマの保存に失敗しました");
+    throw new Error(t("errors.themeSaveFailed", {}, "テーマの保存に失敗しました"));
   }
 };
 
@@ -117,7 +124,7 @@ const removeTheme = async (userName, themeName) => {
     { method: "DELETE" }
   );
   if (!res.ok && res.status !== 404) {
-    throw new Error("テーマ削除に失敗しました");
+    throw new Error(t("errors.themeDeleteFailed", {}, "テーマ削除に失敗しました"));
   }
 };
 
@@ -126,7 +133,7 @@ const clearThemes = async (userName) => {
     method: "DELETE",
   });
   if (!res.ok) {
-    throw new Error("履歴削除に失敗しました");
+    throw new Error(t("errors.themeClearFailed", {}, "履歴削除に失敗しました"));
   }
 };
 
@@ -188,7 +195,7 @@ const initialize = async () => {
     renderThemeHistory(cachedThemes);
   } catch (error) {
     console.error(error);
-    alert("テーマ履歴の取得に失敗しました。サーバー状態を確認してください。");
+    alert(t("alerts.themeHistoryLoadFailed", {}, "テーマ履歴の取得に失敗しました。サーバー状態を確認してください。"));
     cachedThemes = [];
     renderThemeHistory(cachedThemes);
   }
@@ -200,7 +207,7 @@ const initialize = async () => {
 const startSearch = async () => {
   const title = titleInput.value.trim();
   if (!title) {
-    alert("タイトルを入力してください。");
+    alert(t("alerts.enterTitle", {}, "タイトルを入力してください。"));
     return;
   }
 
@@ -210,7 +217,7 @@ const startSearch = async () => {
     cachedThemes = await fetchThemeHistory(currentUser);
   } catch (error) {
     console.error(error);
-    alert("テーマ保存に失敗しました。時間をおいて再実行してください。");
+    alert(t("alerts.themeSaveFailedRetry", {}, "テーマ保存に失敗しました。時間をおいて再実行してください。"));
     return;
   }
 
@@ -221,11 +228,13 @@ const startSearch = async () => {
 const deleteSelectedTheme = async () => {
   const selectedTheme = normalizeThemeName(selectedThemeName || titleInput.value);
   if (!selectedTheme) {
-    alert("削除するテーマを選択してください。");
+    alert(t("alerts.selectThemeToDelete", {}, "削除するテーマを選択してください。"));
     return;
   }
 
-  const ok = window.confirm(`「${selectedTheme}」を削除します。よろしいですか？`);
+  const ok = window.confirm(
+    t("confirms.deleteTheme", { theme: selectedTheme }, `「${selectedTheme}」を削除します。よろしいですか？`)
+  );
   if (!ok) return;
 
   try {
@@ -233,7 +242,7 @@ const deleteSelectedTheme = async () => {
     cachedThemes = await fetchThemeHistory(currentUser);
   } catch (error) {
     console.error(error);
-    alert("テーマ削除に失敗しました。");
+    alert(t("alerts.themeDeleteFailed", {}, "テーマ削除に失敗しました。"));
     return;
   }
 
@@ -248,7 +257,7 @@ const clearAllThemeHistory = async () => {
   const hasHistory = cachedThemes.length > 0;
   if (!hasHistory) return;
 
-  const ok = window.confirm("テーマ履歴をすべて削除します。よろしいですか？");
+  const ok = window.confirm(t("confirms.clearThemeHistory", {}, "テーマ履歴をすべて削除します。よろしいですか？"));
   if (!ok) return;
 
   try {
@@ -256,7 +265,7 @@ const clearAllThemeHistory = async () => {
     cachedThemes = [];
   } catch (error) {
     console.error(error);
-    alert("履歴全削除に失敗しました。");
+    alert(t("alerts.clearHistoryFailed", {}, "履歴全削除に失敗しました。"));
     return;
   }
 

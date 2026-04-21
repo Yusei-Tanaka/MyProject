@@ -1,6 +1,86 @@
 // キーワードをクリックした際にノードを追加
 const KEYWORDS_DISABLE_WIKIDATA_CHECKS_TEMP = true;
 
+var t = (key, vars = {}, fallback = "") => {
+    if (window.APP_I18N && typeof window.APP_I18N.t === "function") {
+        return window.APP_I18N.t(key, vars, fallback);
+    }
+    return fallback || key;
+};
+
+function getKeywordsUiLanguage() {
+    if (window.APP_I18N && typeof window.APP_I18N.getLanguage === "function") {
+        return window.APP_I18N.getLanguage();
+    }
+    const htmlLang = (document.documentElement.getAttribute("lang") || "").trim();
+    return htmlLang || "ja";
+}
+
+function isKeywordsEnglishUi() {
+    return String(getKeywordsUiLanguage()).toLowerCase().startsWith("en");
+}
+
+function buildKeywordPrompt(themeValue, chunk, perspectiveLegend, useEnglishPrompt) {
+    if (useEnglishPrompt) {
+        return `
+        ## Task
+        Goal: The learner is currently exploring "${themeValue}". For each target keyword, list up to 10 related terms that exist in Wikidata for each perspective ID (Pxx).
+
+        ## Target keywords
+        ${chunk.map(k => `- ${k}`).join("\n")}
+
+        ## Perspective IDs
+        ${perspectiveLegend}
+
+        ## Constraints
+        1. Use only perspective IDs (e.g., P01) as output keys.
+        2. Every related term must correspond to an existing Wikidata item.
+        3. Do not force-fill missing terms.
+
+        ## Language requirement
+        1. Output all related terms in English.
+        2. If an input keyword is in Japanese, convert it to natural English terms.
+        3. Avoid Japanese output except for proper nouns that should remain unchanged.
+
+        ## Output format
+        {
+            "TargetKeyword1": {
+                "P01": ["related term 1", "related term 2"],
+                "P02": []
+            }
+        }
+        `;
+    }
+
+    return `
+        ##タスク
+        目的: 学習者は「${themeValue}」の探究中。各対象キーワードについて観点ID(Pxx)ごとにWikidataに存在する関連語を最大10件挙げること。
+
+        ##対象キーワード
+        ${chunk.map(k => `- ${k}`).join("\n")}
+
+        ##観点ID一覧
+        ${perspectiveLegend}
+
+        ##制約
+        1. 出力キーは観点ID(P01等)のみを使用。
+        2. 各語はWikidataに項目があるものに限定。
+        3. 関連語が不足する場合は無理に埋めない。
+
+        ##言語要件
+        1. 関連語は日本語で出力すること。
+        2. 固有名詞など翻訳が不要な語は原語を維持してよい。
+
+        ##出力形式
+        {
+            "対象キーワード1": {
+                "P01": ["関連語1", "関連語2"],
+                "P02": []
+            }
+        }
+        `;
+}
+
 function handleKeywordClick(keyword) {
     console.log(`クリックされたキーワード: ${keyword}`); // クリックされたキーワードを確認
 
@@ -63,7 +143,7 @@ function showKeywordLoading() {
 
     const message = document.createElement("div");
     message.className = "keyword-loading";
-    message.textContent = "思考中...";
+    message.textContent = t("loading.thinking", {}, "思考中...");
 
     overlay.appendChild(message);
     container.appendChild(overlay);
@@ -78,27 +158,43 @@ function removeKeywordLoading() {
 // output内のキーワード群を基にAPIへ問い合わせる
 async function requestKeywordsFromOutput(keywords) {
     const uniqueKeywords = [...new Set(keywords.map(k => k.trim()).filter(Boolean))];
+    const useEnglishPrompt = isKeywordsEnglishUi();
 
     if (uniqueKeywords.length === 0) {
         console.log("APIリクエスト用のキーワードがありません。");
         return;
     }
 
-    const themeValue = (window.theme || document.querySelector("#myTitle")?.value || "未設定のテーマ").trim();
-    const relationPerspectives = [
-        { id: "P01", label: "背景" },
-        { id: "P02", label: "課題" },
-        { id: "P03", label: "影響" },
-        { id: "P04", label: "対策" },
-        { id: "P05", label: "要因" },
-        { id: "P06", label: "評価" },
-        { id: "P07", label: "持続可能性" },
-        { id: "P08", label: "技術" },
-        { id: "P09", label: "経済" },
-        { id: "P10", label: "国際比較" },
-        { id: "P11", label: "行動" },
-        { id: "P12", label: "環境負荷" }
-    ];
+    const themeValue = (window.theme || document.querySelector("#myTitle")?.value || t("defaults.unsetTheme", {}, "未設定のテーマ")).trim();
+    const relationPerspectives = useEnglishPrompt
+        ? [
+            { id: "P01", label: "Background" },
+            { id: "P02", label: "Challenge" },
+            { id: "P03", label: "Impact" },
+            { id: "P04", label: "Measures" },
+            { id: "P05", label: "Cause" },
+            { id: "P06", label: "Evaluation" },
+            { id: "P07", label: "Sustainability" },
+            { id: "P08", label: "Technology" },
+            { id: "P09", label: "Economy" },
+            { id: "P10", label: "InternationalComparison" },
+            { id: "P11", label: "Action" },
+            { id: "P12", label: "EnvironmentalLoad" }
+        ]
+        : [
+            { id: "P01", label: "背景" },
+            { id: "P02", label: "課題" },
+            { id: "P03", label: "影響" },
+            { id: "P04", label: "対策" },
+            { id: "P05", label: "要因" },
+            { id: "P06", label: "評価" },
+            { id: "P07", label: "持続可能性" },
+            { id: "P08", label: "技術" },
+            { id: "P09", label: "経済" },
+            { id: "P10", label: "国際比較" },
+            { id: "P11", label: "行動" },
+            { id: "P12", label: "環境負荷" }
+        ];
 
     const perspectiveIdMap = new Map(relationPerspectives.map(p => [p.id, p.label]));
     const aiResponses = [];
@@ -160,29 +256,7 @@ async function requestKeywordsFromOutput(keywords) {
     
     const chunkTasks = keywordChunks.map(chunk => {
         const chunkLabel = chunk.join(", ");
-        const prompt = `
-        ##タスク
-        目的: 学習者は「${themeValue}」の探究中。各対象キーワードについて観点ID(Pxx)ごとにWikidataに存在する関連語を最大10件挙げること。
-
-        ##対象キーワード
-        ${chunk.map(k => `- ${k}`).join("\n")}
-
-        ##観点ID一覧
-        ${perspectiveLegend}
-
-        ##制約
-        1. 出力キーは観点ID(P01等)のみを使用。
-        2. 各語はWikidataに項目があるものに限定。
-        3. 関連語が不足する場合は無理に埋めない。
-
-        ##出力形式
-        {
-            "対象キーワード1": {
-                "P01": ["関連語1", "関連語2"],
-                "P02": []
-            }
-        }
-        `;
+        const prompt = buildKeywordPrompt(themeValue, chunk, perspectiveLegend, useEnglishPrompt);
 
         console.log("生成されたプロンプト(output部分):", prompt);
         return postPrompt(prompt, chunkLabel).then(success => ({ chunkLabel, success }));
@@ -467,7 +541,7 @@ function renderAiKeywords(resultBox, aiResponses) {
     });
 
     if (!list.hasChildNodes()) {
-        resultBox.innerHTML += "<p>生成キーワードを取得できませんでした。</p>";
+        resultBox.innerHTML += `<p>${t("keyword.fetchGeneratedFailed", {}, "生成キーワードを取得できませんでした。")}</p>`;
         return;
     }
 
@@ -493,7 +567,7 @@ function collectAiKeywords(aiResponses) {
 
 function renderUnifiedKeywords(resultBox, unifiedKeywords) {
     if (!Array.isArray(unifiedKeywords) || unifiedKeywords.length === 0) {
-        resultBox.innerHTML += "<p>キーワードを取得できませんでした。</p>";
+        resultBox.innerHTML += `<p>${t("keyword.fetchFailed", {}, "キーワードを取得できませんでした。")}</p>`;
         return;
     }
 
@@ -564,7 +638,7 @@ document.addEventListener("DOMContentLoaded", function () {
             removeKeywordLoading();
         }
 
-        resultBox.innerHTML = "<strong><u>生成されたキーワード</u></strong><br>";
+        resultBox.innerHTML = `<strong><u>${t("labels.generatedKeywordHeader", {}, "生成されたキーワード")}</u></strong><br>`;
 
         const unified = Array.from(new Set([
             ...collectAiKeywords(aiResponses),

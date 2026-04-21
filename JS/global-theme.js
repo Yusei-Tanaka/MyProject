@@ -167,15 +167,46 @@
 
   const resolveThemeName = (themeName) => (THEME_MAP[themeName] ? themeName : DEFAULT_THEME);
 
+  const i18nT = (key, vars = {}, fallback = "") => {
+    if (window.APP_I18N && typeof window.APP_I18N.t === "function") {
+      return window.APP_I18N.t(key, vars, fallback);
+    }
+    return fallback || key;
+  };
+
   const THEME_META = {
-    sky: { label: "スカイ", color: "#3b82f6" },
-    forest: { label: "フォレスト", color: "#2f855a" },
-    sunset: { label: "サンセット", color: "#b44f72" },
-    slate: { label: "スレート", color: "#4b5563" }
+    sky: { label: "スカイ", labelKey: "theme.sky", color: "#3b82f6" },
+    forest: { label: "フォレスト", labelKey: "theme.forest", color: "#2f855a" },
+    sunset: { label: "サンセット", labelKey: "theme.sunset", color: "#b44f72" },
+    slate: { label: "スレート", labelKey: "theme.slate", color: "#4b5563" }
   };
 
   let switcherRoot = null;
+  let switcherLabel = null;
   const dotsByTheme = new Map();
+
+  const getThemeLabel = (themeName) => {
+    const meta = THEME_META[themeName] || { label: themeName };
+    return i18nT(meta.labelKey, {}, meta.label || themeName);
+  };
+
+  const updateThemeSwitcherLocale = () => {
+    if (!switcherRoot) return;
+
+    switcherRoot.setAttribute("aria-label", i18nT("theme.switcherAria", {}, "表示テーマ切替"));
+    if (switcherLabel) {
+      switcherLabel.textContent = i18nT("theme.label", {}, "テーマ");
+    }
+
+    dotsByTheme.forEach((button, themeName) => {
+      const themeLabel = getThemeLabel(themeName);
+      button.title = i18nT("theme.optionTitle", { theme: themeLabel }, `${themeLabel}テーマ`);
+      button.setAttribute(
+        "aria-label",
+        i18nT("theme.optionAria", { theme: themeLabel }, `${themeLabel}テーマに変更`)
+      );
+    });
+  };
 
   const updateActiveDot = (themeName) => {
     dotsByTheme.forEach((dot, name) => {
@@ -211,24 +242,30 @@
     const root = document.createElement("div");
     root.className = "theme-switcher";
     root.setAttribute("role", "group");
-    root.setAttribute("aria-label", "表示テーマ切替");
+    root.setAttribute("aria-label", i18nT("theme.switcherAria", {}, "表示テーマ切替"));
 
     const label = document.createElement("span");
     label.className = "theme-switcher-label";
-    label.textContent = "テーマ";
+    label.textContent = i18nT("theme.label", {}, "テーマ");
     root.appendChild(label);
+    switcherLabel = label;
 
     const palette = document.createElement("div");
     palette.className = "theme-switcher-palette";
 
     Object.keys(THEME_MAP).forEach((themeName) => {
       const meta = THEME_META[themeName] || { label: themeName, color: "#94a3b8" };
+      const themeLabel = getThemeLabel(themeName);
       const button = document.createElement("button");
       button.type = "button";
       button.className = "theme-switcher-dot";
       button.style.backgroundColor = meta.color;
-      button.title = `${meta.label}テーマ`;
-      button.setAttribute("aria-label", `${meta.label}テーマに変更`);
+      button.dataset.themeName = themeName;
+      button.title = i18nT("theme.optionTitle", { theme: themeLabel }, `${themeLabel}テーマ`);
+      button.setAttribute(
+        "aria-label",
+        i18nT("theme.optionAria", { theme: themeLabel }, `${themeLabel}テーマに変更`)
+      );
       button.setAttribute("aria-pressed", "false");
       button.addEventListener("click", () => {
         applyAppTheme(themeName, true);
@@ -241,6 +278,7 @@
     root.appendChild(palette);
     document.body.appendChild(root);
     switcherRoot = root;
+    updateThemeSwitcherLocale();
     updateActiveDot(getStoredTheme());
   };
 
@@ -250,6 +288,10 @@
   window.getStoredAppTheme = getStoredTheme;
 
   const currentTheme = applyAppTheme(getStoredTheme(), false);
+
+  window.addEventListener("app-language-changed", () => {
+    updateThemeSwitcherLocale();
+  });
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => {

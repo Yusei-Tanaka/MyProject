@@ -2,6 +2,13 @@ const startSearchBtn = document.getElementById("startSearchBtn");
 const usernameInput = document.getElementById("username");
 const userPasswordInput = document.getElementById("userPassword");
 
+var t = (key, vars = {}, fallback = "") => {
+  if (window.APP_I18N && typeof window.APP_I18N.t === "function") {
+    return window.APP_I18N.t(key, vars, fallback);
+  }
+  return fallback || key;
+};
+
 const appConfig = window.APP_CONFIG || {};
 const authApiBase = appConfig.apiBaseUrl || `http://${window.location.hostname || "127.0.0.1"}:${Number(appConfig.apiPort || 3000)}`;
 const authenticateUser = async (id, password) => {
@@ -22,13 +29,13 @@ const authenticateUser = async (id, password) => {
 const login = async () => {
   const id = usernameInput.value.trim();
   const password = userPasswordInput.value.trim();
-  if (!id || !password) return alert("IDとパスワードを入力してください。");
+  if (!id || !password) return alert(t("alerts.loginMissingCredentials", {}, "IDとパスワードを入力してください。"));
 
   const isAuthenticated = await authenticateUser(id, password);
   if (!isAuthenticated) {
     userPasswordInput.value = "";
     userPasswordInput.focus();
-    alert("ログインに失敗しました。登録済みユーザのID/パスワードを確認してください。");
+    alert(t("alerts.loginFailed", {}, "ログインに失敗しました。登録済みユーザのID/パスワードを確認してください。"));
     return;
   }
 

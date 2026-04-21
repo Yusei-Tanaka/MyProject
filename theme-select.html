@@ -2,39 +2,51 @@
 <html lang="ja">
   <head>
     <meta charset="utf-8">
-    <title>探索テーマ選択 - 探索活動支援システム</title>
+    <title data-i18n="title.themeSelect">探索テーマ選択 - 探索活動支援システム</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/svg+xml" href="./img/favicon.svg">
   </head>
   <body>
     <div class="title-input-container">
-      <h1>取り組むテーマを入力または選択してください</h1>
+      <h1 data-i18n="themeSelect.heading">取り組むテーマを入力または選択してください</h1>
       <div id="themeHistoryContainer" class="theme-history-container">
-        <label>これまでのテーマ一覧</label>
-        <div id="themeHistoryList" class="theme-history-list" role="listbox" aria-label="これまでのテーマ一覧"></div>
+        <label data-i18n="themeSelect.historyLabel">これまでのテーマ一覧</label>
+        <div
+          id="themeHistoryList"
+          class="theme-history-list"
+          role="listbox"
+          aria-label="これまでのテーマ一覧"
+          data-i18n-aria-label="themeSelect.historyAria"
+        ></div>
         <div class="theme-history-actions">
-          <button id="deleteSelectedThemeBtn" type="button">選択テーマ削除</button>
-          <button id="clearThemeHistoryBtn" type="button">履歴全削除</button>
+          <button id="deleteSelectedThemeBtn" type="button" data-i18n="themeSelect.deleteSelected">選択テーマ削除</button>
+          <button id="clearThemeHistoryBtn" type="button" data-i18n="themeSelect.clearHistory">履歴全削除</button>
         </div>
       </div>
 
       <div class="new-theme-container">
-        <label for="titleInput">新規テーマ</label>
-        <input id="titleInput" type="text" placeholder="新しい探索テーマを入力" required>
+        <label for="titleInput" data-i18n="themeSelect.newThemeLabel">新規テーマ</label>
+        <input id="titleInput" type="text" placeholder="新しい探索テーマを入力" data-i18n-placeholder="themeSelect.newThemePlaceholder" required>
       </div>
-      <button id="startSearchBtn">探索スタート!</button>
+      <button id="startSearchBtn" data-i18n="themeSelect.startButton">探索スタート!</button>
     </div>
 
     <div class="admin-link-container">
-      <select id="adminMenuSelect" class="admin-link-select" aria-label="管理画面選択">
-        <option value="">管理画面を選択</option>
+      <select
+        id="adminMenuSelect"
+        class="admin-link-select"
+        aria-label="管理画面選択"
+        data-i18n-aria-label="admin.menuAria"
+      >
+        <option value="" data-i18n="admin.choose">管理画面を選択</option>
         <option value="phpmyadmin">phpMyAdmin</option>
-        <option value="user-admin.html">ユーザ管理画面</option>
+        <option value="user-admin.html" data-i18n="admin.userAdmin">ユーザ管理画面</option>
       </select>
     </div>
 
     <script src="JS/runtime-config.js"></script>
+    <script src="JS/i18n.js"></script>
     <script src="JS/global-theme.js"></script>
     <script src="JS/theme-select.js"></script>
     <script src="JS/admin-menu.js"></script>
