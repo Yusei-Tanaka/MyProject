@@ -1,4 +1,6 @@
 // キーワードをクリックした際にノードを追加
+const KEYWORDS_DISABLE_WIKIDATA_CHECKS_TEMP = true;
+
 function handleKeywordClick(keyword) {
     console.log(`クリックされたキーワード: ${keyword}`); // クリックされたキーワードを確認
 
@@ -207,6 +209,10 @@ async function requestKeywordsFromOutput(keywords) {
 
 // 複数キーワードのエンティティIDから共通関連語を取得（Wikidata）
 async function requestCommonKeywordsFromEntities(keywords) {
+    if (KEYWORDS_DISABLE_WIKIDATA_CHECKS_TEMP) {
+        return [];
+    }
+
     const uniqueKeywords = [...new Set(keywords.map(k => k.trim()).filter(Boolean))];
     if (uniqueKeywords.length === 0) {
         return [];
@@ -234,20 +240,52 @@ async function requestCommonKeywordsFromEntities(keywords) {
 }
 
 async function filterKeywordsByWikidata(keywords) {
-    const checks = await Promise.all(keywords.map(async keyword => {
+    if (KEYWORDS_DISABLE_WIKIDATA_CHECKS_TEMP) {
+        const passThroughKeywords = [...new Set((keywords || []).map(keyword => (keyword || "").trim()).filter(Boolean))];
+        return {
+            validKeywords: passThroughKeywords,
+            missingKeywords: [],
+            unresolvedKeywords: []
+        };
+    }
+
+    const uniqueKeywords = [...new Set((keywords || []).map(keyword => (keyword || "").trim()).filter(Boolean))];
+
+    const mapWithConcurrency = async (items, mapper, concurrency = 3) => {
+        const source = Array.isArray(items) ? items : [];
+        const results = new Array(source.length);
+        let cursor = 0;
+
+        const workers = Array.from({ length: Math.max(1, concurrency) }, async () => {
+            while (true) {
+                const index = cursor;
+                cursor += 1;
+                if (index >= source.length) {
+                    return;
+                }
+                results[index] = await mapper(source[index], index);
+            }
+        });
+
+        await Promise.all(workers);
+        return results;
+    };
+
+    const checks = await mapWithConcurrency(uniqueKeywords, async keyword => {
         try {
             const entityId = await getWikidataEntityId(keyword);
             return { keyword, entityId };
         } catch (error) {
             console.error(`Wikidata検索でエラーが発生しました (${keyword})`, error);
-            return { keyword, entityId: null };
+            return { keyword, entityId: undefined };
         }
-    }));
+    }, 1);
 
-    const validKeywords = checks.filter(item => item.entityId).map(item => item.keyword);
-    const missingKeywords = checks.filter(item => !item.entityId).map(item => item.keyword);
+    const validKeywords = checks.filter(item => typeof item.entityId === "string" && item.entityId.length > 0).map(item => item.keyword);
+    const missingKeywords = checks.filter(item => item.entityId === null).map(item => item.keyword);
+    const unresolvedKeywords = checks.filter(item => typeof item.entityId === "undefined").map(item => item.keyword);
 
-    return { validKeywords, missingKeywords };
+    return { validKeywords, missingKeywords, unresolvedKeywords };
 }
 
 // AIレスポンスに含まれるJSON文字列を安全に抽出・解析する
@@ -532,9 +570,16 @@ document.addEventListener("DOMContentLoaded", function () {
             ...collectAiKeywords(aiResponses),
             ...(commonKeywords || [])
         ]));
-        const { validKeywords: displayKeywords, missingKeywords } = await filterKeywordsByWikidata(unified);
+        const { validKeywords, missingKeywords, unresolvedKeywords } = await filterKeywordsByWikidata(unified);
+        const displayKeywords = Array.from(new Set([
+            ...validKeywords,
+            ...unresolvedKeywords
+        ]));
         if (missingKeywords.length > 0) {
             console.warn("表示対象から除外したWikidata未登録語:", missingKeywords);
+        }
+        if (unresolvedKeywords.length > 0) {
+            console.warn("Wikidata混雑のため検証スキップした語:", unresolvedKeywords);
         }
 
         const shuffled = shuffleArray(displayKeywords);

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?meta title="持続可能なこれからのエネルギーの作り方を考える"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="再生可能エネルギー" x="150" y="4" />
+    <Node id="2" label="自然の力を使い，発電する　" x="-135" y="-165" />
+    <Node id="3" label="風力" x="-307" y="-274" />
+    <Node id="4" label="水力" x="-87" y="-285" />
+    <Node id="5" label="太陽光" x="83" y="-265" />
+    <Node id="6" label="持続可能なエネルギー" x="627" y="15" />
+    <Node id="7" label="環境に対する配慮" x="1011" y="16" />
+    <Node id="8" label="コストの高さ" x="681" y="-134" />
+    <Node id="9" label="新たな設備投資が必要" x="448" y="-214" />
+    <Node id="10" label="発電コスト" x="713" y="-333" />
+    <Node id="11" label="土地の確保" x="298" y="-349" />
+    <Node id="12" label="技術" x="1025" y="-98" />
+    <Node id="13" label="制御技術" x="904" y="-225" />
+    <Node id="14" label="安全性" x="1061" y="-227" />
+    <Node id="15" label="メンテナンスの必要性" x="1225" y="-227" />
+    <Node id="16" label="蓄電可能か" x="1228" y="-155" />
+    <Node id="17" label="社会的に受け入れられるのか" x="398" y="213" />
+    <Node id="18" label="騒音問題" x="457" y="319" />
+    <Node id="19" label="景観を損ねてしまう" x="294" y="325" />
+    <Node id="20" label="周辺住民との合意形成" x="648" y="313" />
+    <Node id="21" label="生物多様性の損失" x="869" y="194" />
+    <Node id="22" label="エネルギー効率" x="1241" y="-21" />
+    <Node id="23" label="情報不足" x="692" y="209" />
+    <Node id="24" label="廃棄物処理" x="222" y="140" />
+    <Node id="25" label="ヒューマンエラー" x="1009" y="-307" />
+    <Node id="26" label="健康リスク" x="1158" y="-311" />
+    <Node id="27" label="研究開発" x="380" y="-46" />
+    <Node id="28" label="危険物管理" x="866" y="-307" />
+    <Node id="29" label="劣化" x="1485" y="-147" />
+    <Node id="30" label="故障率" x="1500" y="-317" />
+    <Node id="31" label="耐久性について" x="1356" y="-113" />
+    <Node id="32" label="エネルギー損失" x="1388" y="-285" />
+  </Nodes>
+  <Edges>
+    <Edge id="e1" from="2" to="1" label="既存の手段" arrows="" />
+    <Edge id="e2" from="2" to="3" label="New Edge" arrows="" />
+    <Edge id="e3" from="2" to="4" label="New Edge" arrows="" />
+    <Edge id="e4" from="5" to="2" label="New Edge" arrows="" />
+    <Edge id="e5" from="1" to="6" label="種類" arrows="" />
+    <Edge id="e6" from="6" to="7" label="特徴" arrows="" />
+    <Edge id="e7" from="8" to="6" label="課題" arrows="" />
+    <Edge id="e8" from="8" to="9" label="New Edge" arrows="" />
+    <Edge id="e9" from="8" to="10" label="New Edge" arrows="" />
+    <Edge id="e10" from="9" to="11" label="New Edge" arrows="" />
+    <Edge id="e11" from="12" to="6" label="New Edge" arrows="" />
+    <Edge id="e12" from="16" to="12" label="New Edge" arrows="" />
+    <Edge id="e13" from="12" to="13" label="New Edge" arrows="" />
+    <Edge id="e14" from="14" to="12" label="New Edge" arrows="" />
+    <Edge id="e15" from="15" to="12" label="New Edge" arrows="" />
+    <Edge id="e16" from="17" to="6" label="New Edge" arrows="" />
+    <Edge id="e17" from="20" to="17" label="New Edge" arrows="" />
+    <Edge id="e18" from="18" to="17" label="New Edge" arrows="" />
+    <Edge id="e19" from="19" to="17" label="New Edge" arrows="" />
+    <Edge id="e20" from="21" to="7" label="New Edge" arrows="" />
+    <Edge id="e21" from="12" to="22" label="New Edge" arrows="" />
+    <Edge id="e22" from="23" to="17" label="New Edge" arrows="" />
+    <Edge id="e23" from="6" to="24" label="New Edge" arrows="" />
+    <Edge id="e24" from="14" to="26" label="New Edge" arrows="" />
+    <Edge id="e25" from="14" to="25" label="New Edge" arrows="" />
+    <Edge id="e26" from="14" to="28" label="New Edge" arrows="" />
+    <Edge id="e27" from="25" to="14" label="New Edge" arrows="" />
+    <Edge id="e28" from="31" to="12" label="New Edge" arrows="" />
+    <Edge id="e29" from="31" to="29" label="New Edge" arrows="" />
+    <Edge id="e30" from="31" to="30" label="New Edge" arrows="" />
+    <Edge id="e31" from="16" to="32" label="New Edge" arrows="" />
+  </Edges>
+</ConceptMap>

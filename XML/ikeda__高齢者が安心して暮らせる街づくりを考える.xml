@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?meta title="高齢者が安心して暮らせる街づくりを考える"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="バリアフリーな歩行者道路" x="155" y="-374" />
+    <Node id="2" label="町内会" x="34" y="-54" />
+    <Node id="3" label="病院" x="237" y="-301" />
+    <Node id="4" label="公園" x="143" y="-34" />
+    <Node id="5" label="低い犯罪率" x="-402" y="155" />
+    <Node id="6" label="子供世代が来やすい・過ごしやすい" x="-199" y="-104" />
+    <Node id="7" label="診療所" x="331" y="-258" />
+    <Node id="8" label="車なしでも担保できる利便性" x="31" y="-232" />
+    <Node id="9" label="駅の使いやすさ" x="363" y="-192" />
+    <Node id="10" label="防犯登録" x="-237" y="146" />
+    <Node id="11" label="周辺施設の充実度" x="118" y="-147" />
+    <Node id="12" label="安全性" x="-333" y="47" />
+    <Node id="13" label="立地" x="-245" y="-237" />
+    <Node id="14" label="インフラの充実度" x="25" y="-313" />
+    <Node id="15" label="趣味を楽しめる" x="327" y="26" />
+    <Node id="16" label="ご近所付き合いを楽しめる" x="35" y="94" />
+    <Node id="17" label="散歩できる" x="506" y="-373" />
+    <Node id="18" label="娯楽施設の充実" x="351" y="-63" />
+    <Node id="19" label="明るさ" x="-376" y="-314" />
+    <Node id="20" label="地域での声掛け運動" x="-597" y="18" />
+    <Node id="21" label="祭りなどのイベント" x="-119" y="-32" />
+    <Node id="22" label="生活コストを抑えられる" x="269" y="169" />
+    <Node id="24" label="テクノロジー介護" x="664" y="34" />
+    <Node id="25" label="地域安全" x="-455" y="-66" />
+    <Node id="26" label="認知症" x="-100" y="164" />
+    <Node id="27" label="セキュリティ技術" x="-598" y="128" />
+    <Node id="28" label="高齢者福祉" x="-63" y="340" />
+    <Node id="29" label="介護サービス" x="485" y="230" />
+    <Node id="30" label="住民の幸福" x="79" y="197" />
+    <Node id="31" label="ロボット介護" x="487" y="48" />
+    <Node id="32" label="ボランティア" x="-161" y="59" />
+    <Node id="33" label="孤独死" x="185" y="306" />
+    <Node id="34" label="健康寿命" x="507" y="-250" />
+    <Node id="35" label="地域交流" x="-161" y="272" />
+    <Node id="36" label="防災対策" x="-342" y="286" />
+    <Node id="37" label="街の人口の増加" x="-486" y="-220" />
+  </Nodes>
+  <Edges>
+    <Edge id="e1" from="11" to="3" label="New Edge" arrows="" />
+    <Edge id="e2" from="7" to="11" label="New Edge" arrows="" />
+    <Edge id="e3" from="9" to="11" label="New Edge" arrows="" />
+    <Edge id="e4" from="2" to="11" label="New Edge" arrows="" />
+    <Edge id="e5" from="11" to="4" label="New Edge" arrows="" />
+    <Edge id="e6" from="8" to="13" label="New Edge" arrows="" />
+    <Edge id="e7" from="6" to="13" label="New Edge" arrows="" />
+    <Edge id="e8" from="14" to="13" label="New Edge" arrows="" />
+    <Edge id="e10" from="8" to="11" label="New Edge" arrows="" />
+    <Edge id="e11" from="12" to="5" label="New Edge" arrows="" />
+    <Edge id="e12" from="12" to="10" label="New Edge" arrows="" />
+    <Edge id="e13" from="12" to="6" label="New Edge" arrows="" />
+    <Edge id="e14" from="17" to="1" label="New Edge" arrows="" />
+    <Edge id="e15" from="16" to="2" label="New Edge" arrows="" />
+    <Edge id="e16" from="4" to="15" label="New Edge" arrows="" />
+    <Edge id="e17" from="11" to="18" label="New Edge" arrows="" />
+    <Edge id="e18" from="18" to="15" label="New Edge" arrows="" />
+    <Edge id="e19" from="19" to="13" label="New Edge" arrows="" />
+    <Edge id="e20" from="20" to="12" label="New Edge" arrows="" />
+    <Edge id="e21" from="20" to="12" label="New Edge" arrows="" />
+    <Edge id="e22" from="21" to="6" label="New Edge" arrows="" />
+    <Edge id="e23" from="2" to="21" label="New Edge" arrows="" />
+    <Edge id="e24" from="22" to="15" label="New Edge" arrows="" />
+    <Edge id="e9" from="1" to="14" label="New Edge" arrows="" />
+    <Edge id="e25" from="12" to="27" label="New Edge" arrows="" />
+    <Edge id="e26" from="30" to="15" label="New Edge" arrows="" />
+    <Edge id="e27" from="30" to="16" label="New Edge" arrows="" />
+    <Edge id="e28" from="2" to="32" label="New Edge" arrows="" />
+    <Edge id="e29" from="16" to="26" label="New Edge" arrows="" />
+    <Edge id="e30" from="25" to="12" label="New Edge" arrows="" />
+    <Edge id="e31" from="33" to="30" label="New Edge" arrows="" />
+    <Edge id="e32" from="30" to="28" label="New Edge" arrows="" />
+    <Edge id="e33" from="35" to="16" label="New Edge" arrows="" />
+    <Edge id="e34" from="17" to="34" label="New Edge" arrows="" />
+    <Edge id="e35" from="30" to="29" label="New Edge" arrows="" />
+    <Edge id="e36" from="29" to="31" label="New Edge" arrows="" />
+    <Edge id="e37" from="24" to="29" label="New Edge" arrows="" />
+    <Edge id="e38" from="36" to="12" label="New Edge" arrows="" />
+    <Edge id="e39" from="6" to="37" label="New Edge" arrows="" />
+  </Edges>
+</ConceptMap>

@@ -1,4 +1,13 @@
 const DICT_PATH = "../dict"; // 辞書のパスを指定
+const WORD_ANALYZE_DISABLE_WIKIDATA_CHECKS_TEMP = true;
+const ANALYZE_DEBOUNCE_MS = 500;
+const WORD_WIKIDATA_RETRY_COUNT = 1;
+const WORD_WIKIDATA_BASE_DELAY_MS = 700;
+const WORD_WIKIDATA_COOLDOWN_MS = 120000;
+const nounWikidataCache = new Map();
+
+let analyzeDebounceTimer = null;
+let wikidataCooldownUntil = 0;
 
 window.onload = (event) => {
     const myTitleInput = document.getElementById("myTitle"); // テキスト入力欄
@@ -18,11 +27,20 @@ window.onload = (event) => {
 
         // テキストが空白の場合、メッセージを表示
         if (text.trim() === "") {
+            if (analyzeDebounceTimer) {
+                clearTimeout(analyzeDebounceTimer);
+            }
             output.textContent = "テキストが入力されていません。";
             return;
         }
 
-        analyzeText(text); // 入力されたテキストを解析
+        if (analyzeDebounceTimer) {
+            clearTimeout(analyzeDebounceTimer);
+        }
+
+        analyzeDebounceTimer = setTimeout(() => {
+            analyzeText(text); // 入力されたテキストを解析
+        }, ANALYZE_DEBOUNCE_MS);
     });
 };
 
@@ -55,6 +73,12 @@ function analyzeText(text) {
 
 // Wikidataに存在する名詞のみを表示
 async function displayNounsWithWikidata(nouns, output) {
+    if (WORD_ANALYZE_DISABLE_WIKIDATA_CHECKS_TEMP) {
+        const uniqueNouns = [...new Set(nouns.map(noun => (noun || "").trim()).filter(Boolean))];
+        output.textContent = uniqueNouns.join(", ");
+        return;
+    }
+
     output.textContent = "Wikidata を確認しています...";
 
     try {
@@ -65,6 +89,10 @@ async function displayNounsWithWikidata(nouns, output) {
         } else {
             output.textContent = nounsWithEntries.join(", ");
         }
+
+        if (Date.now() < wikidataCooldownUntil) {
+            output.textContent += " (Wikidata混雑中のため一部は未検証)";
+        }
     } catch (error) {
         console.error("Wikidata チェック中にエラーが発生しました", error);
         output.textContent = "Wikidata 照会でエラーが発生しました。";
@@ -73,34 +101,108 @@ async function displayNounsWithWikidata(nouns, output) {
 
 // Wikidataに項目が存在するか判定
 async function filterNounsByWikidata(nouns) {
-    const uniqueNouns = [...new Set(nouns)];
-    const results = await Promise.all(
-        uniqueNouns.map(async (noun) => {
-            const hasEntry = await hasWikidataEntry(noun);
-            return hasEntry ? noun : null;
-        })
-    );
+    if (WORD_ANALYZE_DISABLE_WIKIDATA_CHECKS_TEMP) {
+        return [...new Set(nouns.map(noun => (noun || "").trim()).filter(Boolean))];
+    }
+
+    const uniqueNouns = [...new Set(nouns.map(noun => (noun || "").trim()).filter(Boolean))];
+    const results = [];
+
+    for (const noun of uniqueNouns) {
+        const hasEntry = await hasWikidataEntry(noun);
+        results.push({ noun, hasEntry });
+    }
 
     // 入力順序を保つために元の配列でフィルタリング
-    const nounsWithEntriesSet = new Set(results.filter(Boolean));
+    const nounsWithEntriesSet = new Set(
+        results
+            .filter(item => item.hasEntry !== false)
+            .map(item => item.noun)
+    );
     return nouns.filter((noun) => nounsWithEntriesSet.has(noun));
 }
 
 // Wikidata API で項目の有無を確認
 async function hasWikidataEntry(term) {
-    const url = `https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodeURIComponent(term)}&language=ja&format=json&origin=*`;
+    if (WORD_ANALYZE_DISABLE_WIKIDATA_CHECKS_TEMP) {
+        return null;
+    }
 
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            console.error("Wikidata API からエラー応答", response.status);
-            return false;
-        }
-
-        const data = await response.json();
-        return Array.isArray(data.search) && data.search.length > 0;
-    } catch (error) {
-        console.error("Wikidata API 呼び出しに失敗", term, error);
+    const normalizedTerm = (term || "").trim();
+    if (!normalizedTerm) {
         return false;
     }
+
+    if (nounWikidataCache.has(normalizedTerm)) {
+        return nounWikidataCache.get(normalizedTerm);
+    }
+
+    if (Date.now() < wikidataCooldownUntil) {
+        // クールダウン中は外部アクセスを止めてエラー連発を防ぐ
+        nounWikidataCache.set(normalizedTerm, null);
+        return null;
+    }
+
+    const url = `https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodeURIComponent(normalizedTerm)}&language=ja&format=json&origin=*`;
+    let lastError = null;
+
+    for (let attempt = 1; attempt <= WORD_WIKIDATA_RETRY_COUNT; attempt++) {
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    "Accept": "application/json"
+                }
+            });
+            const responseText = await response.text();
+
+            if (!response.ok) {
+                const isRateLimited = response.status === 429 || /too\s+many\s+requests|you\s+are\s+making/i.test(responseText || "");
+                if (isRateLimited && attempt < WORD_WIKIDATA_RETRY_COUNT) {
+                    const waitMs = WORD_WIKIDATA_BASE_DELAY_MS * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 250);
+                    await delayWordAnalyze(waitMs);
+                    continue;
+                }
+
+                if (isRateLimited) {
+                    // レート制限時は未確定扱いとして除外しない
+                    wikidataCooldownUntil = Date.now() + WORD_WIKIDATA_COOLDOWN_MS;
+                    nounWikidataCache.set(normalizedTerm, null);
+                    return null;
+                }
+
+                console.error("Wikidata API からエラー応答", response.status);
+                nounWikidataCache.set(normalizedTerm, false);
+                return false;
+            }
+
+            let data = null;
+            try {
+                data = responseText ? JSON.parse(responseText) : null;
+            } catch (parseError) {
+                console.warn("Wikidata 応答のJSON解析に失敗", normalizedTerm);
+                nounWikidataCache.set(normalizedTerm, null);
+                return null;
+            }
+
+            const exists = Array.isArray(data?.search) && data.search.length > 0;
+            nounWikidataCache.set(normalizedTerm, exists);
+            return exists;
+        } catch (error) {
+            lastError = error;
+            if (attempt < WORD_WIKIDATA_RETRY_COUNT) {
+                const waitMs = WORD_WIKIDATA_BASE_DELAY_MS * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 250);
+                await delayWordAnalyze(waitMs);
+                continue;
+            }
+        }
+    }
+
+    console.warn("Wikidata API 呼び出しに失敗", normalizedTerm, lastError);
+    nounWikidataCache.set(normalizedTerm, null);
+    // 通信失敗時も未確定扱いとして除外しない
+    return null;
+}
+
+function delayWordAnalyze(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
