@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?meta title="速く走りたい"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="New Node" x="735" y="125" />
+    <Node id="2" label="New Node" x="477" y="133" />
+  </Nodes>
+  <Edges>
+    <Edge id="e1" from="2" to="1" label="New Edge" arrows="" />
+  </Edges>
+</ConceptMap>

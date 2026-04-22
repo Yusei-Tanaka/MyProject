@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?meta title="これからのエネルギーの作り方について"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="化石燃料" x="161" y="-169" />
+    <Node id="2" label="クリーン燃料" x="38" y="127" />
+    <Node id="3" label="火力発電" x="14" y="-169" />
+    <Node id="4" label="原子力発電" x="24" y="-2" />
+    <Node id="5" label="水力発電" x="19" y="-81" />
+    <Node id="6" label="太陽光発電" x="272" y="-106" />
+    <Node id="10" label="風力発電" x="223" y="-39" />
+    <Node id="11" label="水素発電" x="248" y="168" />
+    <Node id="12" label="アンモニア発電" x="257" y="88" />
+    <Node id="13" label="宇宙太陽光発電" x="-151" y="122" />
+    <Node id="15" label="技術的ハードルと経済的コスト" x="-1" y="273" />
+    <Node id="16" label="再生可能エネルギー" x="422" y="-41" />
+    <Node id="17" label="発電が不安定" x="689" y="-55" />
+    <Node id="18" label="環境問題" x="-125" y="-169" />
+    <Node id="19" label="建設地が少ない" x="-214" y="-87" />
+    <Node id="20" label="核融合発電" x="34" y="195" />
+    <Node id="23" label="酸素循環" x="18" y="-231" />
+    <Node id="24" label="温室効果ガス" x="137" y="-229" />
+    <Node id="25" label="宇宙技術" x="-255" y="68" />
+    <Node id="26" label="国際協力" x="-360" y="119" />
+    <Node id="27" label="燃料電池" x="378" y="86" />
+    <Node id="28" label="効率" x="385" y="163" />
+    <Node id="29" label="国際競争" x="-99" y="200" />
+    <Node id="30" label="技術移転" x="147" y="19" />
+    <Node id="31" label="安全性" x="-92" y="22" />
+    <Node id="32" label="リスク管理" x="14" y="49" />
+    <Node id="33" label="地熱発電" x="521" y="37" />
+  </Nodes>
+  <Edges>
+    <Edge id="e1" from="3" to="1" label="燃料" arrows="" />
+    <Edge id="e2" from="2" to="12" label="New Edge" arrows="" />
+    <Edge id="e3" from="2" to="11" label="New Edge" arrows="" />
+    <Edge id="e4" from="2" to="13" label="" arrows="" />
+    <Edge id="e5" from="16" to="6" label="発電方法" arrows="" />
+    <Edge id="e6" from="16" to="10" label="発電方法" arrows="" />
+    <Edge id="e7" from="17" to="16" label="デメリット" arrows="" />
+    <Edge id="e8" from="19" to="5" label="デメリット" arrows="" />
+    <Edge id="e9" from="2" to="20" label="New Edge" arrows="" />
+    <Edge id="e10" from="20" to="15" label="New Edge" arrows="" />
+    <Edge id="e11" from="3" to="23" label="New Edge" arrows="" />
+    <Edge id="e12" from="24" to="3" label="New Edge" arrows="" />
+    <Edge id="e13" from="27" to="11" label="New Edge" arrows="" />
+    <Edge id="e14" from="11" to="28" label="New Edge" arrows="" />
+    <Edge id="e15" from="29" to="20" label="New Edge" arrows="" />
+    <Edge id="e16" from="30" to="4" label="New Edge" arrows="" />
+    <Edge id="e17" from="4" to="31" label="New Edge" arrows="" />
+    <Edge id="e18" from="4" to="32" label="New Edge" arrows="" />
+    <Edge id="e19" from="25" to="13" label="New Edge" arrows="" />
+    <Edge id="e20" from="26" to="13" label="New Edge" arrows="" />
+  </Edges>
+</ConceptMap>

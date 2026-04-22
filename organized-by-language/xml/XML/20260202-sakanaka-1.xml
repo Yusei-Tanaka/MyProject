@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="エネルギー" />
+    <Node id="2" label="従来のエネルギー" />
+    <Node id="3" label="太陽光発電" />
+    <Node id="4" label="風力発電" />
+    <Node id="5" label="再生可能エネルギー" />
+    <Node id="6" label="水力発電" />
+    <Node id="7" label="地熱発電" />
+    <Node id="8" label="バイオマス発電" />
+    <Node id="9" label="石油" />
+    <Node id="10" label="枯渇性エネルギー" />
+    <Node id="11" label="石炭" />
+    <Node id="12" label="ウラン" />
+    <Node id="13" label="高効率" />
+    <Node id="14" label="環境問題" />
+    <Node id="15" label="環境にやさしい" />
+    <Node id="16" label="低効率" />
+    <Node id="17" label="効率を上げる" />
+    <Node id="18" label="既存発電システムの改善" />
+    <Node id="19" label="新発電の発明" />
+    <Node id="20" label="環境汚染物質の排出" />
+    <Node id="21" label="温室効果ガス排出" />
+    <Node id="22" label="有限" />
+    <Node id="23" label="発電施設のための森林伐採" />
+    <Node id="24" label="排出量を軽減" />
+    <Node id="25" label="排出物を再利用" />
+    <Node id="27" label="スマートグリッド" />
+    <Node id="28" label="発電所" />
+    <Node id="29" label="家庭" />
+    <Node id="30" label="スマートメーター" />
+  </Nodes>
+  <Edges>
+    <Edge from="1" to="2" label="要素" />
+    <Edge from="2" to="5" label="要素" />
+    <Edge from="5" to="3" label="方法" />
+    <Edge from="5" to="4" label="方法" />
+    <Edge from="5" to="6" label="方法" />
+    <Edge from="5" to="7" label="方法" />
+    <Edge from="8" to="5" label="方法" />
+    <Edge from="10" to="2" label="要素" />
+    <Edge from="10" to="9" label="要素" />
+    <Edge from="11" to="10" label="要素" />
+    <Edge from="12" to="10" label="要素" />
+    <Edge from="13" to="10" label="メリット" />
+    <Edge from="10" to="14" label="デメリット" />
+    <Edge from="15" to="5" label="メリット" />
+    <Edge from="5" to="16" label="デメリット" />
+    <Edge from="16" to="17" label="改善点" />
+    <Edge from="17" to="18" label="解決法" />
+    <Edge from="17" to="19" label="解決法" />
+    <Edge from="14" to="20" label="種類" />
+    <Edge from="21" to="14" label="種類" />
+    <Edge from="10" to="22" label="デメリット" />
+    <Edge from="23" to="14" label="種類" />
+    <Edge from="21" to="24" label="解決法" />
+    <Edge from="20" to="24" label="解決法" />
+    <Edge from="20" to="25" label="解決法" />
+    <Edge from="21" to="25" label="解決法" />
+    <Edge from="1" to="27" label="概念" />
+    <Edge from="30" to="27" label="要素" />
+    <Edge from="28" to="30" label="自動制御" />
+    <Edge from="29" to="30" label="自動制御" />
+    <Edge from="28" to="29" label="電力供給" />
+  </Edges>
+</ConceptMap>

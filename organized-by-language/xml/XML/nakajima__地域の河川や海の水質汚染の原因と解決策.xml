@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?meta title="地域の河川や海の水質汚染の原因と解決策"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="水質汚染" x="-320" y="-144" />
+    <Node id="2" label="生活排水" x="-19" y="-152" />
+    <Node id="3" label="産業排水" x="-16" y="-253" />
+    <Node id="4" label="地球温暖化" x="9" y="-47" />
+    <Node id="5" label="イタイイタイ病" x="212" y="-283" />
+    <Node id="6" label="水俣病" x="257" y="-239" />
+    <Node id="7" label="使用済み天ぷら油" x="315" y="-179" />
+    <Node id="8" label="マヨネーズ" x="326" y="-123" />
+    <Node id="9" label="プランクトンの増加" x="247" y="-68" />
+    <Node id="10" label="生態系の悪化" x="478" y="-71" />
+    <Node id="11" label="海面上昇" x="111" y="-16" />
+    <Node id="12" label="地下水の塩水化" x="389" y="-12" />
+    <Node id="13" label="河川取水障害" x="382" y="60" />
+    <Node id="14" label="法規制" x="-192" y="-277" />
+    <Node id="15" label="水質汚濁防止法" x="2" y="-362" />
+    <Node id="16" label="湖沼水質保全特別措置法" x="-389" y="-273" />
+    <Node id="17" label="食べ残ししない" x="-383" y="-10" />
+    <Node id="18" label="二酸化炭素排出量の削減" x="37" y="66" />
+    <Node id="19" label="油汚れ対策" x="-286" y="20" />
+    <Node id="20" label="洗剤の制限" x="-115" y="-37" />
+    <Node id="21" label="再生可能エネルギーの利用" x="41" y="150" />
+    <Node id="22" label="火力発電の削減" x="255" y="138" />
+    <Node id="26" label="技術革新" x="153" y="226" />
+    <Node id="28" label="国際協力" x="-117" y="107" />
+    <Node id="29" label="環境教育" x="-305" y="150" />
+  </Nodes>
+  <Edges>
+    <Edge id="e1" from="1" to="3" label="原因" arrows="" />
+    <Edge id="e2" from="1" to="2" label="原因" arrows="" />
+    <Edge id="e3" from="1" to="4" label="原因" arrows="" />
+    <Edge id="e4" from="5" to="3" label="発生した事例" arrows="" />
+    <Edge id="e5" from="3" to="6" label="発生した事例" arrows="" />
+    <Edge id="e6" from="2" to="7" label="具体例" arrows="" />
+    <Edge id="e7" from="2" to="8" label="具体例" arrows="" />
+    <Edge id="e8" from="4" to="9" label="原因" arrows="" />
+    <Edge id="e9" from="9" to="10" label="影響" arrows="" />
+    <Edge id="e10" from="4" to="11" label="原因" arrows="" />
+    <Edge id="e11" from="12" to="11" label="影響" arrows="" />
+    <Edge id="e12" from="11" to="13" label="影響" arrows="" />
+    <Edge id="e13" from="14" to="3" label="対策" arrows="" />
+    <Edge id="e14" from="2" to="14" label="対策" arrows="" />
+    <Edge id="e15" from="14" to="16" label="具体例" arrows="" />
+    <Edge id="e16" from="15" to="14" label="具体例" arrows="" />
+    <Edge id="e17" from="2" to="20" label="対策" arrows="" />
+    <Edge id="e18" from="19" to="2" label="対策" arrows="" />
+    <Edge id="e19" from="2" to="17" label="対策" arrows="" />
+    <Edge id="e20" from="18" to="4" label="対策" arrows="" />
+    <Edge id="e21" from="18" to="21" label="対策" arrows="" />
+    <Edge id="e22" from="18" to="22" label="対策" arrows="" />
+    <Edge id="e23" from="3" to="28" label="対策" arrows="" />
+    <Edge id="e24" from="4" to="28" label="対策" arrows="" />
+    <Edge id="e25" from="26" to="21" label="目標" arrows="" />
+    <Edge id="e26" from="26" to="22" label="目標" arrows="" />
+    <Edge id="e27" from="29" to="17" label="対策" arrows="" />
+    <Edge id="e28" from="29" to="19" label="対策" arrows="" />
+    <Edge id="e29" from="29" to="20" label="対策" arrows="" />
+  </Edges>
+</ConceptMap>

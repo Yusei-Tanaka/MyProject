@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF
+   xmlns:ns1="http://www.wikidata.org/prop/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+>
+  <rdf:Description rdf:about="http://www.wikidata.org/entity/関係">
+    <rdfs:label>関係</rdfs:label>
+    <ns1:原因>原因</ns1:原因>
+    <ns1:原因>問題</ns1:原因>
+    <ns1:原因>要因</ns1:原因>
+    <ns1:原因>講和</ns1:原因>
+    <ns1:原因>原材料</ns1:原因>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://www.wikidata.org/entity/車">
+    <rdfs:label>車</rdfs:label>
+    <ns1:原因>エンジン不調</ns1:原因>
+    <ns1:原因>バッテリー上がり</ns1:原因>
+    <ns1:原因>タイヤパンク</ns1:原因>
+    <ns1:原因>ブレーキ摩耗</ns1:原因>
+    <ns1:原因>オイル漏れ</ns1:原因>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://www.wikidata.org/entity/二酸化炭素">
+    <rdfs:label>二酸化炭素</rdfs:label>
+    <ns1:原因>化石燃料</ns1:原因>
+    <ns1:原因>森林伐採</ns1:原因>
+    <ns1:原因>工業活動</ns1:原因>
+    <ns1:原因>車両排気ガス</ns1:原因>
+    <ns1:原因>産業プロセス</ns1:原因>
+  </rdf:Description>
+</rdf:RDF>

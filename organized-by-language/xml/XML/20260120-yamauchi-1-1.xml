@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="エネルギー" />
+    <Node id="2" label="再生可能エネルギー" />
+    <Node id="4" label="風力発電" />
+    <Node id="5" label="太陽光発電" />
+    <Node id="6" label="枯渇性エネルギー" />
+    <Node id="7" label="太陽光パネル" />
+    <Node id="8" label="自然" />
+    <Node id="9" label="建物" />
+    <Node id="10" label="化石燃料" />
+    <Node id="11" label="太陽光" />
+    <Node id="12" label="風力" />
+    <Node id="13" label="石油" />
+    <Node id="14" label="石炭" />
+    <Node id="15" label="有限資源" />
+    <Node id="17" label="電力量" />
+    <Node id="18" label="温室効果ガス" />
+    <Node id="19" label="化石燃料の枯渇" />
+    <Node id="20" label="人口増加" />
+  </Nodes>
+  <Edges>
+    <Edge from="1" to="2" label="要素" />
+    <Edge from="2" to="6" label="対義語" />
+    <Edge from="7" to="5" label="New Edge" />
+    <Edge from="1" to="6" label="要素" />
+    <Edge from="6" to="10" label="具体例" />
+    <Edge from="2" to="12" label="具体例" />
+    <Edge from="11" to="2" label="具体例" />
+    <Edge from="12" to="4" label="手法" />
+    <Edge from="11" to="5" label="手法" />
+    <Edge from="9" to="7" label="設置場所" />
+    <Edge from="8" to="7" label="設置場所" />
+    <Edge from="10" to="13" label="要素" />
+    <Edge from="14" to="10" label="要素" />
+    <Edge from="14" to="15" label="New Edge" />
+    <Edge from="13" to="15" label="New Edge" />
+    <Edge from="10" to="18" label="効果" />
+    <Edge from="15" to="19" label="問題" />
+    <Edge from="20" to="17" label="New Edge" />
+  </Edges>
+</ConceptMap>

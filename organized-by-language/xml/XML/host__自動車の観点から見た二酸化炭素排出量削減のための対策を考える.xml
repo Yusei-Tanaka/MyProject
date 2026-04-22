@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?meta title="自動車の観点から見た二酸化炭素排出量削減のための対策を考える"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="い" x="935" y="159" />
+    <Node id="2" label="あ" x="781" y="191" />
+  </Nodes>
+  <Edges>
+    <Edge id="d564b223-af3e-402a-ae90-5c41287a851c" from="2" to="1" label="う" arrows="" />
+  </Edges>
+</ConceptMap>

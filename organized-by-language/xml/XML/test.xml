@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="排出権取引" />
+    <Node id="2" label="費用対効果" />
+    <Node id="3" label="国際自動車市場" />
+  </Nodes>
+  <Edges>
+  </Edges>
+</ConceptMap>

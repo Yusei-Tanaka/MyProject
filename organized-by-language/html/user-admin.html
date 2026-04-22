@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <title data-i18n="title.userAdmin">ユーザ管理画面</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="./img/favicon.svg">
+  </head>
+  <body>
+    <div id="userAdminAuthPage" class="user-admin-page">
+      <div class="user-admin-card user-admin-auth-card">
+        <h1 data-i18n="userAdmin.authHeading">ユーザ管理画面</h1>
+        <p class="user-admin-auth-description" data-i18n="userAdmin.authDescription">アクセスするにはパスワードを入力してください。</p>
+
+        <form id="userAdminLoginForm" class="user-admin-form">
+          <input id="adminPassword" type="password" placeholder="パスワード" data-i18n-placeholder="common.passwordPlaceholder" required />
+          <button id="openUserAdminBtn" type="submit" data-i18n="userAdmin.openAdmin">管理画面に入る</button>
+        </form>
+
+        <div class="user-admin-actions">
+          <a class="user-admin-back" href="index.html" data-i18n="userAdmin.backToLogin">ログイン画面へ戻る</a>
+        </div>
+
+        <div id="userAdminAuthMessage" class="user-admin-message" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <div id="userAdminProtectedPage" class="user-admin-page" hidden>
+      <div class="user-admin-card user-admin-protected-card">
+        <div class="user-admin-top-links">
+          <a id="openPhpMyAdminBtn" class="user-admin-back" href="#" target="_blank" rel="noopener noreferrer" data-i18n="userAdmin.openPhpMyAdmin">phpMyAdminを開く</a>
+          <a class="user-admin-back" href="index.html" data-i18n="userAdmin.backToLogin">ログイン画面へ戻る</a>
+        </div>
+        <h1 data-i18n="userAdmin.protectedHeading">ユーザ管理</h1>
+
+        <form id="userCreateForm" class="user-admin-form">
+          <input id="newUserId" type="text" placeholder="ユーザID（英数字/3〜32文字）" data-i18n-placeholder="userAdmin.newUserIdPlaceholder" required />
+          <input id="newUserPassword" type="password" placeholder="パスワード" data-i18n-placeholder="userAdmin.newUserPasswordPlaceholder" required />
+          <button id="createUserBtn" type="submit" data-i18n="userAdmin.createUser">ユーザ登録</button>
+        </form>
+        <br />
+        <form id="passwordUpdateForm" class="user-admin-form">
+          <select id="passwordTargetUserId" required>
+            <option value="" data-i18n="userAdmin.selectTargetUser">変更対象ユーザIDを選択</option>
+          </select>
+          <input id="currentPassword" type="password" placeholder="現在のパスワード" data-i18n-placeholder="userAdmin.currentPasswordPlaceholder" required />
+          <input id="updatedPassword" type="password" placeholder="新しいパスワード" data-i18n-placeholder="userAdmin.updatedPasswordPlaceholder" required />
+          <button id="updatePasswordBtn" type="submit" data-i18n="userAdmin.updatePassword">パスワード変更</button>
+        </form>
+
+        <div class="user-admin-actions">
+          <button id="refreshUsersBtn" type="button" data-i18n="userAdmin.refreshUsers">ユーザ一覧を更新</button>
+        </div>
+
+        <div id="userAdminMessage" class="user-admin-message" aria-live="polite"></div>
+
+        <h2 data-i18n="userAdmin.userListHeading">登録済みユーザ一覧</h2>
+        <p class="user-admin-auth-description" data-i18n="userAdmin.userListHint">※ユーザIDを右クリックするとアカウントを削除できます。</p>
+        <ul id="userList" class="user-list"></ul>
+      </div>
+    </div>
+
+    <script src="JS/runtime-config.js"></script>
+    <script src="JS/i18n.js"></script>
+    <script src="JS/global-theme.js"></script>
+    <script src="JS/user-admin.js"></script>
+  </body>
+</html>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="キャッシュレス" />
+    <Node id="2" label="現金" />
+    <Node id="3" label="クレジットカード" />
+    <Node id="4" label="小切手" />
+    <Node id="5" label="プリペイド" />
+    <Node id="6" label="デビット" />
+    <Node id="7" label="ポストペイ" />
+    <Node id="8" label="交通系IC" />
+    <Node id="9" label="QR・バーコード決済" />
+    <Node id="10" label="デビットカード" />
+    <Node id="11" label="タンス預金" />
+    <Node id="12" label="決済代行事業者" />
+    <Node id="13" label="利用データ" />
+    <Node id="14" label="与信審査" />
+    <Node id="15" label="銀行預金" />
+    <Node id="16" label="ネットワーク" />
+    <Node id="17" label="CAT端末" />
+    <Node id="18" label="QRコード" />
+    <Node id="19" label="決済機関" />
+    <Node id="20" label="手数料" />
+    <Node id="21" label="利用店舗" />
+    <Node id="22" label="デジタルデバイド" />
+    <Node id="23" label="インフラ整備" />
+    <Node id="24" label="取引の透明性" />
+  </Nodes>
+  <Edges>
+    <Edge from="5" to="9" label="分類" />
+    <Edge from="8" to="5" label="分類" />
+    <Edge from="6" to="10" label="分類" />
+    <Edge from="7" to="3" label="分類" />
+    <Edge from="5" to="1" label="分類" />
+    <Edge from="4" to="1" label="分類" />
+    <Edge from="6" to="1" label="分類" />
+    <Edge from="7" to="1" label="分類" />
+    <Edge from="3" to="14" label="必要プロセス" />
+    <Edge from="9" to="18" label="必要物品" />
+    <Edge from="8" to="17" label="必要物品" />
+    <Edge from="9" to="17" label="必要物品" />
+    <Edge from="10" to="17" label="必要物品" />
+    <Edge from="3" to="17" label="必要物品" />
+    <Edge from="2" to="15" label="保管方法" />
+    <Edge from="11" to="2" label="保管方法" />
+    <Edge from="17" to="12" label="利用" />
+    <Edge from="12" to="19" label="契約" />
+    <Edge from="19" to="18" label="利用" />
+    <Edge from="17" to="16" label="必要" />
+    <Edge from="13" to="17" label="取得" />
+    <Edge from="21" to="17" label="導入" />
+    <Edge from="12" to="21" label="契約" />
+    <Edge from="20" to="12" label="収入・支払い" />
+    <Edge from="21" to="20" label="支払い" />
+    <Edge from="19" to="21" label="契約" />
+    <Edge from="19" to="20" label="収入" />
+    <Edge from="16" to="23" label="要素" />
+    <Edge from="13" to="24" label="効果" />
+    <Edge from="22" to="23" label="課題" />
+  </Edges>
+</ConceptMap>

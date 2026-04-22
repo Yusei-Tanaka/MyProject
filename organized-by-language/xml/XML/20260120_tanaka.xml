@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="New Node" />
+    <Node id="2" label="New Node" />
+    <Node id="3" label="行動変容" />
+  </Nodes>
+  <Edges>
+    <Edge from="1" to="2" label="New Edge" />
+    <Edge from="3" to="1" label="New Edge" />
+  </Edges>
+</ConceptMap>

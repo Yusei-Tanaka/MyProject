@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?meta title="生成AIを学校教育でどう活用・制限すべきか"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="学生の生成AI利用" x="68" y="1" />
+    <Node id="2" label="学校教育" x="1156" y="19" />
+    <Node id="3" label="認知機能の低下" x="195" y="166" />
+    <Node id="4" label="個別最適化" x="-167" y="-40" />
+    <Node id="5" label="いつでも対応できる" x="243" y="-98" />
+    <Node id="6" label="メンタルヘルスの低下" x="-7" y="285" />
+    <Node id="7" label="教員の業務の効率化" x="727" y="-208" />
+    <Node id="9" label="教材作成支援" x="976" y="-60" />
+    <Node id="10" label="著作権とプライバシー" x="-214" y="129" />
+    <Node id="11" label="情報漏洩" x="914" y="56" />
+    <Node id="12" label="教員の生成AI利用" x="715" y="-3" />
+    <Node id="13" label="ハルシネーション" x="313" y="27" />
+    <Node id="14" label="批判的思考" x="484" y="-20" />
+    <Node id="15" label="評価の信頼性" x="742" y="80" />
+    <Node id="16" label="適応型学習" x="47" y="-125" />
+    <Node id="17" label="創造性の低下" x="459" y="178" />
+    <Node id="18" label="問題解決能力の低下" x="355" y="241" />
+    <Node id="19" label="ブレインフライ" x="107" y="379" />
+    <Node id="20" label="知・徳・体" x="1255" y="-47" />
+    <Node id="21" label="他者との協働の場" x="1306" y="57" />
+    <Node id="22" label="人格形成" x="1174" y="105" />
+    <Node id="23" label="学習成果" x="-336" y="-94" />
+    <Node id="24" label="教育の課題" x="891" y="-122" />
+    <Node id="25" label="学校の資源不足" x="391" y="-196" />
+    <Node id="26" label="認知バイアス" x="620" y="137" />
+    <Node id="27" label="認知の対策" x="194" y="252" />
+    <Node id="28" label="うつ病" x="-38" y="371" />
+    <Node id="29" label="国際AI競争" x="1066" y="298" />
+    <Node id="30" label="AIの倫理的対策" x="471" y="70" />
+    <Node id="31" label="著作権侵害" x="-259" y="219" />
+    <Node id="32" label="国際的な学校比較" x="442" y="335" />
+    <Node id="33" label="教育の平等" x="539" y="407" />
+    <Node id="34" label="主体性" x="646" y="353" />
+    <Node id="36" label="寛容と多様性" x="396" y="415" />
+  </Nodes>
+  <Edges>
+    <Edge id="e1" from="1" to="3" label="デメリット" arrows="" />
+    <Edge id="e2" from="1" to="6" label="デメリット" arrows="" />
+    <Edge id="e3" from="4" to="1" label="メリット" arrows="" />
+    <Edge id="e4" from="1" to="5" label="メリット" arrows="" />
+    <Edge id="e5" from="10" to="1" label="デメリット" arrows="" />
+    <Edge id="e6" from="12" to="9" label="メリット" arrows="" />
+    <Edge id="e7" from="7" to="12" label="メリット" arrows="" />
+    <Edge id="e8" from="13" to="1" label="デメリット" arrows="" />
+    <Edge id="e9" from="13" to="14" label="必要なスキル" arrows="" />
+    <Edge id="e10" from="12" to="15" label="デメリット" arrows="" />
+    <Edge id="e11" from="11" to="12" label="デメリット" arrows="" />
+    <Edge id="e12" from="3" to="17" label="関係" arrows="" />
+    <Edge id="e13" from="3" to="18" label="関係" arrows="" />
+    <Edge id="e14" from="2" to="21" label="役割" arrows="" />
+    <Edge id="e15" from="6" to="28" label="具体的な症状" arrows="" />
+    <Edge id="e16" from="13" to="30" label="New Edge" arrows="" />
+    <Edge id="e17" from="3" to="27" label="New Edge" arrows="" />
+    <Edge id="e18" from="3" to="26" label="New Edge" arrows="" />
+    <Edge id="e19" from="34" to="32" label="New Edge" arrows="" />
+    <Edge id="e20" from="32" to="33" label="New Edge" arrows="" />
+    <Edge id="e21" from="32" to="36" label="New Edge" arrows="" />
+  </Edges>
+</ConceptMap>

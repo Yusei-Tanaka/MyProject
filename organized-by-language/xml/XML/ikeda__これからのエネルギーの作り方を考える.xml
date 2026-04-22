@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?meta title="これからのエネルギーの作り方を考える"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="再生可能エネルギー" x="164" y="-230" />
+    <Node id="2" label="地熱発電" x="344" y="-53" />
+    <Node id="3" label="火力発電" x="-224" y="-117" />
+    <Node id="4" label="原子力発電" x="-379" y="-205" />
+    <Node id="5" label="風力発電" x="236" y="-81" />
+    <Node id="6" label="水力発電" x="354" y="-134" />
+    <Node id="7" label="太陽光発電" x="118" y="-35" />
+    <Node id="8" label="バイオマス発電" x="667" y="-137" />
+    <Node id="9" label="水素・アンモニア発電" x="532" y="25" />
+    <Node id="10" label="洋上風力発電" x="618" y="-54" />
+    <Node id="11" label="次世代太陽光パネル" x="709" y="-1" />
+    <Node id="12" label="化石燃料" x="-192" y="-272" />
+    <Node id="13" label="発電方法" x="-16" y="-309" />
+    <Node id="14" label="経済性" x="429" y="-341" />
+    <Node id="15" label="安定供給" x="534" y="-339" />
+    <Node id="17" label="蓄電池技術" x="-47" y="-60" />
+    <Node id="20" label="環境負荷" x="643" y="-339" />
+    <Node id="21" label="資源枯渇" x="-248" y="-375" />
+    <Node id="22" label="技術革新" x="-278" y="-53" />
+    <Node id="23" label="エネルギーコスト" x="-247" y="-6" />
+    <Node id="24" label="エネルギー効率" x="-64" y="13" />
+  </Nodes>
+  <Edges>
+    <Edge id="e1" from="12" to="4" label="New Edge" arrows="" />
+    <Edge id="e2" from="12" to="3" label="New Edge" arrows="" />
+    <Edge id="e3" from="12" to="13" label="New Edge" arrows="" />
+    <Edge id="e4" from="13" to="1" label="New Edge" arrows="" />
+    <Edge id="e5" from="1" to="7" label="New Edge" arrows="" />
+    <Edge id="e6" from="1" to="5" label="New Edge" arrows="" />
+    <Edge id="e7" from="6" to="1" label="New Edge" arrows="" />
+    <Edge id="e8" from="2" to="1" label="New Edge" arrows="" />
+    <Edge id="e9" from="22" to="17" label="New Edge" arrows="" />
+    <Edge id="e10" from="21" to="12" label="New Edge" arrows="" />
+  </Edges>
+</ConceptMap>

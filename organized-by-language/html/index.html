@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <title data-i18n="title.index">探索活動支援システム</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="./img/favicon.svg">
+  </head>
+  <body class="login-page">
+    <div class="title-input-container">
+      <h1 data-i18n="login.heading">ログインしてください</h1>
+
+      <form id="loginForm" class="login-form">
+        <input id="username" type="text" placeholder="ID" data-i18n-placeholder="login.usernamePlaceholder" required />
+        <input id="userPassword" type="password" placeholder="パスワード" data-i18n-placeholder="login.passwordPlaceholder" required />
+      </form>
+
+      <div class="language-select-row">
+        <label for="languageSelect" data-i18n="common.language">表示言語</label>
+        <select
+          id="languageSelect"
+          data-language-control
+          aria-label="表示言語"
+          data-i18n-aria-label="common.language"
+        >
+          <option value="ja" data-i18n="common.japanese">日本語</option>
+          <option value="en" data-i18n="common.english">English</option>
+        </select>
+      </div>
+
+      <button id="startSearchBtn" data-i18n="login.button">ログイン</button>
+    </div>
+
+    <div class="admin-link-container">
+      <select
+        id="adminMenuSelect"
+        class="admin-link-select"
+        aria-label="管理画面選択"
+        data-i18n-aria-label="admin.menuAria"
+      >
+        <option value="" data-i18n="admin.choose">管理画面を選択</option>
+        <option value="phpmyadmin">phpMyAdmin</option>
+        <option value="user-admin.html" data-i18n="admin.userAdmin">ユーザ管理画面</option>
+      </select>
+    </div>
+
+    <script src="JS/runtime-config.js"></script>
+    <script src="JS/i18n.js"></script>
+    <script src="JS/global-theme.js"></script>
+    <script src="JS/index.js"></script>
+    <script src="JS/admin-menu.js"></script>
+  </body>
+</html>

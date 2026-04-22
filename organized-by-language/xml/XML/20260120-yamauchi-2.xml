@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="学校" />
+    <Node id="2" label="授業" />
+    <Node id="3" label="放課後" />
+    <Node id="4" label="受験" />
+    <Node id="5" label="進路" />
+    <Node id="6" label="就職" />
+    <Node id="7" label="クラスメイト" />
+    <Node id="8" label="友達" />
+    <Node id="9" label="数学" />
+    <Node id="10" label="体育" />
+    <Node id="11" label="社会" />
+    <Node id="12" label="生活習慣" />
+    <Node id="13" label="健康" />
+    <Node id="14" label="学校施設" />
+    <Node id="15" label="学校環境" />
+    <Node id="16" label="カリキュラム改善" />
+    <Node id="17" label="労働市場" />
+    <Node id="18" label="学習意欲" />
+    <Node id="19" label="探究心" />
+    <Node id="20" label="探究学習" />
+    <Node id="21" label="協働学習" />
+    <Node id="22" label="成果評価" />
+    <Node id="23" label="モチベーション" />
+    <Node id="24" label="AI教育" />
+    <Node id="25" label="教育の質" />
+    <Node id="26" label="教育方針" />
+  </Nodes>
+  <Edges>
+    <Edge from="1" to="5" label="将来" />
+    <Edge from="5" to="6" label="具体" />
+    <Edge from="5" to="4" label="具体" />
+    <Edge from="1" to="7" label="要素" />
+    <Edge from="7" to="8" label="関係" />
+    <Edge from="1" to="2" label="要素" />
+    <Edge from="2" to="9" label="要素" />
+    <Edge from="2" to="10" label="要素" />
+    <Edge from="1" to="11" label="コミュニティ" />
+    <Edge from="13" to="12" label="条件" />
+    <Edge from="15" to="1" label="要素" />
+    <Edge from="15" to="14" label="具体例" />
+    <Edge from="2" to="16" label="策" />
+    <Edge from="8" to="3" label="オアシス" />
+    <Edge from="6" to="17" label="New Edge" />
+    <Edge from="16" to="18" label="目的" />
+    <Edge from="18" to="19" label="エネルギー" />
+    <Edge from="19" to="20" label="New Edge" />
+    <Edge from="21" to="7" label="New Edge" />
+    <Edge from="18" to="22" label="New Edge" />
+    <Edge from="23" to="22" label="New Edge" />
+    <Edge from="16" to="24" label="New Edge" />
+    <Edge from="24" to="25" label="New Edge" />
+    <Edge from="24" to="26" label="New Edge" />
+  </Edges>
+</ConceptMap>

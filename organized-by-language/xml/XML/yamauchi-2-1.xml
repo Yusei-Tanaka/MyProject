@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="学校" />
+    <Node id="2" label="授業" />
+    <Node id="3" label="放課後" />
+    <Node id="4" label="受験" />
+    <Node id="5" label="進路" />
+    <Node id="6" label="就職" />
+    <Node id="7" label="クラスメイト" />
+    <Node id="8" label="友達" />
+    <Node id="9" label="数学" />
+    <Node id="10" label="体育" />
+    <Node id="11" label="生活習慣" />
+    <Node id="12" label="健康" />
+    <Node id="13" label="社会" />
+  </Nodes>
+  <Edges>
+    <Edge from="1" to="2" label="要素" />
+    <Edge from="1" to="7" label="要素" />
+    <Edge from="8" to="7" label="関係" />
+    <Edge from="1" to="5" label="将来" />
+    <Edge from="5" to="6" label="具体" />
+    <Edge from="5" to="4" label="具体" />
+    <Edge from="9" to="2" label="要素" />
+    <Edge from="10" to="2" label="要素" />
+    <Edge from="11" to="12" label="条件" />
+    <Edge from="1" to="13" label="コミュニティ" />
+  </Edges>
+</ConceptMap>
