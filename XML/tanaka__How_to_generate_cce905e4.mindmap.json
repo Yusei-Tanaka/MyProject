@@ -1,6 +1,2 @@
 { "class": "TreeModel",
-  "nodeDataArray": [
-{"key":0,"text":"How to generate energy in the future?","loc":"0 0"},
-{"text":"a","parent":0,"key":-2,"loc":"122.30517578125001 90.94081624830794"},
-{"text":"s","parent":-2,"key":-3,"loc":"122.99218750000001 181.88163249661588"}
-]}
+  "nodeDataArray": [{"key":0,"text":"How to generate energy in the future?","loc":"0 0"}]}
