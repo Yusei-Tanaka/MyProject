@@ -151,6 +151,12 @@ window.addEventListener('DOMContentLoaded', function() {
     return { userId, themeName };
   }
 
+  function wait(ms) {
+    return new Promise(function(resolve) {
+      setTimeout(resolve, ms);
+    });
+  }
+
   function collectMindmapHypothesisNodes() {
     if (!diagram || !diagram.model || !Array.isArray(diagram.model.nodeDataArray)) {
       return [];
@@ -185,9 +191,180 @@ window.addEventListener('DOMContentLoaded', function() {
     return result;
   }
 
+  function extractMindmapModelJsonFromContent(content) {
+    if (!content || typeof content !== "object" || Array.isArray(content)) return "";
+
+    const mindmap =
+      content.mindmap && typeof content.mindmap === "object" && !Array.isArray(content.mindmap)
+        ? content.mindmap
+        : null;
+
+    const candidates = [
+      mindmap ? mindmap.modelJson : "",
+      mindmap ? mindmap.model : "",
+      mindmap ? mindmap.goModelJson : "",
+      content.mindmapModelJson,
+    ];
+
+    for (let i = 0; i < candidates.length; i += 1) {
+      const value = candidates[i];
+      if (typeof value === "string" && value.trim()) {
+        return value;
+      }
+      if (value && typeof value === "object") {
+        try {
+          return JSON.stringify(value);
+        } catch (_error) {
+          // ignore invalid object values
+        }
+      }
+    }
+
+    return "";
+  }
+
+  function extractLegacyMindmapTextsFromContent(content) {
+    if (!content || typeof content !== "object" || Array.isArray(content)) return [];
+
+    const hypothesis =
+      content.hypothesis && typeof content.hypothesis === "object" && !Array.isArray(content.hypothesis)
+        ? content.hypothesis
+        : null;
+    if (!hypothesis) return [];
+
+    const unique = new Set();
+    const texts = [];
+    const pushUniqueText = function(value) {
+      const text = String(value || "").trim();
+      if (!text || unique.has(text)) return;
+      unique.add(text);
+      texts.push(text);
+    };
+
+    const mapNodes = Array.isArray(hypothesis.mapNodes) ? hypothesis.mapNodes : [];
+    mapNodes.forEach(function(entry) {
+      if (typeof entry === "string") {
+        pushUniqueText(entry);
+        return;
+      }
+      if (entry && typeof entry === "object") {
+        pushUniqueText(entry.text || entry.label);
+      }
+    });
+    if (texts.length > 0) {
+      return texts;
+    }
+
+    const nodes = Array.isArray(hypothesis.nodes) ? hypothesis.nodes : [];
+    nodes.forEach(function(entry) {
+      if (!entry || typeof entry !== "object") return;
+      if (String(entry.source || "").toLowerCase() !== "mindmap") return;
+      pushUniqueText(entry.text || entry.label);
+    });
+
+    return texts;
+  }
+
+  function buildLegacyMindmapModelJson(defaultTitle, nodeTexts) {
+    const nodeDataArray = [{ key: 0, text: defaultTitle, loc: "0 -200" }];
+    const texts = Array.isArray(nodeTexts) ? nodeTexts : [];
+    texts.forEach(function(text, index) {
+      nodeDataArray.push({
+        key: -(index + 1),
+        parent: 0,
+        text,
+      });
+    });
+
+    return new go.TreeModel(nodeDataArray).toJson();
+  }
+
+  async function fetchThemeRecordFromDb(userId, themeName) {
+    const encodedUserId = encodeURIComponent(userId);
+    const encodedThemeName = encodeURIComponent(themeName);
+    const language = getCurrentThemeLanguage();
+    const urls = [
+      `${themeApiBaseUrl}/users/${encodedUserId}/themes/${encodedThemeName}?language=${encodeURIComponent(language)}`,
+      `${themeApiBaseUrl}/users/${encodedUserId}/themes/${encodedThemeName}`,
+    ];
+
+    for (let i = 0; i < urls.length; i += 1) {
+      const response = await fetch(urls[i], { cache: "no-store" });
+      if (response.ok) {
+        return response.json();
+      }
+      if (response.status === 404) {
+        continue;
+      }
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    return null;
+  }
+
+  async function fetchMindmapSnapshotFromDb(defaultTitle) {
+    const { userId, themeName } = getCurrentUserThemeRaw();
+    if (!userId || !themeName) return null;
+
+    const themeRecord = await fetchThemeRecordFromDb(userId, themeName);
+    const content =
+      themeRecord && themeRecord.content && typeof themeRecord.content === "object" && !Array.isArray(themeRecord.content)
+        ? themeRecord.content
+        : null;
+    if (!content) return null;
+
+    const modelJson = extractMindmapModelJsonFromContent(content);
+    if (modelJson) {
+      return {
+        source: "mindmap-model",
+        modelJson,
+      };
+    }
+
+    const legacyTexts = extractLegacyMindmapTextsFromContent(content);
+    if (legacyTexts.length > 0) {
+      return {
+        source: "legacy-mapNodes",
+        nodeCount: legacyTexts.length,
+        modelJson: buildLegacyMindmapModelJson(defaultTitle, legacyTexts),
+      };
+    }
+
+    return null;
+  }
+
+  function applyMindmapModelJson(modelJson, defaultTitle) {
+    if (typeof modelJson !== "string" || !modelJson.trim()) return false;
+
+    const model = go.Model.fromJson(modelJson);
+    diagram.model = model;
+    shouldApplyInitialOffset = false;
+    initialOffsetApplied = true;
+
+    const nodeDataArray = Array.isArray(model.nodeDataArray) ? model.nodeDataArray : [];
+    const root = diagram.findNodeForKey(0);
+    if (!root && nodeDataArray.length === 0) {
+      diagram.model = new go.TreeModel([{ key: 0, text: defaultTitle, loc: "0 -200" }]);
+    }
+
+    const currentRoot =
+      Array.isArray(diagram.model.nodeDataArray)
+        ? diagram.model.nodeDataArray.find((n) => n && n.key === 0)
+        : null;
+    if (currentRoot && currentRoot.text) {
+      const titleInput = document.getElementById("myTitle");
+      if (titleInput) titleInput.value = currentRoot.text;
+      localStorage.setItem("searchTitle", currentRoot.text);
+    }
+
+    resetMindmapSaveFingerprintFromCurrent();
+    return true;
+  }
+
   async function saveMindmapStateToDb(modelJson) {
     const { userId, themeName } = getCurrentUserThemeRaw();
     if (!userId || !themeName) return;
+    const serializedModelJson = typeof modelJson === "string" ? modelJson : "";
 
     const putResponse = await fetch(`${themeApiBaseUrl}/users/${encodeURIComponent(userId)}/themes`, {
       method: "PUT",
@@ -199,7 +376,11 @@ window.addEventListener('DOMContentLoaded', function() {
           hypothesis: {
             mapNodes: collectMindmapHypothesisNodes(),
           },
-          mindmap: {},
+          mindmap: {
+            schemaVersion: 1,
+            modelJson: serializedModelJson,
+            savedAt: new Date().toISOString(),
+          },
         },
       }),
     });
@@ -300,6 +481,7 @@ window.addEventListener('DOMContentLoaded', function() {
       }
       lastSavedMindmapFingerprint = snapshot.fingerprint;
     } catch (error) {
+      console.error("Mindmap save failed:", error);
       console.error("マインドマップ保存に失敗しました:", error);
     } finally {
       mindmapSaveInFlight = false;
@@ -323,29 +505,25 @@ window.addEventListener('DOMContentLoaded', function() {
 
     try {
       const snapshot = await fetchMindmapSnapshot();
-      if (!snapshot) return false;
+      if (!snapshot) {
+        const dbSnapshot = await fetchMindmapSnapshotFromDb(defaultTitle);
+        if (dbSnapshot && applyMindmapModelJson(dbSnapshot.modelJson, defaultTitle)) {
+          if (dbSnapshot.source === "legacy-mapNodes") {
+            logMindmapAction(`Mindmap: restored from DB fallback (${dbSnapshot.nodeCount} nodes)`);
+          } else {
+            logMindmapAction("Mindmap: restored from DB");
+          }
+          return true;
+        }
+        return false;
+      }
       const { response, fileName } = snapshot;
 
       const modelJson = await response.text();
       if (!modelJson || !modelJson.trim()) return false;
 
-      const model = go.Model.fromJson(modelJson);
-      diagram.model = model;
-      shouldApplyInitialOffset = false;
-      initialOffsetApplied = true;
-      const root = diagram.findNodeForKey(0);
-      if (!root && model.nodeDataArray && model.nodeDataArray.length === 0) {
-        diagram.model = new go.TreeModel([{ key: 0, text: defaultTitle, loc: "0 -200" }]);
-      }
-
-      const rootData = diagram.model.nodeDataArray.find((n) => n.key === 0);
-      if (rootData && rootData.text) {
-        const titleInput = document.getElementById("myTitle");
-        if (titleInput) titleInput.value = rootData.text;
-        localStorage.setItem("searchTitle", rootData.text);
-      }
-
-      resetMindmapSaveFingerprintFromCurrent();
+      if (!applyMindmapModelJson(modelJson, defaultTitle)) return false;
+      logMindmapAction(`Mindmap: restored (${fileName})`);
 
       logMindmapAction(`マインドマップ: 復元しました (${fileName})`);
       return true;
@@ -355,6 +533,31 @@ window.addEventListener('DOMContentLoaded', function() {
     } finally {
       isRestoringMindmap = false;
     }
+  }
+
+  async function restoreMindmapStateWithRetry(defaultTitle) {
+    const retryDelaysMs = [0, 350, 1000];
+    for (let i = 0; i < retryDelaysMs.length; i += 1) {
+      const delayMs = retryDelaysMs[i];
+      if (delayMs > 0) {
+        await wait(delayMs);
+      }
+      const restored = await restoreMindmapState(defaultTitle);
+      if (restored) {
+        return true;
+      }
+
+      const dbSnapshot = await fetchMindmapSnapshotFromDb(defaultTitle);
+      if (dbSnapshot && applyMindmapModelJson(dbSnapshot.modelJson, defaultTitle)) {
+        if (dbSnapshot.source === "legacy-mapNodes") {
+          logMindmapAction(`Mindmap: restored from DB fallback (${dbSnapshot.nodeCount} nodes)`);
+        } else {
+          logMindmapAction("Mindmap: restored from DB");
+        }
+        return true;
+      }
+    }
+    return false;
   }
 
   const diagram = $(go.Diagram, "myDiagramDiv", {
@@ -503,7 +706,7 @@ window.addEventListener('DOMContentLoaded', function() {
     { key: 0, text: initialText, loc: "0 -200" }
   ]);
 
-  restoreMindmapState(initialText).then((restored) => {
+  restoreMindmapStateWithRetry(initialText).then((restored) => {
     isMindmapReady = true;
     resetMindmapSaveFingerprintFromCurrent();
     if (!restored) {
