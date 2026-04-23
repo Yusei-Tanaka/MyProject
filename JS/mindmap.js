@@ -10,6 +10,10 @@ window.addEventListener('DOMContentLoaded', function() {
     `http://${host}:${Number(appConfig.apiPort || 3000)}`;
   const MINDMAP_SNAPSHOT_DIR = "XML";
   const MINDMAP_LEGACY_SNAPSHOT_DIR = "JS/XML";
+  const ENABLE_LEGACY_MINDMAP_LOOKUP = appConfig.enableLegacyMindmapLookup === true;
+  const MINDMAP_SNAPSHOT_DIRS = ENABLE_LEGACY_MINDMAP_LOOKUP
+    ? [MINDMAP_SNAPSHOT_DIR, MINDMAP_LEGACY_SNAPSHOT_DIR]
+    : [MINDMAP_SNAPSHOT_DIR];
   let isRestoringMindmap = false;
   let isMindmapReady = false;
   let mindmapSaveTimer = null;
@@ -107,6 +111,32 @@ window.addEventListener('DOMContentLoaded', function() {
     pushUnique(`${legacyUser}.mindmap.json`);
 
     return candidates;
+  }
+
+  function buildSnapshotPath(dir, fileName) {
+    const normalizedDir = String(dir || "").replace(/^\/+|\/+$/g, "");
+    return `/${normalizedDir}/${encodeURIComponent(fileName)}`;
+  }
+
+  async function checkSnapshotExistsInPrimaryDir(fileName) {
+    try {
+      const response = await fetch(
+        `${saveApiBaseUrl}/xml-exists?filename=${encodeURIComponent(fileName)}`,
+        { cache: "no-store" }
+      );
+      if (!response.ok) return null;
+      const payload = await response.json();
+      return Boolean(payload && payload.exists);
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  async function fetchSnapshotResponse(snapshotPath) {
+    const response = await fetch(snapshotPath, { cache: "no-store" });
+    if (response.ok) return response;
+    if (response.status === 404) return null;
+    throw new Error(`HTTP ${response.status}`);
   }
 
   function getCurrentThemeName() {
@@ -214,20 +244,23 @@ window.addEventListener('DOMContentLoaded', function() {
   }
 
   async function fetchMindmapSnapshot() {
-    const dirs = [MINDMAP_SNAPSHOT_DIR, MINDMAP_LEGACY_SNAPSHOT_DIR];
     const fileNames = getMindmapRestoreCandidates();
 
     for (let i = 0; i < fileNames.length; i += 1) {
       const fileName = fileNames[i];
-      for (let j = 0; j < dirs.length; j += 1) {
-        const dir = dirs[j];
-        const path = `${dir}/${fileName}`;
-        const response = await fetch(path, { cache: "no-store" });
-        if (response.ok) {
-          return { response, fileName };
+      const existsInPrimaryDir = await checkSnapshotExistsInPrimaryDir(fileName);
+      if (existsInPrimaryDir === false && !ENABLE_LEGACY_MINDMAP_LOOKUP) {
+        continue;
+      }
+
+      for (let j = 0; j < MINDMAP_SNAPSHOT_DIRS.length; j += 1) {
+        const dir = MINDMAP_SNAPSHOT_DIRS[j];
+        if (dir === MINDMAP_SNAPSHOT_DIR && existsInPrimaryDir === false) {
+          continue;
         }
-        if (response.status !== 404) {
-          throw new Error(`HTTP ${response.status}`);
+        const response = await fetchSnapshotResponse(buildSnapshotPath(dir, fileName));
+        if (response) {
+          return { response, fileName };
         }
       }
     }
