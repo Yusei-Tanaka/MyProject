@@ -53,6 +53,10 @@ const hypothesisDbApiBaseUrl =
   `http://${hypothesisHost}:${Number(hypothesisConfig.apiPort || 3000)}`;
 const HYPOTHESIS_SNAPSHOT_DIR = "XML";
 const HYPOTHESIS_LEGACY_SNAPSHOT_DIR = "JS/XML";
+const ENABLE_LEGACY_HYPOTHESIS_LOOKUP = hypothesisConfig.enableLegacyHypothesisLookup === true;
+const HYPOTHESIS_SNAPSHOT_DIRS = ENABLE_LEGACY_HYPOTHESIS_LOOKUP
+  ? [HYPOTHESIS_SNAPSHOT_DIR, HYPOTHESIS_LEGACY_SNAPSHOT_DIR]
+  : [HYPOTHESIS_SNAPSHOT_DIR];
 let hypothesisSaveTimer = null;
 let hypothesisSaveInFlight = false;
 let hypothesisSaveQueued = false;
@@ -336,6 +340,32 @@ function getLegacyHypothesisStateFilename() {
   return `${parts.user}__${parts.theme}.hypothesis.json`;
 }
 
+function buildHypothesisSnapshotPath(dir, fileName) {
+  const normalizedDir = String(dir || "").replace(/^\/+|\/+$/g, "");
+  return `/${normalizedDir}/${encodeURIComponent(fileName)}`;
+}
+
+async function checkHypothesisSnapshotExistsInPrimaryDir(fileName) {
+  try {
+    const response = await fetch(
+      `${hypothesisSaveBaseUrl}/xml-exists?filename=${encodeURIComponent(fileName)}`,
+      { cache: "no-store" }
+    );
+    if (!response.ok) return null;
+    const payload = await response.json();
+    return Boolean(payload && payload.exists);
+  } catch (_error) {
+    return null;
+  }
+}
+
+async function fetchHypothesisSnapshotResponse(snapshotPath) {
+  const response = await fetch(snapshotPath, { cache: "no-store" });
+  if (response.ok) return response;
+  if (response.status === 404) return null;
+  throw new Error(`HTTP ${response.status}`);
+}
+
 function scheduleHypothesisSave() {
   if (hypothesisSaveTimer) clearTimeout(hypothesisSaveTimer);
   hypothesisSaveTimer = setTimeout(function () {
@@ -463,6 +493,8 @@ function attachHypothesisTextareaLogging(textarea, createMessage) {
   let logTimer = null;
 
   textarea.addEventListener("input", function () {
+    scheduleHypothesisSave();
+
     if (logTimer) clearTimeout(logTimer);
     logTimer = setTimeout(function () {
       const current = textarea.value.trim();
@@ -598,24 +630,36 @@ async function restoreHypothesisState() {
       }
     }
 
-    const preferredPath = `${HYPOTHESIS_SNAPSHOT_DIR}/${getHypothesisStateFilename()}`;
-    let res = await fetch(preferredPath, { cache: "no-store" });
-    if (!res.ok && res.status === 404) {
-      const sameNameLegacyPath = `${HYPOTHESIS_LEGACY_SNAPSHOT_DIR}/${getHypothesisStateFilename()}`;
-      if (sameNameLegacyPath !== preferredPath) {
-        res = await fetch(sameNameLegacyPath, { cache: "no-store" });
+    const candidateFileNames = [];
+    const preferredFileName = getHypothesisStateFilename();
+    const legacyFileName = getLegacyHypothesisStateFilename();
+    candidateFileNames.push(preferredFileName);
+    if (legacyFileName !== preferredFileName) {
+      candidateFileNames.push(legacyFileName);
+    }
+
+    let res = null;
+    for (let i = 0; i < candidateFileNames.length; i += 1) {
+      const fileName = candidateFileNames[i];
+      const existsInPrimaryDir = await checkHypothesisSnapshotExistsInPrimaryDir(fileName);
+      if (existsInPrimaryDir === false && !ENABLE_LEGACY_HYPOTHESIS_LOOKUP) {
+        continue;
       }
-      if (!res.ok && res.status === 404) {
-        const legacyPath = `${HYPOTHESIS_LEGACY_SNAPSHOT_DIR}/${getLegacyHypothesisStateFilename()}`;
-        if (legacyPath !== sameNameLegacyPath) {
-          res = await fetch(legacyPath, { cache: "no-store" });
+
+      for (let j = 0; j < HYPOTHESIS_SNAPSHOT_DIRS.length; j += 1) {
+        const dir = HYPOTHESIS_SNAPSHOT_DIRS[j];
+        if (dir === HYPOTHESIS_SNAPSHOT_DIR && existsInPrimaryDir === false) {
+          continue;
         }
+        const snapshotPath = buildHypothesisSnapshotPath(dir, fileName);
+        res = await fetchHypothesisSnapshotResponse(snapshotPath);
+        if (res) break;
       }
+
+      if (res) break;
     }
-    if (!res.ok) {
-      if (res.status === 404) return;
-      throw new Error(`HTTP ${res.status}`);
-    }
+
+    if (!res) return;
 
     const raw = await res.text();
     if (!raw || !raw.trim()) return;
@@ -1181,7 +1225,7 @@ document.querySelectorAll('.keyword').forEach(function(elem) {
 function getUserXmlRelativePath() {
   const parts = getUserThemeParts(true);
   const filename = `${parts.user}__${parts.theme}.xml`;
-  return `${HYPOTHESIS_SNAPSHOT_DIR}/${filename}`;
+  return buildHypothesisSnapshotPath(HYPOTHESIS_SNAPSHOT_DIR, filename);
 }
 
 // HTMLの入力フィールドからタイトルを取得してコンソールに出力する
@@ -1366,6 +1410,7 @@ function triggerScamperQuestion(targetTag, scamperLabel) {
           span.textContent = li.textContent;
           targetTag.insertAdjacentElement("afterend", span);
           logHypothesisAction(`仮説: 生成質問を選択 "${li.textContent}"`);
+          scheduleHypothesisSave();
           document.body.removeChild(dialog);
         };
         dialogBody.appendChild(btn);

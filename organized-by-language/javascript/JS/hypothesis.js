@@ -463,6 +463,8 @@ function attachHypothesisTextareaLogging(textarea, createMessage) {
   let logTimer = null;
 
   textarea.addEventListener("input", function () {
+    scheduleHypothesisSave();
+
     if (logTimer) clearTimeout(logTimer);
     logTimer = setTimeout(function () {
       const current = textarea.value.trim();
@@ -1366,6 +1368,7 @@ function triggerScamperQuestion(targetTag, scamperLabel) {
           span.textContent = li.textContent;
           targetTag.insertAdjacentElement("afterend", span);
           logHypothesisAction(`仮説: 生成質問を選択 "${li.textContent}"`);
+          scheduleHypothesisSave();
           document.body.removeChild(dialog);
         };
         dialogBody.appendChild(btn);
