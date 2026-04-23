@@ -90,6 +90,7 @@ const V2_TABLES = {
 
 const ENABLE_V2_READ = String(process.env.ENABLE_V2_READ || "false").toLowerCase() === "true";
 let v2SchemaReady = false;
+let v2ThemeLanguageColumnReady = false;
 
 const hashPassword = (password) => crypto.createHash("sha256").update(password).digest("hex");
 
@@ -112,6 +113,31 @@ const tableExists = async (tableName) => {
     [tableName]
   );
   return rows.length > 0;
+};
+
+const tableColumnExists = async (tableName, columnName) => {
+  const [rows] = await pool.execute(
+    "SELECT 1 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ? LIMIT 1",
+    [tableName, columnName]
+  );
+  return rows.length > 0;
+};
+
+const resolveThemeLanguageFromData = ({
+  themeName,
+  rowLanguage,
+  content,
+  fallback = "ja",
+}) => {
+  const contentLanguage =
+    content && typeof content === "object" && !Array.isArray(content)
+      ? normalizeThemeLanguage(content.language)
+      : "";
+  return (
+    normalizeThemeLanguage(rowLanguage) ||
+    contentLanguage ||
+    inferThemeLanguageFromName(themeName, fallback)
+  );
 };
 
 const toObjectOrEmpty = (value) =>
@@ -399,13 +425,16 @@ const canReadV2 = () => ENABLE_V2_READ && v2SchemaReady;
 const fetchThemesFromV2 = async (userId, themeLanguage = null) => {
   const whereClause = ["t.user_id = ?", "t.deleted_at IS NULL"];
   const params = [userId];
-  if (themeLanguage) {
+  const canFilterByThemeLanguage = Boolean(themeLanguage) && v2ThemeLanguageColumnReady;
+  if (canFilterByThemeLanguage) {
     whereClause.push("t.theme_language = ?");
     params.push(themeLanguage);
   }
 
   const [rows] = await pool.execute(
-    `SELECT t.theme_name, t.theme_language, tv.created_at AS updated_at, p.content_json
+    `SELECT t.theme_name, ${
+      v2ThemeLanguageColumnReady ? "t.theme_language" : "NULL AS theme_language"
+    }, tv.created_at AS updated_at, p.content_json
        FROM ${V2_TABLES.themes} t
        INNER JOIN ${V2_TABLES.themeVersions} tv
          ON tv.theme_id = t.id AND tv.version_no = t.latest_version_no
@@ -416,24 +445,40 @@ const fetchThemesFromV2 = async (userId, themeLanguage = null) => {
     params
   );
 
-  return rows.map((row) => ({
-    themeName: row.theme_name,
-    language: normalizeThemeLanguage(row.theme_language) || "ja",
-    content: parseJsonField(row.content_json),
-    updatedAt: row.updated_at,
-  }));
+  const mapped = rows.map((row) => {
+    const content = parseJsonField(row.content_json);
+    return {
+      themeName: row.theme_name,
+      language: resolveThemeLanguageFromData({
+        themeName: row.theme_name,
+        rowLanguage: row.theme_language,
+        content,
+      }),
+      content,
+      updatedAt: row.updated_at,
+    };
+  });
+
+  if (themeLanguage && !v2ThemeLanguageColumnReady) {
+    return mapped.filter((row) => row.language === themeLanguage);
+  }
+
+  return mapped;
 };
 
 const fetchThemeFromV2 = async (userId, themeName, themeLanguage = null) => {
   const whereClause = ["t.user_id = ?", "t.theme_name = ?", "t.deleted_at IS NULL"];
   const params = [userId, themeName];
-  if (themeLanguage) {
+  const canFilterByThemeLanguage = Boolean(themeLanguage) && v2ThemeLanguageColumnReady;
+  if (canFilterByThemeLanguage) {
     whereClause.push("t.theme_language = ?");
     params.push(themeLanguage);
   }
 
   const [rows] = await pool.execute(
-    `SELECT t.theme_name, t.theme_language, tv.created_at AS updated_at, p.content_json
+    `SELECT t.theme_name, ${
+      v2ThemeLanguageColumnReady ? "t.theme_language" : "NULL AS theme_language"
+    }, tv.created_at AS updated_at, p.content_json
        FROM ${V2_TABLES.themes} t
        INNER JOIN ${V2_TABLES.themeVersions} tv
          ON tv.theme_id = t.id AND tv.version_no = t.latest_version_no
@@ -447,10 +492,20 @@ const fetchThemeFromV2 = async (userId, themeName, themeLanguage = null) => {
 
   if (!rows || rows.length === 0) return null;
   const row = rows[0];
+  const content = parseJsonField(row.content_json);
+  const resolvedLanguage = resolveThemeLanguageFromData({
+    themeName: row.theme_name,
+    rowLanguage: row.theme_language,
+    content,
+  });
+  if (themeLanguage && !v2ThemeLanguageColumnReady && resolvedLanguage !== themeLanguage) {
+    return null;
+  }
+
   return {
     themeName: row.theme_name,
-    language: normalizeThemeLanguage(row.theme_language) || "ja",
-    content: parseJsonField(row.content_json),
+    language: resolvedLanguage,
+    content,
     updatedAt: row.updated_at,
   };
 };
@@ -458,13 +513,16 @@ const fetchThemeFromV2 = async (userId, themeName, themeLanguage = null) => {
 const fetchThemeHypothesisFromV2 = async (userId, themeName, themeLanguage = null) => {
   const whereClause = ["t.user_id = ?", "t.theme_name = ?", "t.deleted_at IS NULL"];
   const params = [userId, themeName];
-  if (themeLanguage) {
+  const canFilterByThemeLanguage = Boolean(themeLanguage) && v2ThemeLanguageColumnReady;
+  if (canFilterByThemeLanguage) {
     whereClause.push("t.theme_language = ?");
     params.push(themeLanguage);
   }
 
   const [rows] = await pool.execute(
-    `SELECT hs.hypothesis_saved_at, hs.hypothesis_node_count, hs.hypothesis_summary_json, hs.updated_at, t.theme_language
+    `SELECT hs.hypothesis_saved_at, hs.hypothesis_node_count, hs.hypothesis_summary_json, hs.updated_at, t.theme_name, ${
+      v2ThemeLanguageColumnReady ? "t.theme_language" : "NULL AS theme_language"
+    }
        FROM ${V2_TABLES.themes} t
        INNER JOIN ${V2_TABLES.themeVersions} tv
          ON tv.theme_id = t.id AND tv.version_no = t.latest_version_no
@@ -478,10 +536,19 @@ const fetchThemeHypothesisFromV2 = async (userId, themeName, themeLanguage = nul
 
   if (!rows || rows.length === 0) return null;
   const row = rows[0];
+  const resolvedLanguage = resolveThemeLanguageFromData({
+    themeName: row.theme_name || themeName,
+    rowLanguage: row.theme_language,
+    content: null,
+  });
+  if (themeLanguage && !v2ThemeLanguageColumnReady && resolvedLanguage !== themeLanguage) {
+    return null;
+  }
+
   return {
     userId,
     themeName,
-    language: normalizeThemeLanguage(row.theme_language) || "ja",
+    language: resolvedLanguage,
     html: "",
     savedAt: row.hypothesis_saved_at,
     nodeCount: row.hypothesis_node_count,
@@ -493,9 +560,17 @@ const fetchThemeHypothesisFromV2 = async (userId, themeName, themeLanguage = nul
 const fetchThemeHypothesisNodesFromV2 = async (userId, themeName, themeLanguage = null) => {
   const whereClause = ["t.user_id = ?", "t.theme_name = ?", "t.deleted_at IS NULL"];
   const params = [userId, themeName];
-  if (themeLanguage) {
+  const canFilterByThemeLanguage = Boolean(themeLanguage) && v2ThemeLanguageColumnReady;
+  if (canFilterByThemeLanguage) {
     whereClause.push("t.theme_language = ?");
     params.push(themeLanguage);
+  }
+
+  if (themeLanguage && !v2ThemeLanguageColumnReady) {
+    const inferred = inferThemeLanguageFromName(themeName, "ja");
+    if (inferred !== themeLanguage) {
+      return null;
+    }
   }
 
   const [rows] = await pool.execute(
@@ -548,6 +623,7 @@ const fetchHypothesesFromV2 = async ({ userId, limit }) => {
 const fetchHypothesisNodesFromV2 = async ({ userId, themeName, themeLanguage, limit }) => {
   const whereClause = ["t.deleted_at IS NULL"];
   const params = [];
+  const shouldFilterByInferredLanguage = Boolean(themeLanguage) && !v2ThemeLanguageColumnReady;
 
   if (userId) {
     whereClause.push("t.user_id = ?");
@@ -557,7 +633,7 @@ const fetchHypothesisNodesFromV2 = async ({ userId, themeName, themeLanguage, li
     whereClause.push("t.theme_name = ?");
     params.push(themeName);
   }
-  if (themeLanguage) {
+  if (themeLanguage && v2ThemeLanguageColumnReady) {
     whereClause.push("t.theme_language = ?");
     params.push(themeLanguage);
   }
@@ -580,14 +656,21 @@ const fetchHypothesisNodesFromV2 = async ({ userId, themeName, themeLanguage, li
     params
   );
 
-  return rows;
+  if (!shouldFilterByInferredLanguage) {
+    return rows;
+  }
+
+  return rows.filter((row) => inferThemeLanguageFromName(row.theme_name, "ja") === themeLanguage);
 };
 
 const resolveOrCreateThemeV2 = async (connection, userId, themeName, themeLanguage) => {
-  const [rows] = await connection.execute(
-    `SELECT id, latest_version_no, deleted_at FROM ${V2_TABLES.themes} WHERE user_id = ? AND theme_name = ? AND theme_language = ? ORDER BY id DESC LIMIT 1`,
-    [userId, themeName, themeLanguage]
-  );
+  const selectSql = v2ThemeLanguageColumnReady
+    ? `SELECT id, latest_version_no, deleted_at FROM ${V2_TABLES.themes} WHERE user_id = ? AND theme_name = ? AND theme_language = ? ORDER BY id DESC LIMIT 1`
+    : `SELECT id, latest_version_no, deleted_at FROM ${V2_TABLES.themes} WHERE user_id = ? AND theme_name = ? ORDER BY id DESC LIMIT 1`;
+  const selectParams = v2ThemeLanguageColumnReady
+    ? [userId, themeName, themeLanguage]
+    : [userId, themeName];
+  const [rows] = await connection.execute(selectSql, selectParams);
 
   if (rows.length > 0) {
     const row = rows[0];
@@ -603,10 +686,13 @@ const resolveOrCreateThemeV2 = async (connection, userId, themeName, themeLangua
     };
   }
 
-  const [insertResult] = await connection.execute(
-    `INSERT INTO ${V2_TABLES.themes} (user_id, theme_name, theme_language, latest_version_no, lock_version) VALUES (?, ?, ?, 0, 0)`,
-    [userId, themeName, themeLanguage]
-  );
+  const insertSql = v2ThemeLanguageColumnReady
+    ? `INSERT INTO ${V2_TABLES.themes} (user_id, theme_name, theme_language, latest_version_no, lock_version) VALUES (?, ?, ?, 0, 0)`
+    : `INSERT INTO ${V2_TABLES.themes} (user_id, theme_name, latest_version_no, lock_version) VALUES (?, ?, 0, 0)`;
+  const insertParams = v2ThemeLanguageColumnReady
+    ? [userId, themeName, themeLanguage]
+    : [userId, themeName];
+  const [insertResult] = await connection.execute(insertSql, insertParams);
 
   return {
     themeId: insertResult.insertId,
@@ -761,10 +847,44 @@ const syncThemeToV2 = async (
 };
 
 const softDeleteThemeV2 = async (userId, themeName, themeLanguage = null) => {
-  if (!canWriteV2()) return;
+  if (!canWriteV2()) return 0;
+
+  if (themeLanguage && !v2ThemeLanguageColumnReady) {
+    const [rows] = await pool.execute(
+      `SELECT t.id, t.theme_name, p.content_json
+         FROM ${V2_TABLES.themes} t
+         INNER JOIN ${V2_TABLES.themeVersions} tv
+           ON tv.theme_id = t.id AND tv.version_no = t.latest_version_no
+         LEFT JOIN ${V2_TABLES.themeVersionPayloads} p
+           ON p.theme_version_id = tv.id
+        WHERE t.user_id = ? AND t.theme_name = ? AND t.deleted_at IS NULL
+        ORDER BY t.id DESC
+        LIMIT 1`,
+      [userId, themeName]
+    );
+    if (!rows || rows.length === 0) {
+      return 0;
+    }
+    const row = rows[0];
+    const content = parseJsonField(row.content_json);
+    const resolvedLanguage = resolveThemeLanguageFromData({
+      themeName: row.theme_name,
+      rowLanguage: null,
+      content,
+    });
+    if (resolvedLanguage !== themeLanguage) {
+      return 0;
+    }
+    const [result] = await pool.execute(
+      `UPDATE ${V2_TABLES.themes} SET deleted_at = CURRENT_TIMESTAMP, lock_version = lock_version + 1 WHERE id = ?`,
+      [row.id]
+    );
+    return Number(result.affectedRows || 0);
+  }
+
   const whereClause = ["user_id = ?", "theme_name = ?", "deleted_at IS NULL"];
   const params = [userId, themeName];
-  if (themeLanguage) {
+  if (themeLanguage && v2ThemeLanguageColumnReady) {
     whereClause.push("theme_language = ?");
     params.push(themeLanguage);
   }
@@ -776,10 +896,47 @@ const softDeleteThemeV2 = async (userId, themeName, themeLanguage = null) => {
 };
 
 const softDeleteThemesByUserV2 = async (userId, themeLanguage = null) => {
-  if (!canWriteV2()) return;
+  if (!canWriteV2()) return 0;
+
+  if (themeLanguage && !v2ThemeLanguageColumnReady) {
+    const [rows] = await pool.execute(
+      `SELECT t.id, t.theme_name, p.content_json
+         FROM ${V2_TABLES.themes} t
+         INNER JOIN ${V2_TABLES.themeVersions} tv
+           ON tv.theme_id = t.id AND tv.version_no = t.latest_version_no
+         LEFT JOIN ${V2_TABLES.themeVersionPayloads} p
+           ON p.theme_version_id = tv.id
+        WHERE t.user_id = ? AND t.deleted_at IS NULL`,
+      [userId]
+    );
+    const targetIds = rows
+      .filter((row) => {
+        const content = parseJsonField(row.content_json);
+        const resolvedLanguage = resolveThemeLanguageFromData({
+          themeName: row.theme_name,
+          rowLanguage: null,
+          content,
+        });
+        return resolvedLanguage === themeLanguage;
+      })
+      .map((row) => Number(row.id))
+      .filter((id) => Number.isInteger(id) && id > 0);
+
+    if (targetIds.length === 0) {
+      return 0;
+    }
+
+    const placeholders = targetIds.map(() => "?").join(", ");
+    const [result] = await pool.execute(
+      `UPDATE ${V2_TABLES.themes} SET deleted_at = CURRENT_TIMESTAMP, lock_version = lock_version + 1 WHERE id IN (${placeholders})`,
+      targetIds
+    );
+    return Number(result.affectedRows || 0);
+  }
+
   const whereClause = ["user_id = ?", "deleted_at IS NULL"];
   const params = [userId];
-  if (themeLanguage) {
+  if (themeLanguage && v2ThemeLanguageColumnReady) {
     whereClause.push("theme_language = ?");
     params.push(themeLanguage);
   }
@@ -1324,6 +1481,9 @@ app.get("/graph/nodes", async (req, res) => {
       if (!themeLanguage) {
         return res.status(400).json({ error: "invalid language" });
       }
+      if (!v2ThemeLanguageColumnReady) {
+        return res.status(503).json({ error: "theme language schema is not ready" });
+      }
       where.push("t.theme_language = ?");
       params.push(themeLanguage);
     }
@@ -1483,11 +1643,19 @@ const startServer = async () => {
     v2SchemaReady = await checkV2SchemaReady();
     if (!v2SchemaReady) {
       console.warn("V2 tables are missing. Run scripts/sql/20260217_db_v2_up.sql to enable V2 APIs.");
+    } else {
+      v2ThemeLanguageColumnReady = await tableColumnExists(V2_TABLES.themes, "theme_language");
+      if (!v2ThemeLanguageColumnReady) {
+        console.warn(
+          "themes.theme_language is missing. Run scripts/sql/20260422_theme_language_partition_up.sql for full language filtering."
+        );
+      }
     }
     app.listen(PORT, () => {
       console.log(`API server listening on port ${PORT}`);
       console.log(`V2 write: ${canWriteV2() ? "enabled" : "disabled"}`);
       console.log(`V2 read: ${canReadV2() ? "enabled" : "disabled"}`);
+      console.log(`Theme language column: ${v2ThemeLanguageColumnReady ? "enabled" : "missing"}`);
     });
   } catch (err) {
     console.error("failed to initialize schema", err);

@@ -13,18 +13,23 @@ var t = (key, vars = {}, fallback = "") => {
 const appConfig = window.APP_CONFIG || {};
 const authApiBase = appConfig.apiBaseUrl || `http://${window.location.hostname || "127.0.0.1"}:${Number(appConfig.apiPort || 3000)}`;
 const authenticateUser = async (id, password) => {
-  const res = await fetch(`${authApiBase}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id, password }),
-  });
+  try {
+    const res = await fetch(`${authApiBase}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, password }),
+    });
 
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    console.error("ログイン失敗", body);
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      console.error("ログイン失敗", body);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("認証API接続失敗", err);
     return false;
   }
-  return true;
 };
 
 const login = async () => {

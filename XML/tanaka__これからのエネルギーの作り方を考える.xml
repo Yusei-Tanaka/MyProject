@@ -2,21 +2,25 @@
 <?meta title="これからのエネルギーの作り方を考える"?>
 <ConceptMap>
   <Nodes>
-    <Node id="1" label="Non-renewable Energy" x="-215" y="16" />
-    <Node id="2" label="Renewable Energy" x="-358" y="-98" />
-    <Node id="3" label="Energy" x="-2" y="-23" />
-    <Node id="4" label="Solar Power" x="-1" y="-178" />
-    <Node id="5" label="Hydropower" x="-2" y="-100" />
-    <Node id="6" label="Biomass Power" x="-4" y="-266" />
-    <Node id="7" label="Nuclear Power" x="-7" y="132" />
-    <Node id="8" label="Thermal Power" x="-4" y="51" />
-    <Node id="9" label="Stability" x="216" y="-98" />
-    <Node id="11" label="Supply Stability" x="211" y="217" />
-    <Node id="12" label="Cost" x="216" y="147" />
-    <Node id="13" label="System Design" x="224" y="77" />
-    <Node id="14" label="Local Consensus" x="213" y="0" />
-    <Node id="15" label="Energy Theory" x="-437" y="54" />
-    <Node id="16" label="Energy Crisis" x="-654" y="-79" />
+    <Node id="1" label="非再生可能エネルギー" x="-215" y="16" />
+    <Node id="2" label="再生可能エネルギー" x="-358" y="-98" />
+    <Node id="3" label="エネルギー" x="-2" y="-23" />
+    <Node id="4" label="太陽光発電" x="-1" y="-178" />
+    <Node id="5" label="水力発電" x="-2" y="-100" />
+    <Node id="6" label="バイオマス発電" x="-4" y="-266" />
+    <Node id="7" label="原子力発電" x="-7" y="132" />
+    <Node id="8" label="火力発電" x="-4" y="51" />
+    <Node id="9" label="安定性" x="216" y="-98" />
+    <Node id="11" label="供給安定性" x="211" y="217" />
+    <Node id="12" label="コスト" x="216" y="147" />
+    <Node id="13" label="システム設計" x="224" y="77" />
+    <Node id="14" label="地域合意" x="213" y="0" />
+    <Node id="15" label="エネルギー理論" x="-437" y="54" />
+    <Node id="16" label="エネルギー危機" x="-654" y="-79" />
+    <Node id="17" label="廃棄物管理" x="-795" y="-203" />
+    <Node id="18" label="エネルギー政策" x="-899" y="70" />
+    <Node id="19" label="電力需要" x="-207" y="-212" />
+    <Node id="20" label="新しいノード" x="-1067" y="-92" />
   </Nodes>
   <Edges>
     <Edge id="71b62adc-695d-4d40-a10a-6a721200e01e" from="6" to="2" label="要素" arrows="" />
@@ -36,5 +40,6 @@
     <Edge id="319ef2a1-3592-47a9-af96-63d46529987a" from="7" to="13" label="対策" arrows="" />
     <Edge id="ac605897-173a-4e87-b4b4-21b2c63c9caf" from="7" to="12" label="経済" arrows="" />
     <Edge id="e8d31c84-c6c2-4681-aa42-d331d3571c80" from="7" to="11" label="課題" arrows="" />
+    <Edge id="e1" from="16" to="17" label="新しいリンク" arrows="" />
   </Edges>
 </ConceptMap>
