@@ -263,6 +263,7 @@ function clearNodeSelection() {
   highlightNodes(selectedNodes);
   updateCopiedContent(selectedNodes);
 }
+window.clearNodeSelection = clearNodeSelection;
 
 document.getElementById("addNodeBtn").addEventListener("click", function () {
   var position = getNonOverlappingNodePosition();
@@ -446,6 +447,7 @@ document.getElementById("deleteEdgeBtn").addEventListener("click", function () {
         edges.remove(edge.id);
       });
       logAction(`キーワードマップ: リンク削除 from=${fromNode} to=${toNode} count=${edgesToDelete.length}`);
+      clearNodeSelection();
       //alert("エッジを削除しました。");
     } else {
       alert(t("alerts.edgeNotFoundBetweenNodes", {}, "選択されたノード間にエッジが存在しません。"));
@@ -881,4 +883,3 @@ if (callApiBtn) {
     callApi();
   });
 }
-

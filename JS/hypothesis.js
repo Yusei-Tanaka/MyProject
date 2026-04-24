@@ -765,6 +765,20 @@ function getSelectedNodeIdsForHypothesis() {
   return [];
 }
 
+function clearSelectionAfterHypothesisCreate() {
+  if (typeof window.clearNodeSelection === "function") {
+    window.clearNodeSelection();
+    return;
+  }
+
+  if (window.network && typeof window.network.unselectAll === "function") {
+    window.network.unselectAll();
+  }
+  if (Array.isArray(window.selectedNodes)) {
+    window.selectedNodes = [];
+  }
+}
+
 function bindCreateHypothesisButton() {
   var createBtnDom = document.getElementById("createHypothesisBtn");
   if (!createBtnDom || createBtnDom.dataset.boundHypothesisCreate === "true") {
@@ -788,6 +802,7 @@ window.handleCreateHypothesisClick = function () {
       return;
     }
     addHypothesisEntry(currentSelectedNodes);
+    clearSelectionAfterHypothesisCreate();
   } catch (error) {
     console.error("仮説立案ボタン処理でエラーが発生しました:", error);
     alert(t("alerts.hypothesisProcessFailed", {}, "仮説立案の処理中にエラーが発生しました。ページを再読み込みしてください。"));
