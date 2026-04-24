@@ -254,6 +254,16 @@ network.on("doubleClick", function (event) {
 });
 
 // ノード追加ボタン
+function clearNodeSelection() {
+  if (network && typeof network.unselectAll === "function") {
+    network.unselectAll();
+  }
+  selectedNodes = [];
+  window.selectedNodes = selectedNodes;
+  highlightNodes(selectedNodes);
+  updateCopiedContent(selectedNodes);
+}
+
 document.getElementById("addNodeBtn").addEventListener("click", function () {
   var position = getNonOverlappingNodePosition();
   var newNode = {
@@ -405,6 +415,7 @@ document.getElementById("addEdgeBtn").addEventListener("click", function () {
       edges.add(newEdge); // エッジを追加
       logAction(`キーワードマップ: リンク追加 from=${newEdge.from} to=${newEdge.to} label="${newEdge.label}" arrows=${newEdge.arrows || "none"}`);
       //alert("エッジを追加しました。");
+      clearNodeSelection();
     } catch (error) {
       console.error("エッジの追加に失敗しました:", error);
     }

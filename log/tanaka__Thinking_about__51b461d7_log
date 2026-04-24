@@ -1,0 +1,71 @@
+      [2026/4/24 15:31:42] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 15:31:42] Keyword map: centered (no nodes)
+      [2026/4/24 15:31:43] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 15:32:46] キーワードマップ: ノード追加 id=1 label="New Node"
+      [2026/4/24 15:32:57] キーワードマップ: ノード編集 id=1 "New Node" → "energy"
+      [2026/4/24 15:34:15] キーワードマップ: ノード追加 id=2 label="New Node"
+      [2026/4/24 15:34:41] キーワードマップ: ノード編集 id=2 "New Node" → "atmic energy"
+      [2026/4/24 15:35:50] キーワードマップ: ノード編集 id=2 "atmic energy" → "Potential energy"
+      [2026/4/24 15:42:09] キーワードマップ: ノード追加 id=3 label="New Node"
+      [2026/4/24 15:42:12] キーワードマップ: ノード追加 id=4 label="New Node"
+      [2026/4/24 15:42:31] キーワードマップ: ノード編集 id=4 "New Node" → "Nuclear energy"
+      [2026/4/24 15:42:35] キーワードマップ: ノード編集 id=2 "Potential energy" → "potential energy"
+      [2026/4/24 15:42:57] キーワードマップ: ノード編集 id=3 "New Node" → "sound energy"
+      [2026/4/24 15:43:02] キーワードマップ: ノード追加 id=5 label="New Node"
+      [2026/4/24 15:43:11] キーワードマップ: ノード編集 id=5 "New Node" → "solar energy"
+      [2026/4/24 15:43:13] キーワードマップ: ノード追加 id=6 label="New Node"
+      [2026/4/24 15:43:24] キーワードマップ: ノード編集 id=6 "New Node" → "thermal energy"
+      [2026/4/24 15:44:37] キーワードマップ: ノード追加 id=7 label="New Node"
+      [2026/4/24 15:44:50] キーワードマップ: ノード編集 id=7 "New Node" → "kinetic energy"
+      [2026/4/24 15:45:02] キーワードマップ: ノード追加 id=8 label="New Node"
+      [2026/4/24 15:45:14] キーワードマップ: ノード編集 id=8 "New Node" → "thermal power generation"
+      [2026/4/24 15:45:23] キーワードマップ: ノード追加 id=9 label="New Node"
+      [2026/4/24 15:45:25] Keyword map: centered
+      [2026/4/24 15:45:37] キーワードマップ: ノード編集 id=9 "New Node" → "biomass power generation"
+      [2026/4/24 15:45:42] Keyword map: centered
+      [2026/4/24 15:45:44] キーワードマップ: ノード追加 id=10 label="New Node"
+      [2026/4/24 15:45:46] Keyword map: centered
+      [2026/4/24 15:45:48] Keyword map: centered
+      [2026/4/24 15:46:00] キーワードマップ: ノード編集 id=10 "New Node" → "renewable energy"
+      [2026/4/24 15:46:03] Keyword map: centered
+      [2026/4/24 15:46:06] Keyword map: centered
+      [2026/4/24 15:46:14] キーワードマップ: ノード追加 id=11 label="New Node"
+      [2026/4/24 15:46:17] Keyword map: centered
+      [2026/4/24 15:46:41] キーワードマップ: ノード編集 id=11 "New Node" → "hydropower"
+      [2026/4/24 15:46:54] キーワードマップ: ノード追加 id=12 label="New Node"
+      [2026/4/24 15:47:06] キーワードマップ: ノード編集 id=12 "New Node" → "rotational energy"
+      [2026/4/24 15:48:04] キーワードマップ: ノード追加 id=13 label="New Node"
+      [2026/4/24 15:48:05] Keyword map: centered
+      [2026/4/24 15:48:08] Keyword map: centered
+      [2026/4/24 15:48:20] キーワードマップ: ノード編集 id=13 "New Node" → "solar thermal power generation"
+      [2026/4/24 15:48:23] Keyword map: centered
+      [2026/4/24 15:48:26] Keyword map: centered
+      [2026/4/24 15:48:28] キーワードマップ: ノード追加 id=14 label="New Node"
+      [2026/4/24 15:48:42] キーワードマップ: ノード編集 id=14 "New Node" → "ocean energy power generation"
+      [2026/4/24 15:49:03] キーワードマップ: ノード追加 id=15 label="New Node"
+      [2026/4/24 15:49:14] キーワードマップ: ノード編集 id=15 "New Node" → "electrical energy"
+      [2026/4/24 15:49:19] キーワードマップ: ノード追加 id=16 label="New Node"
+      [2026/4/24 15:49:31] キーワードマップ: ノード編集 id=16 "New Node" → "nuclear power generation"
+      [2026/4/24 15:50:23] キーワードマップ: リンク追加 from=11 to=10 label="New Edge" arrows=none
+      [2026/4/24 15:50:28] キーワードマップ: リンク追加 from=10 to=14 label="New Edge" arrows=none
+      [2026/4/24 15:50:35] キーワードマップ: リンク追加 from=10 to=9 label="New Edge" arrows=none
+      [2026/4/24 15:50:38] キーワードマップ: リンク追加 from=10 to=13 label="New Edge" arrows=none
+      [2026/4/24 15:50:42] キーワードマップ: リンク追加 from=11 to=12 label="New Edge" arrows=none
+      [2026/4/24 15:50:46] キーワードマップ: リンク追加 from=12 to=15 label="New Edge" arrows=none
+      [2026/4/24 15:50:48] キーワードマップ: リンク追加 from=13 to=15 label="New Edge" arrows=none
+      [2026/4/24 15:50:56] キーワードマップ: ノード追加 id=17 label="New Node"
+      [2026/4/24 15:50:59] キーワードマップ: ノード削除 id=17 label="New Node"
+      [2026/4/24 15:50:59] キーワードマップ: ノード複数削除 count=1 edges=0
+      [2026/4/24 15:51:01] キーワードマップ: リンク追加 from=6 to=15 label="New Edge" arrows=none
+      [2026/4/24 15:51:07] キーワードマップ: ノード追加 id=17 label="New Node"
+      [2026/4/24 15:51:11] キーワードマップ: ノード複数削除 count=1 edges=0
+      [2026/4/24 15:51:11] キーワードマップ: ノード削除 id=17 label="New Node"
+      [2026/4/24 15:51:14] キーワードマップ: リンク追加 from=9 to=6 label="New Edge" arrows=none
+      [2026/4/24 15:51:18] キーワードマップ: リンク追加 from=6 to=8 label="New Edge" arrows=none
+      [2026/4/24 15:51:24] キーワードマップ: リンク追加 from=16 to=4 label="New Edge" arrows=none
+      [2026/4/24 15:51:31] キーワードマップ: リンク追加 from=6 to=1 label="New Edge" arrows=none
+      [2026/4/24 15:51:34] キーワードマップ: リンク追加 from=5 to=1 label="New Edge" arrows=none
+      [2026/4/24 15:51:38] キーワードマップ: リンク追加 from=1 to=3 label="New Edge" arrows=none
+      [2026/4/24 15:51:41] キーワードマップ: リンク追加 from=1 to=7 label="New Edge" arrows=none
+      [2026/4/24 15:51:43] キーワードマップ: リンク追加 from=1 to=2 label="New Edge" arrows=none
+      [2026/4/24 15:51:46] キーワードマップ: リンク追加 from=1 to=4 label="New Edge" arrows=none

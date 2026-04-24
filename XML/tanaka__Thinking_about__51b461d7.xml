@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?meta title="Thinking about how to generate sustainable energy for the future"?>
+<ConceptMap>
+  <Nodes>
+    <Node id="1" label="energy" x="366" y="101" />
+    <Node id="2" label="potential energy" x="504" y="232" />
+    <Node id="3" label="sound energy" x="646" y="-10" />
+    <Node id="4" label="Nuclear energy" x="201" y="217" />
+    <Node id="5" label="solar energy" x="413" y="-73" />
+    <Node id="6" label="thermal energy" x="-4" y="52" />
+    <Node id="7" label="kinetic energy" x="711" y="102" />
+    <Node id="8" label="thermal power generation" x="140" y="-74" />
+    <Node id="9" label="biomass power generation" x="-334" y="4" />
+    <Node id="10" label="renewable energy" x="-777" y="51" />
+    <Node id="11" label="hydropower" x="-949" y="145" />
+    <Node id="12" label="rotational energy" x="-524" y="276" />
+    <Node id="13" label="solar thermal power generation" x="-516" y="145" />
+    <Node id="14" label="ocean energy power generation" x="-533" y="-92" />
+    <Node id="15" label="electrical energy" x="-178" y="155" />
+    <Node id="16" label="nuclear power generation" x="-14" y="296" />
+  </Nodes>
+  <Edges>
+    <Edge id="e1" from="11" to="10" label="New Edge" arrows="" />
+    <Edge id="e2" from="10" to="14" label="New Edge" arrows="" />
+    <Edge id="e3" from="10" to="9" label="New Edge" arrows="" />
+    <Edge id="e4" from="10" to="13" label="New Edge" arrows="" />
+    <Edge id="e5" from="11" to="12" label="New Edge" arrows="" />
+    <Edge id="e6" from="12" to="15" label="New Edge" arrows="" />
+    <Edge id="e7" from="13" to="15" label="New Edge" arrows="" />
+    <Edge id="e8" from="6" to="15" label="New Edge" arrows="" />
+    <Edge id="e9" from="9" to="6" label="New Edge" arrows="" />
+    <Edge id="e10" from="6" to="8" label="New Edge" arrows="" />
+    <Edge id="e11" from="16" to="4" label="New Edge" arrows="" />
+    <Edge id="e12" from="6" to="1" label="New Edge" arrows="" />
+    <Edge id="e13" from="5" to="1" label="New Edge" arrows="" />
+    <Edge id="e14" from="1" to="3" label="New Edge" arrows="" />
+    <Edge id="e15" from="1" to="7" label="New Edge" arrows="" />
+    <Edge id="e16" from="1" to="2" label="New Edge" arrows="" />
+    <Edge id="e17" from="1" to="4" label="New Edge" arrows="" />
+  </Edges>
+</ConceptMap>
