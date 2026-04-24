@@ -5,7 +5,7 @@
     <Node id="1" label="energy" x="366" y="101" />
     <Node id="2" label="potential energy" x="504" y="232" />
     <Node id="3" label="sound energy" x="646" y="-10" />
-    <Node id="4" label="Nuclear energy" x="201" y="217" />
+    <Node id="4" label="nuclear energy" x="201" y="217" />
     <Node id="5" label="solar energy" x="413" y="-73" />
     <Node id="6" label="thermal energy" x="-4" y="52" />
     <Node id="7" label="kinetic energy" x="711" y="102" />
@@ -18,6 +18,7 @@
     <Node id="14" label="ocean energy power generation" x="-533" y="-92" />
     <Node id="15" label="electrical energy" x="-178" y="155" />
     <Node id="16" label="nuclear power generation" x="-14" y="296" />
+    <Node id="17" label="job market" x="-136" y="-59" />
   </Nodes>
   <Edges>
     <Edge id="e1" from="11" to="10" label="types" arrows="" />

@@ -18,9 +18,7 @@
     <Node id="15" label="エネルギー理論" x="-437" y="54" />
     <Node id="16" label="エネルギー危機" x="-654" y="-79" />
     <Node id="17" label="廃棄物管理" x="-795" y="-203" />
-    <Node id="18" label="エネルギー政策" x="-899" y="70" />
     <Node id="19" label="電力需要" x="-207" y="-212" />
-    <Node id="20" label="新しいノード" x="-1067" y="-92" />
   </Nodes>
   <Edges>
     <Edge id="71b62adc-695d-4d40-a10a-6a721200e01e" from="6" to="2" label="要素" arrows="" />

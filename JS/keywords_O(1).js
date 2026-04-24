@@ -81,21 +81,44 @@ function buildKeywordPrompt(themeValue, chunk, perspectiveLegend, useEnglishProm
         `;
 }
 
-function handleKeywordClick(keyword) {
-    console.log(`クリックされたキーワード: ${keyword}`); // クリックされたキーワードを確認
+function getDuplicateKeywordAlertMessage(keyword) {
+    const fallback = isKeywordsEnglishUi()
+        ? `Keyword "${keyword}" is already on the map.`
+        : `キーワード「${keyword}」はすでにマップに存在しています。`;
+    return t("alerts.keywordAlreadyExists", { keyword }, fallback);
+}
 
-    // ノードが既に存在するかチェック（ラベルで重複を避ける）
-    let existingNode = nodes.get({
+async function findExistingKeywordNode(keyword) {
+    if (typeof window.findExistingNodeByLabel === "function") {
+        try {
+            const resolved = await window.findExistingNodeByLabel(keyword);
+            if (resolved) return resolved;
+        } catch (error) {
+            console.warn("findExistingNodeByLabel failed:", error);
+        }
+    }
+
+    const exactMatched = nodes.get({
         filter: function(node) {
-            return node.label === keyword;
+            return String(node.label || "").trim() === String(keyword || "").trim();
         }
     });
+    return exactMatched.length > 0 ? exactMatched[0] : null;
+}
 
-    if (existingNode.length === 0) {
+async function handleKeywordClick(keyword) {
+    const normalizedKeyword = String(keyword || "").trim();
+    if (!normalizedKeyword) return;
+    console.log(`クリックされたキーワード: ${normalizedKeyword}`);
+
+    // ノードが既に存在するかチェック（表記ゆれを含む）
+    const existingNode = await findExistingKeywordNode(normalizedKeyword);
+
+    if (!existingNode) {
         var position = typeof window.getNonOverlappingNodePosition === "function"
             ? window.getNonOverlappingNodePosition()
             : network.getViewPosition();
-        // 新しいノードを作成
+        // 新しいノードを追加
         var newId = typeof window.getNextNumericNodeId === "function"
             ? window.getNextNumericNodeId()
             : (function() {
@@ -111,7 +134,7 @@ function handleKeywordClick(keyword) {
             })();
         var newNode = {
             id: newId,
-            label: keyword,
+            label: normalizedKeyword,
             nodeType: "keyword",
             x: position.x,
             y: position.y
@@ -121,11 +144,32 @@ function handleKeywordClick(keyword) {
             window.emphasizeNodeTemporarily(newNode.id);
         }
         if (typeof window.addSystemLog === "function") {
-            window.addSystemLog(`生成キーワード: ノード追加 label="${keyword}"`);
+            window.addSystemLog(`生成キーワード: ノード追加 label="${normalizedKeyword}"`);
         }
-        console.log(`キーワード "${keyword}" をノードとして追加しました。`);
+        console.log(`キーワード "${normalizedKeyword}" をノードとして追加しました。`);
     } else {
-        console.log(`キーワード "${keyword}" のノードは既に存在しています。`);
+        alert(getDuplicateKeywordAlertMessage(normalizedKeyword));
+
+        const existingNodeId = existingNode ? existingNode.id : null;
+        if (existingNodeId !== null && existingNodeId !== undefined) {
+            if (window.network && typeof window.network.focus === "function") {
+                window.network.focus(existingNodeId, {
+                    scale: 1,
+                    animation: {
+                        duration: 350,
+                        easingFunction: "easeInOutQuad"
+                    }
+                });
+            }
+            if (typeof window.emphasizeNodeTemporarily === "function") {
+                window.emphasizeNodeTemporarily(existingNodeId);
+            }
+        }
+
+        if (typeof window.addSystemLog === "function") {
+            window.addSystemLog(`生成キーワード: 既存ノードを強調 label="${normalizedKeyword}"`);
+        }
+        console.log(`キーワード "${normalizedKeyword}" のノードは既に存在しています。`);
     }
 }
 

@@ -1429,17 +1429,33 @@ function enableScamperOnEntry(entry) {
 }
 
 // キーワードクリック時にノード追加
-function handleKeywordClick(keyword) {
-    console.log(`クリックされたキーワード: ${keyword}`);
+async function findExistingHypothesisKeywordNode(keyword) {
+  if (typeof window.findExistingNodeByLabel === "function") {
+    try {
+      const resolved = await window.findExistingNodeByLabel(keyword);
+      if (resolved) return resolved;
+    } catch (error) {
+      console.warn("findExistingNodeByLabel failed:", error);
+    }
+  }
 
-    // ノードが既に存在するかチェック（ラベルで重複を避ける）
-    let existingNode = nodes.get({
-        filter: function(node) {
-            return node.label === keyword;
-        }
-    });
+  const exactMatched = nodes.get({
+    filter: function (node) {
+      return String(node.label || "").trim() === String(keyword || "").trim();
+    }
+  });
+  return exactMatched.length > 0 ? exactMatched[0] : null;
+}
 
-    if (existingNode.length === 0) {
+async function handleKeywordClick(keyword) {
+    const normalizedKeyword = String(keyword || "").trim();
+    if (!normalizedKeyword) return;
+    console.log(`クリックされたキーワード: ${normalizedKeyword}`);
+
+    // ノードが既に存在するかチェック（表記ゆれを含む）
+    const existingNode = await findExistingHypothesisKeywordNode(normalizedKeyword);
+
+    if (!existingNode) {
         // 新しいノードを作成
       var position = typeof window.getNonOverlappingNodePosition === "function"
         ? window.getNonOverlappingNodePosition()
@@ -1459,7 +1475,7 @@ function handleKeywordClick(keyword) {
         })();
         var newNode = {
         id: newId,
-            label: keyword,
+            label: normalizedKeyword,
           nodeType: "keyword",
           x: position.x,
           y: position.y,
@@ -1468,10 +1484,15 @@ function handleKeywordClick(keyword) {
       if (typeof window.emphasizeNodeTemporarily === "function") {
         window.emphasizeNodeTemporarily(newNode.id);
       }
-      logHypothesisAction(`キーワード: ノード追加 label="${keyword}"`);
-        console.log(`キーワード "${keyword}" をノードとして追加しました。`);
+      logHypothesisAction(`キーワード: ノード追加 label="${normalizedKeyword}"`);
+        console.log(`キーワード "${normalizedKeyword}" をノードとして追加しました。`);
     } else {
-        console.log(`キーワード "${keyword}" のノードは既に存在しています。`);
+      if (typeof window.focusAndEmphasizeNode === "function") {
+        window.focusAndEmphasizeNode(existingNode.id);
+      } else if (typeof window.emphasizeNodeTemporarily === "function") {
+        window.emphasizeNodeTemporarily(existingNode.id);
+      }
+        console.log(`キーワード "${normalizedKeyword}" のノードは既に存在しています。`);
     }
 }
 

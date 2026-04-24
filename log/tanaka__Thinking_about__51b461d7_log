@@ -237,3 +237,45 @@
       [2026/4/24 17:20:06] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
       [2026/4/24 17:20:06] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
       [2026/4/24 17:20:06] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/4/24 17:20:44] UI: left side view shown
+      [2026/4/24 17:21:39] 生成されたキーワードの組み合わせ: energy, future
+      [2026/4/24 17:28:14] 生成キーワード: ノード追加 label="biodiversity conservation"
+      [2026/4/24 17:28:21] キーワードマップ: ノード削除 id=17 label="biodiversity conservation"
+      [2026/4/24 17:28:21] キーワードマップ: ノード複数削除 count=1 edges=0
+      [2026/4/24 17:28:22] 生成キーワード: ノード追加 label="biodiversity conservation"
+      [2026/4/24 17:28:35] キーワードマップ: ノード複数削除 count=1 edges=0
+      [2026/4/24 17:28:35] キーワードマップ: ノード削除 id=17 label="biodiversity conservation"
+      [2026/4/24 17:30:06] キーワードマップ: ノード追加 id=17 label="New Node"
+      [2026/4/24 17:30:13] キーワードマップ: ノード編集 id=17 "New Node" → "energy"
+      [2026/4/24 17:30:18] キーワードマップ: ノード複数削除 count=1 edges=0
+      [2026/4/24 17:30:18] キーワードマップ: ノード削除 id=17 label="energy"
+      [2026/4/24 17:34:54] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 17:34:54] Keyword map: centered (no nodes)
+      [2026/4/24 17:34:54] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 17:34:54] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/4/24 17:34:54] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/4/24 17:34:54] 仮説: 復元しました
+      [2026/4/24 17:34:56] UI: left side view shown
+      [2026/4/24 17:34:58] 生成されたキーワードの組み合わせ: energy, future
+      [2026/4/24 17:35:22] 生成キーワード: ノード追加 label="job market"
+      [2026/4/24 17:35:24] 生成キーワード: 既存ノードを強調 label="job market"
+      [2026/4/24 17:35:30] 生成キーワード: 既存ノードを強調 label="job market"
+      [2026/4/24 17:35:38] 生成キーワード: ノード追加 label="nuclear energy"
+      [2026/4/24 17:35:48] キーワードマップ: ノード編集 id=4 "Nuclear energy" → "nuclear energy"
+      [2026/4/24 17:35:51] キーワードマップ: ノード削除 id=18 label="nuclear energy"
+      [2026/4/24 17:35:51] キーワードマップ: ノード複数削除 count=1 edges=0
+      [2026/4/24 17:35:52] 生成キーワード: ノード追加 label="community solar projects"
+      [2026/4/24 17:35:56] キーワードマップ: ノード複数削除 count=1 edges=0
+      [2026/4/24 17:35:56] キーワードマップ: ノード削除 id=18 label="community solar projects"
+      [2026/4/24 17:35:59] 生成キーワード: 既存ノードを強調 label="nuclear energy"
+      [2026/4/24 17:36:01] 生成キーワード: ノード追加 label="biodiversity loss"
+      [2026/4/24 17:36:04] キーワードマップ: ノード削除 id=18 label="biodiversity loss"
+      [2026/4/24 17:36:04] キーワードマップ: ノード複数削除 count=1 edges=0
+      [2026/4/24 17:37:06] Keyword map: centered
+      [2026/4/24 17:46:59] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 17:46:59] Keyword map: centered (no nodes)
+      [2026/4/24 17:47:00] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 17:47:00] 仮説: 復元しました
+      [2026/4/24 17:47:00] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/4/24 17:47:00] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/4/24 17:47:04] UI: left side view shown

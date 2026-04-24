@@ -333,11 +333,183 @@ function clearNodeSelection() {
 }
 window.clearNodeSelection = clearNodeSelection;
 
-document.getElementById("addNodeBtn").addEventListener("click", function () {
+const JAPANESE_SURFACE_PATTERN = /[ぁ-んァ-ヶ一-龯々ー]/;
+const HIRAGANA_PATTERN = /[ぁ-ゖ]/g;
+const JAPANESE_SPACE_PATTERN = /\s+/g;
+const KUROMOJI_DICT_PATH = "../dict";
+let duplicateKeywordTokenizerPromise = null;
+const keywordCompareKeyCache = new Map();
+
+function normalizeKeywordSurface(label) {
+  return String(label || "")
+    .normalize("NFKC")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+}
+
+function toKatakana(text) {
+  return String(text || "").replace(HIRAGANA_PATTERN, function (char) {
+    return String.fromCharCode(char.charCodeAt(0) + 0x60);
+  });
+}
+
+function buildKanaCompareKey(text) {
+  const normalized = normalizeKeywordSurface(text).replace(JAPANESE_SPACE_PATTERN, "");
+  return toKatakana(normalized);
+}
+
+function hasJapaneseSurface(text) {
+  return JAPANESE_SURFACE_PATTERN.test(String(text || ""));
+}
+
+function getDuplicateKeywordTokenizer() {
+  if (duplicateKeywordTokenizerPromise) {
+    return duplicateKeywordTokenizerPromise;
+  }
+  if (typeof kuromoji === "undefined" || !kuromoji || typeof kuromoji.builder !== "function") {
+    return Promise.resolve(null);
+  }
+
+  duplicateKeywordTokenizerPromise = new Promise(function (resolve) {
+    kuromoji.builder({ dicPath: KUROMOJI_DICT_PATH }).build(function (err, tokenizer) {
+      if (err) {
+        console.warn("Duplicate check tokenizer init failed:", err);
+        resolve(null);
+        return;
+      }
+      resolve(tokenizer || null);
+    });
+  });
+
+  return duplicateKeywordTokenizerPromise;
+}
+
+async function getReadingCompareKey(text) {
+  if (!hasJapaneseSurface(text)) return "";
+
+  const tokenizer = await getDuplicateKeywordTokenizer();
+  if (!tokenizer) return "";
+
+  try {
+    const tokens = tokenizer.tokenize(String(text || ""));
+    if (!Array.isArray(tokens) || tokens.length === 0) return "";
+
+    const reading = tokens
+      .map(function (token) {
+        const readingCandidate = token && (token.reading || token.pronunciation);
+        if (readingCandidate && readingCandidate !== "*") return readingCandidate;
+        return token && token.surface_form ? token.surface_form : "";
+      })
+      .join("");
+
+    return buildKanaCompareKey(reading);
+  } catch (error) {
+    console.warn("Duplicate check tokenization failed:", error);
+    return "";
+  }
+}
+
+async function buildKeywordCompareKeys(label) {
+  const normalizedLabel = normalizeKeywordSurface(label);
+  if (!normalizedLabel) return [];
+
+  if (keywordCompareKeyCache.has(normalizedLabel)) {
+    return keywordCompareKeyCache.get(normalizedLabel);
+  }
+
+  const keysPromise = (async function () {
+    const keys = new Set();
+    keys.add(`surface:${normalizedLabel}`);
+    keys.add(`surface:${normalizedLabel.replace(/\s+/g, "")}`);
+
+    const kanaKey = buildKanaCompareKey(normalizedLabel);
+    if (kanaKey) {
+      keys.add(`kana:${kanaKey}`);
+    }
+
+    const readingKey = await getReadingCompareKey(normalizedLabel);
+    if (readingKey) {
+      keys.add(`kana:${readingKey}`);
+    }
+
+    return Array.from(keys).filter(Boolean);
+  })();
+
+  keywordCompareKeyCache.set(normalizedLabel, keysPromise);
+  return keysPromise;
+}
+
+async function findExistingNodeByLabel(label) {
+  const targetKeys = await buildKeywordCompareKeys(label);
+  if (!Array.isArray(targetKeys) || targetKeys.length === 0) return null;
+  const targetKeySet = new Set(targetKeys);
+
+  const allNodes = nodes.get();
+  for (let i = 0; i < allNodes.length; i += 1) {
+    const node = allNodes[i];
+    const nodeKeys = await buildKeywordCompareKeys(node.label);
+    for (let j = 0; j < nodeKeys.length; j += 1) {
+      if (targetKeySet.has(nodeKeys[j])) {
+        return node;
+      }
+    }
+  }
+  return null;
+}
+window.findExistingNodeByLabel = findExistingNodeByLabel;
+
+function focusAndEmphasizeNode(nodeId) {
+  if (nodeId === null || nodeId === undefined) return;
+
+  if (network && typeof network.focus === "function") {
+    network.focus(nodeId, {
+      scale: 1,
+      animation: { duration: 350, easingFunction: "easeInOutQuad" },
+    });
+  }
+  emphasizeNodeTemporarily(nodeId);
+}
+window.focusAndEmphasizeNode = focusAndEmphasizeNode;
+
+function getKeywordAlreadyExistsAlertMessage(keyword) {
+  const fallback =
+    getCurrentThemeLanguage() === "en"
+      ? `Keyword "${keyword}" is already on the map.`
+      : `キーワード「${keyword}」はすでにマップに存在しています。`;
+  return t("alerts.keywordAlreadyExists", { keyword }, fallback);
+}
+
+document.getElementById("addNodeBtn").addEventListener("click", async function () {
+  var addKeywordPromptMessage =
+    getCurrentThemeLanguage() === "en"
+      ? "Enter a keyword to add."
+      : "追加するキーワードを入力してください。";
+  var inputLabel = prompt(
+    t("prompts.addKeywordLabel", {}, addKeywordPromptMessage),
+    t("defaults.newNode", {}, "新しいノード")
+  );
+  if (inputLabel === null) return;
+
+  var normalizedLabel = String(inputLabel).trim();
+  if (!normalizedLabel) {
+    alert(t("alerts.enterNodeName", {}, "ノード名を入力してください。"));
+    return;
+  }
+
+  var existingNode = await findExistingNodeByLabel(normalizedLabel);
+  if (existingNode) {
+    alert(getKeywordAlreadyExistsAlertMessage(normalizedLabel));
+    focusAndEmphasizeNode(existingNode.id);
+    logAction(`キーワードマップ: 既存ノードを検出したため追加を中止 id=${existingNode.id} label="${normalizedLabel}"`);
+    return;
+  }
+
   var position = getNonOverlappingNodePosition();
   var newNode = {
-    id: getNextNumericNodeId(), // 既存IDと衝突しないIDを採番
-    label: t("defaults.newNode", {}, "新しいノード"),
+    id: getNextNumericNodeId(), // 既存IDと重複しないIDを採番
+    label: normalizedLabel,
+    nodeType: "keyword",
     x: position.x,
     y: position.y,
     color: {
@@ -353,8 +525,6 @@ document.getElementById("addNodeBtn").addEventListener("click", function () {
   emphasizeNodeTemporarily(newNode.id);
   logAction(`キーワードマップ: ノード追加 id=${newNode.id} label="${newNode.label}"`);
 });
-
-// マップを中央表示するボタン
 const recenterMapBtn = document.getElementById("recenterMapBtn");
 
 function setRecenterMapButtonPressed(isPressed) {
