@@ -50,6 +50,43 @@ var data = {
 };
 var network = new vis.Network(container, data, options);
 
+function disableNetworkCanvasFocusHighlight() {
+  if (!container) return;
+
+  container.setAttribute("tabindex", "-1");
+  if (container.style) {
+    container.style.outline = "none";
+    container.style.boxShadow = "none";
+  }
+
+  var focusableElements = container.querySelectorAll("canvas, [tabindex]");
+  focusableElements.forEach(function (element) {
+    element.setAttribute("tabindex", "-1");
+    if (element.style) {
+      element.style.outline = "none";
+      element.style.boxShadow = "none";
+    }
+  });
+}
+
+disableNetworkCanvasFocusHighlight();
+
+if (typeof MutationObserver !== "undefined" && container) {
+  var networkFocusObserver = new MutationObserver(function () {
+    disableNetworkCanvasFocusHighlight();
+  });
+  networkFocusObserver.observe(container, { childList: true, subtree: true });
+}
+
+document.addEventListener("keydown", function (event) {
+  if (event.key !== "Shift") return;
+  if (!container) return;
+  var activeElement = document.activeElement;
+  if (activeElement && container.contains(activeElement) && typeof activeElement.blur === "function") {
+    activeElement.blur();
+  }
+});
+
 function handleNetworkResize() {
   if (!network || !container) return;
   try {
@@ -262,10 +299,13 @@ network.on("doubleClick", function (event) {
     var nodeData = nodes.get(nodeId);
     var oldLabel = nodeData ? nodeData.label : "";
     var newLabel = prompt(t("prompts.editNodeLabel", {}, "ノードのラベルを変更"), nodeData.label);
-    if (newLabel !== null && newLabel !== oldLabel) {
-      nodeData.label = newLabel;
-      nodes.update(nodeData); // ノードデータを更新
-      logAction(`キーワードマップ: ノード編集 id=${nodeId} "${oldLabel}" → "${newLabel}"`);
+    if (newLabel !== null) {
+      if (newLabel !== oldLabel) {
+        nodeData.label = newLabel;
+        nodes.update(nodeData); // ノードデータを更新
+        logAction(`キーワードマップ: ノード編集 id=${nodeId} "${oldLabel}" → "${newLabel}"`);
+      }
+      clearNodeSelection();
     }
   } else if (event.edges.length > 0) {
     // エッジの編集

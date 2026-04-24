@@ -630,6 +630,16 @@ button#keywordCreationBtn:hover,
     background-size: 24px 24px;
     margin-bottom: 10px;
 }
+#mynetwork:focus,
+#mynetwork:focus-visible,
+#mynetwork .vis-network:focus,
+#mynetwork .vis-network:focus-visible,
+#mynetwork canvas:focus,
+#mynetwork canvas:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: var(--color-main-border) !important;
+}
 #copiedContent {
     font-size: 20px;
     color: var(--color-heading-text);
