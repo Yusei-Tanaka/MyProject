@@ -181,7 +181,7 @@
       },
       buttons: {
         delete: "削除",
-        addNode: "ノード追加",
+        addNode: "仮説を立案",
         expandHypothesis: "仮説を発散",
         cancel: "キャンセル",
         add: "追加"
@@ -409,7 +409,7 @@
       },
       buttons: {
         delete: "Delete",
-        addNode: "Add node",
+        addNode: "Create hypothesis",
         expandHypothesis: "Expand hypothesis",
         cancel: "Cancel",
         add: "Add"

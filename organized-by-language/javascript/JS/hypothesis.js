@@ -927,7 +927,7 @@ function attachHypothesisActions(targetTextarea, entry, parentContainer = null, 
   const addNodeBtn = document.createElement("button");
   addNodeBtn.type = "button";
   addNodeBtn.className = "hypothesis-action-button add-node-button";
-  addNodeBtn.innerText = t("buttons.addNode", {}, "ノード追加");
+  addNodeBtn.innerText = t("buttons.addNode", {}, "仮説を立案");
   addNodeBtn.addEventListener("click", function () {
     if (!targetTextarea.value.trim()) {
       alert(t("alerts.enterHypothesis", {}, "仮説を入力してください。"));

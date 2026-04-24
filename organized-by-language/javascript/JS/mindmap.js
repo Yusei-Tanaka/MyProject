@@ -37,6 +37,10 @@ window.addEventListener('DOMContentLoaded', function() {
     return htmlLang.startsWith("en") ? "en" : "ja";
   }
 
+  function getHypothesisNodeWidth() {
+    return getCurrentThemeLanguage() === "en" ? 170 : 120;
+  }
+
   function sanitizeFilePart(value) {
     return String(value || "")
       .trim()
@@ -391,7 +395,7 @@ window.addEventListener('DOMContentLoaded', function() {
           return key === 0 ? go.TextBlock.None : go.TextBlock.WrapFit;
         }),
         new go.Binding("width", "key", function(key) {
-          return key === 0 ? NaN : 120;
+          return key === 0 ? NaN : getHypothesisNodeWidth();
         }),
         new go.Binding("stroke", "key", function(key) {
           return key === 0 ? "#FFFFFF" : "#34495E";
@@ -413,7 +417,7 @@ window.addEventListener('DOMContentLoaded', function() {
         contextMenu:
           $("ContextMenu",
             $("ContextMenuButton",
-              $(go.TextBlock, t("buttons.addNode", {}, "ノード追加")),
+              $(go.TextBlock, t("buttons.addNode", {}, "仮説を立案")),
               { click: (e, obj) => addChild(obj.part.adornedPart) }
             ),
             $("ContextMenuButton",
@@ -494,6 +498,14 @@ window.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
+
+  window.addEventListener("app-language-changed", function() {
+    if (!diagram) return;
+    diagram.nodes.each(function(node) {
+      node.updateTargetBindings();
+    });
+    diagram.layoutDiagram(true);
+  });
 
   diagram.addModelChangedListener(function(e) {
     if (e.isTransactionFinished) {
