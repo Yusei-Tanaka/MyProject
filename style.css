@@ -671,6 +671,12 @@ button#keywordCreationBtn:hover,
     display: flex;
     flex-direction: column;
     gap: 8px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.hypothesis-box.is-active {
+    border-color: var(--color-node-highlight);
+    box-shadow: 0 0 0 2px rgba(230, 126, 34, 0.24);
+    background: rgba(255, 247, 230, 0.95);
 }
 .hypothesis-combined {
     background: #fff;

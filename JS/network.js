@@ -115,7 +115,8 @@ function getCurrentThemeLanguage() {
 network.on("selectNode", function (event) {
   if (event.nodes.length > 0) {
     // Shiftキーが押されている場合は選択を追加
-    if (event.event.srcEvent.shiftKey) {
+    const shiftPressed = !!(event && event.event && event.event.srcEvent && event.event.srcEvent.shiftKey);
+    if (shiftPressed) {
       selectedNodes = [...new Set([...selectedNodes, ...event.nodes])]; // 重複を防ぐ
     } else {
       // Shiftキーが押されていない場合は選択をリセット
@@ -225,6 +226,33 @@ function highlightNodes(nodeIds) {
     });
   });
 }
+window.highlightNodes = highlightNodes;
+
+function setSelectedNodes(nodeIds) {
+  var existingMap = new Map();
+  nodes.getIds().forEach(function (existingId) {
+    existingMap.set(String(existingId), existingId);
+  });
+
+  var ids = (Array.isArray(nodeIds) ? nodeIds : [])
+    .map(function (id) {
+      return existingMap.get(String(id));
+    })
+    .filter(function (id) {
+      return id !== undefined;
+    });
+  ids = Array.from(new Set(ids));
+
+  if (network && typeof network.selectNodes === "function") {
+    network.selectNodes(ids);
+  }
+
+  selectedNodes = ids;
+  window.selectedNodes = selectedNodes;
+  highlightNodes(selectedNodes);
+  updateCopiedContent(selectedNodes);
+}
+window.setSelectedNodes = setSelectedNodes;
 
 // ノードまたはエッジをダブルクリックで編集
 network.on("doubleClick", function (event) {
@@ -464,6 +492,7 @@ function updateCopiedContent(_nodeIds) {
   copiedContentElement.innerText = "";
   copiedContentElement.classList.add("is-hidden");
 }
+window.updateCopiedContent = updateCopiedContent;
 
 function getCurrentTitleText() {
   const titleInput = document.getElementById("myTitle");

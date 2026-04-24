@@ -7,6 +7,34 @@
     
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/svg+xml" href="./img/favicon.svg">
+    <script>
+      (function () {
+        if (typeof window === "undefined") return;
+        if (window.crypto && typeof window.crypto.randomUUID === "function") return;
+
+        if (!window.crypto && window.msCrypto) {
+          window.crypto = window.msCrypto;
+        }
+        if (!window.crypto || typeof window.crypto.getRandomValues !== "function") return;
+
+        window.crypto.randomUUID = function () {
+          var bytes = new Uint8Array(16);
+          window.crypto.getRandomValues(bytes);
+          bytes[6] = (bytes[6] & 0x0f) | 0x40;
+          bytes[8] = (bytes[8] & 0x3f) | 0x80;
+          var hex = Array.from(bytes, function (b) {
+            return b.toString(16).padStart(2, "0");
+          }).join("");
+          return (
+            hex.slice(0, 8) + "-" +
+            hex.slice(8, 12) + "-" +
+            hex.slice(12, 16) + "-" +
+            hex.slice(16, 20) + "-" +
+            hex.slice(20)
+          );
+        };
+      })();
+    </script>
 
     <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
     <script src="https://golden-layout.com/files/latest/js/goldenlayout.min.js"></script>
@@ -105,8 +133,8 @@
     <script src="JS/i18n.js"></script>
     <script src="JS/global-theme.js"></script>
     <script src="JS/vendor/vis-network.min.js"></script>
-    <script src="JS/network.js?v=20260217-2"></script>
-    <script src="JS/hypothesis.js?v=20260217-2"></script>
+    <script src="JS/network.js?v=20260424-4"></script>
+    <script src="JS/hypothesis.js?v=20260424-4"></script>
     <script src="JS/log.js?v=20260417-1"></script>
     <script src="JS/setFontSize.js"></script>
     <script src="JS/kuromoji.js"></script>

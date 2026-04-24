@@ -86,3 +86,128 @@
       [2026/4/24 16:13:07] キーワードマップ: リンク削除 from=14 to=8 count=1
       [2026/4/24 16:13:11] UI: left side view shown
       [2026/4/24 16:13:15] 仮説: 追加 (基づくキーワード: ocean energy power generation、thermal power generation、biomass power generation)
+      [2026/4/24 16:17:24] キーワードマップ: リンク編集 id=e5 "New Edge" → "power generation methods"
+      [2026/4/24 16:17:30] キーワードマップ: リンク編集 id=e1 "New Edge" → "types"
+      [2026/4/24 16:17:33] キーワードマップ: リンク編集 id=e2 "New Edge" → "types"
+      [2026/4/24 16:17:38] キーワードマップ: リンク編集 id=e3 "New Edge" → "types"
+      [2026/4/24 16:17:44] キーワードマップ: リンク編集 id=e4 "New Edge" → "types"
+      [2026/4/24 16:18:02] キーワードマップ: リンク編集 id=e7 "New Edge" → "power generation methods"
+      [2026/4/24 16:18:10] キーワードマップ: リンク編集 id=e6 "New Edge" → "conversion"
+      [2026/4/24 16:18:34] キーワードマップ: リンク編集 id=e9 "New Edge" → "power generation methods"
+      [2026/4/24 16:18:43] キーワードマップ: リンク編集 id=e8 "New Edge" → "power generation methods"
+      [2026/4/24 16:18:58] キーワードマップ: リンク編集 id=e10 "New Edge" → "power generation methods"
+      [2026/4/24 16:19:11] キーワードマップ: リンク編集 id=e11 "New Edge" → "power generation methods"
+      [2026/4/24 16:19:15] キーワードマップ: リンク編集 id=e12 "New Edge" → "types"
+      [2026/4/24 16:19:21] キーワードマップ: リンク編集 id=e17 "New Edge" → "types"
+      [2026/4/24 16:19:25] キーワードマップ: リンク編集 id=e13 "New Edge" → "types"
+      [2026/4/24 16:19:29] キーワードマップ: リンク編集 id=e14 "New Edge" → "types"
+      [2026/4/24 16:19:33] キーワードマップ: リンク編集 id=e15 "New Edge" → "types"
+      [2026/4/24 16:19:37] キーワードマップ: リンク編集 id=e16 "New Edge" → "types"
+      [2026/4/24 16:19:39] Keyword map: centered
+      [2026/4/24 16:19:42] キーワードマップ: ノード追加 id=17 label="New Node"
+      [2026/4/24 16:19:48] キーワードマップ: ノード編集 id=17 "New Node" → "ss"
+      [2026/4/24 16:19:55] キーワードマップ: ノード複数削除 count=1 edges=0
+      [2026/4/24 16:19:55] キーワードマップ: ノード削除 id=17 label="ss"
+      [2026/4/24 16:20:04] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:20:04] Keyword map: centered (no nodes)
+      [2026/4/24 16:20:04] 仮説: 復元しました
+      [2026/4/24 16:20:04] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:20:06] UI: left side view shown
+      [2026/4/24 16:20:19] 仮説: 追加 (基づくキーワード: hydropower、renewable energy)
+      [2026/4/24 16:21:40] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:21:40] Keyword map: centered (no nodes)
+      [2026/4/24 16:21:40] 仮説: 復元しました
+      [2026/4/24 16:21:40] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:21:44] UI: left side view shown
+      [2026/4/24 16:21:51] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:21:52] Keyword map: centered (no nodes)
+      [2026/4/24 16:21:52] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:21:52] 仮説: 復元しました
+      [2026/4/24 16:21:54] UI: left side view shown
+      [2026/4/24 16:22:36] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:22:36] Keyword map: centered (no nodes)
+      [2026/4/24 16:22:36] 仮説: 復元しました
+      [2026/4/24 16:22:36] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:22:37] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:22:37] Keyword map: centered (no nodes)
+      [2026/4/24 16:22:37] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:22:37] 仮説: 復元しました
+      [2026/4/24 16:22:41] UI: left side view shown
+      [2026/4/24 16:23:33] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:23:33] Keyword map: centered (no nodes)
+      [2026/4/24 16:23:33] 仮説: 復元しました
+      [2026/4/24 16:23:33] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:23:37] UI: left side view shown
+      [2026/4/24 16:25:05] キーワードマップ: ノード追加 id=17 label="New Node"
+      [2026/4/24 16:25:09] キーワードマップ: ノード編集 id=17 "New Node" → "o"
+      [2026/4/24 16:25:14] キーワードマップ: ノード編集 id=17 "o" → ""
+      [2026/4/24 16:25:15] キーワードマップ: ノード複数削除 count=1 edges=0
+      [2026/4/24 16:25:15] キーワードマップ: ノード削除 id=17 label=""
+      [2026/4/24 16:25:38] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:25:38] Keyword map: centered (no nodes)
+      [2026/4/24 16:25:38] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:25:38] 仮説: 復元しました
+      [2026/4/24 16:25:41] UI: left side view shown
+      [2026/4/24 16:26:27] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:26:27] Keyword map: centered (no nodes)
+      [2026/4/24 16:26:27] 仮説: 復元しました
+      [2026/4/24 16:26:27] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:26:30] UI: left side view shown
+      [2026/4/24 16:27:51] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:27:51] Keyword map: centered (no nodes)
+      [2026/4/24 16:27:51] 仮説: 復元しました
+      [2026/4/24 16:27:51] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:28:18] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:28:18] Keyword map: centered (no nodes)
+      [2026/4/24 16:28:18] 仮説: 復元しました
+      [2026/4/24 16:28:19] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:28:21] UI: left side view shown
+      [2026/4/24 16:28:30] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:28:30] Keyword map: centered (no nodes)
+      [2026/4/24 16:28:30] 仮説: 復元しました
+      [2026/4/24 16:28:30] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:28:30] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:28:30] Keyword map: centered (no nodes)
+      [2026/4/24 16:28:30] 仮説: 復元しました
+      [2026/4/24 16:28:30] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:28:31] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:28:31] Keyword map: centered (no nodes)
+      [2026/4/24 16:28:31] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:28:31] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:28:31] Keyword map: centered (no nodes)
+      [2026/4/24 16:28:31] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:28:31] Keyword map: centered (no nodes)
+      [2026/4/24 16:28:32] 仮説: 復元しました
+      [2026/4/24 16:28:32] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:28:32] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:28:32] Keyword map: centered (no nodes)
+      [2026/4/24 16:28:32] 仮説: 復元しました
+      [2026/4/24 16:28:32] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:28:35] UI: left side view shown
+      [2026/4/24 16:29:50] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:29:50] Keyword map: centered (no nodes)
+      [2026/4/24 16:29:50] 仮説: 復元しました
+      [2026/4/24 16:29:50] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:29:53] UI: left side view shown
+      [2026/4/24 16:30:35] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:30:35] Keyword map: centered (no nodes)
+      [2026/4/24 16:30:35] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:30:35] 仮説: 復元しました
+      [2026/4/24 16:30:38] UI: left side view shown
+      [2026/4/24 16:31:30] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:31:30] Keyword map: centered (no nodes)
+      [2026/4/24 16:31:30] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:31:30] 仮説: 復元しました
+      [2026/4/24 16:31:33] UI: left side view shown
+      [2026/4/24 16:32:25] 仮説: SCAMPER選択 Substitute
+      [2026/4/24 16:32:29] 仮説: 生成質問一覧 [What if we substitute traditional fossil fuels with ocean energy power generation methods? How might this impact sustainability and energy efficiency? / Can we replace current thermal power generation techniques with innovative biomass power generation technologies? What benefits or challenges could arise from this substitution? / If we consider substituting solar energy with other renewable sources like ocean energy, what new possibilities for energy generation and storage could emerge?]
+      [2026/4/24 16:32:30] 仮説: 生成質問を選択 "What if we substitute traditional fossil fuels with ocean energy power generation methods? How might this impact sustainability and energy efficiency?"
+      [2026/4/24 16:32:43] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="sss"
+      [2026/4/24 16:32:43] 仮説: マインドマップへノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="sss"
+      [2026/4/24 16:33:28] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:33:28] Keyword map: centered (no nodes)
+      [2026/4/24 16:33:28] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/4/24 16:33:28] 仮説: 復元しました
+      [2026/4/24 16:33:28] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/4/24 16:33:28] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/4/24 16:33:31] UI: left side view shown

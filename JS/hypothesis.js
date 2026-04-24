@@ -561,6 +561,8 @@ function bindScamperTagDelete(tagLabel, tagContainer) {
 }
 
 function rebindHypothesisEntry(entry) {
+  bindHypothesisEntrySelection(entry);
+
   entry.querySelectorAll(".hypothesis-action-bar").forEach(function (bar) {
     bar.remove();
   });
@@ -697,6 +699,8 @@ function addHypothesisEntry(nodeIds) {
   // エントリ作成
   var entry = document.createElement("div");
   entry.className = "hypothesis-box";
+  entry.dataset.basedNodeIds = JSON.stringify(nodeIds);
+  entry.dataset.basedKeywordLabels = JSON.stringify(keywordLabels);
 
   var hdr = document.createElement("div");
   hdr.className = "hypothesis-box-header";
@@ -737,6 +741,7 @@ function addHypothesisEntry(nodeIds) {
   bindDeleteButton(entry, wrapper);
 
   wrapper.appendChild(entry);
+  bindHypothesisEntrySelection(entry);
   enableScamperOnEntry(entry);
   entry.scrollIntoView({ behavior: "smooth" });
   logHypothesisAction(`仮説: 追加 (基づくキーワード: ${keywordLabels.join("、")})`);
@@ -763,6 +768,242 @@ function getSelectedNodeIdsForHypothesis() {
   }
 
   return [];
+}
+
+function dedupeNodeIds(ids) {
+  var unique = Array.from(
+    new Set(
+      (Array.isArray(ids) ? ids : []).map(function (id) {
+        return String(id);
+      })
+    )
+  );
+
+  return unique.map(function (id) {
+    var numericId = Number(id);
+    return Number.isNaN(numericId) ? id : numericId;
+  });
+}
+
+function findNodeIdsByLabels(labels) {
+  if (!Array.isArray(labels) || labels.length === 0) return [];
+  if (!window.nodes || typeof window.nodes.get !== "function") return [];
+
+  var wanted = labels
+    .map(function (label) {
+      return String(label || "").trim();
+    })
+    .filter(function (label) {
+      return label.length > 0;
+    });
+  if (wanted.length === 0) return [];
+
+  var wantedSet = new Set(wanted);
+  var candidates = window.nodes.get();
+  var ids = [];
+  candidates.forEach(function (node) {
+    var labelsToMatch = [];
+    var nodeLabel = String(node && node.label ? node.label : "").trim();
+    if (nodeLabel) labelsToMatch.push(nodeLabel);
+
+    if (node && node.i18nLabels && typeof node.i18nLabels === "object") {
+      Object.keys(node.i18nLabels).forEach(function (langKey) {
+        var localized = String(node.i18nLabels[langKey] || "").trim();
+        if (localized) labelsToMatch.push(localized);
+      });
+    }
+
+    var matched = labelsToMatch.some(function (label) {
+      return wantedSet.has(label);
+    });
+    if (matched) {
+      ids.push(node.id);
+    }
+  });
+
+  return dedupeNodeIds(ids);
+}
+
+function parseKeywordLabelsFromEntry(entry) {
+  if (!entry) return [];
+
+  if (entry.dataset && entry.dataset.basedKeywordLabels) {
+    try {
+      var parsed = JSON.parse(entry.dataset.basedKeywordLabels);
+      if (Array.isArray(parsed)) {
+        return parsed
+          .map(function (label) {
+            return String(label || "").trim();
+          })
+          .filter(Boolean);
+      }
+    } catch (_e) {
+      // noop
+    }
+  }
+
+  var meta = entry.querySelector(".hypothesis-meta-text");
+  var raw = meta ? String(meta.innerText || "").trim() : "";
+  if (!raw) return [];
+
+  raw = raw.replace(/^.*?[\uFF1A:]\s*/, "");
+  return raw
+    .split(/[\u3001,]/)
+    .map(function (label) {
+      return String(label || "").trim();
+    })
+    .filter(Boolean);
+}
+
+function getNodeIdsForHypothesisEntry(entry) {
+  if (!entry) return [];
+
+  if (entry.dataset && entry.dataset.basedNodeIds) {
+    try {
+      var parsed = JSON.parse(entry.dataset.basedNodeIds);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return dedupeNodeIds(parsed);
+      }
+    } catch (_e) {
+      // noop
+    }
+  }
+
+  return findNodeIdsByLabels(parseKeywordLabelsFromEntry(entry));
+}
+
+function filterExistingNodeIds(nodeIds) {
+  if (!Array.isArray(nodeIds) || nodeIds.length === 0) return [];
+  if (!window.nodes || typeof window.nodes.get !== "function") return [];
+
+  var existingMap = new Map();
+  window.nodes.getIds().forEach(function (existingId) {
+    existingMap.set(String(existingId), existingId);
+  });
+
+  var resolved = [];
+  nodeIds.forEach(function (id) {
+    var resolvedId = existingMap.get(String(id));
+    if (resolvedId !== undefined) {
+      resolved.push(resolvedId);
+    }
+  });
+
+  return dedupeNodeIds(resolved);
+}
+
+function setHypothesisEntryActive(entry) {
+  var wrapper = entry ? entry.parentElement : null;
+  if (!wrapper) return;
+
+  wrapper.querySelectorAll(".hypothesis-box.is-active").forEach(function (box) {
+    if (box !== entry) {
+      box.classList.remove("is-active");
+    }
+  });
+
+  entry.classList.add("is-active");
+}
+
+function selectNodesFromHypothesisEntry(entry) {
+  var nodeIds = filterExistingNodeIds(getNodeIdsForHypothesisEntry(entry));
+  if (nodeIds.length === 0) {
+    if (typeof window.clearNodeSelection === "function") {
+      window.clearNodeSelection();
+    }
+    return;
+  }
+
+  if (typeof window.setSelectedNodes === "function") {
+    window.setSelectedNodes(nodeIds);
+    return;
+  }
+
+  if (window.network && typeof window.network.selectNodes === "function") {
+    window.network.selectNodes(nodeIds);
+  }
+
+  window.selectedNodes = nodeIds.slice();
+  if (typeof window.highlightNodes === "function") {
+    window.highlightNodes(nodeIds);
+  }
+  if (typeof window.updateCopiedContent === "function") {
+    window.updateCopiedContent(nodeIds);
+  }
+}
+
+function bindHypothesisEntrySelection(entry) {
+  if (!entry || entry.dataset.boundHypothesisSelect === "true") return;
+
+  entry.addEventListener("click", function () {
+    setHypothesisEntryActive(entry);
+    selectNodesFromHypothesisEntry(entry);
+  });
+
+  entry.dataset.boundHypothesisSelect = "true";
+}
+
+function clearActiveHypothesisEntries() {
+  var activeBoxes = document.querySelectorAll(".hypothesis-box.is-active");
+  if (!activeBoxes || activeBoxes.length === 0) {
+    return false;
+  }
+
+  activeBoxes.forEach(function (box) {
+    box.classList.remove("is-active");
+  });
+
+  return true;
+}
+
+function bindOutsideClickToClearHypothesisActive() {
+  if (document.body && document.body.dataset.boundHypothesisOutsideClear === "true") {
+    return;
+  }
+
+  document.addEventListener("click", function (event) {
+    var target = event && event.target ? event.target : null;
+    if (target && typeof target.closest === "function" && target.closest(".hypothesis-box")) {
+      return;
+    }
+
+    var cleared = clearActiveHypothesisEntries();
+    if (!cleared) return;
+
+    var clickedInNetwork = target && typeof target.closest === "function" && target.closest("#mynetwork");
+    if (clickedInNetwork) {
+      return;
+    }
+
+    if (typeof window.clearNodeSelection === "function") {
+      window.clearNodeSelection();
+    } else if (typeof window.setSelectedNodes === "function") {
+      window.setSelectedNodes([]);
+    }
+  });
+
+  if (document.body) {
+    document.body.dataset.boundHypothesisOutsideClear = "true";
+  }
+}
+
+function bindHypothesisWrapperSelectionDelegation() {
+  var container = ensureHypothesisContainer();
+  var wrapper = container ? container.querySelector("#hypothesisWrapper") : null;
+  if (!wrapper || wrapper.dataset.boundHypothesisSelectDelegation === "true") {
+    return;
+  }
+
+  wrapper.addEventListener("click", function (event) {
+    var target = event && event.target ? event.target : null;
+    var entry = target && typeof target.closest === "function" ? target.closest(".hypothesis-box") : null;
+    if (!entry || !wrapper.contains(entry)) return;
+
+    setHypothesisEntryActive(entry);
+    selectNodesFromHypothesisEntry(entry);
+  });
+
+  wrapper.dataset.boundHypothesisSelectDelegation = "true";
 }
 
 function clearSelectionAfterHypothesisCreate() {
@@ -814,10 +1055,14 @@ document.addEventListener("DOMContentLoaded", function () {
   ensureHypothesisContainer();
   restoreHypothesisState();
   bindCreateHypothesisButton();
+  bindHypothesisWrapperSelectionDelegation();
+  bindOutsideClickToClearHypothesisActive();
 });
 
 if (document.readyState !== "loading") {
   bindCreateHypothesisButton();
+  bindHypothesisWrapperSelectionDelegation();
+  bindOutsideClickToClearHypothesisActive();
 }
 
 // 選択されたノードが存在するか確認
