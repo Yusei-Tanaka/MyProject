@@ -14,7 +14,7 @@ function ensureHypothesisContainer() {
 
     /*var title = document.createElement("h3");
     title.className = "hypothesis-title";
-    title.innerText = "仮説立案";
+    title.innerText = "仮説を追加";
     container.appendChild(title); */
 
     // 仮説エントリを入れるラッパー（ここに複数の仮説を追加）
@@ -29,7 +29,7 @@ function ensureHypothesisContainer() {
     help.innerText = t(
       "hypothesis.helpText",
       {},
-      "「仮説立案」ボタンを押すとこの中に新しい仮説が追加されます。"
+      "「仮説を追加」ボタンを押すとこの中に新しい仮説が追加されます。"
     );
     container.appendChild(help);
   }
@@ -538,26 +538,13 @@ function bindDeleteButton(entry, wrapper) {
   delBtn.__hypothesisDeleteHandler = onDeleteClick;
 }
 
-function bindScamperTagDelete(tagLabel, tagContainer) {
+function bindScamperTagDelete(tagLabel) {
   if (!tagLabel) return;
 
   if (typeof tagLabel.__scamperDeleteHandler === "function") {
     tagLabel.removeEventListener("contextmenu", tagLabel.__scamperDeleteHandler);
   }
-
-  const onContextMenu = function (e) {
-    e.preventDefault();
-    var confirmDelete = confirm(
-      t("confirms.deleteTag", { tag: tagLabel.innerText }, `「${tagLabel.innerText}」タグを削除しますか？`)
-    );
-    if (confirmDelete && tagContainer.parentNode) {
-      tagContainer.parentNode.removeChild(tagContainer);
-      scheduleHypothesisSave();
-    }
-  };
-
-  tagLabel.addEventListener("contextmenu", onContextMenu);
-  tagLabel.__scamperDeleteHandler = onContextMenu;
+  tagLabel.__scamperDeleteHandler = null;
 }
 
 function rebindHypothesisEntry(entry) {
@@ -1045,8 +1032,8 @@ window.handleCreateHypothesisClick = function () {
     addHypothesisEntry(currentSelectedNodes);
     clearSelectionAfterHypothesisCreate();
   } catch (error) {
-    console.error("仮説立案ボタン処理でエラーが発生しました:", error);
-    alert(t("alerts.hypothesisProcessFailed", {}, "仮説立案の処理中にエラーが発生しました。ページを再読み込みしてください。"));
+    console.error("仮説を追加ボタン処理でエラーが発生しました:", error);
+    alert(t("alerts.hypothesisProcessFailed", {}, "仮説追加の処理中にエラーが発生しました。ページを再読み込みしてください。"));
   }
 };
 
@@ -1229,7 +1216,7 @@ function attachHypothesisActions(targetTextarea, entry, parentContainer = null, 
   const addNodeBtn = document.createElement("button");
   addNodeBtn.type = "button";
   addNodeBtn.className = "hypothesis-action-button add-node-button";
-  addNodeBtn.innerText = t("buttons.addNode", {}, "仮説を立案");
+  addNodeBtn.innerText = t("buttons.addNode", {}, "仮説を追加");
   addNodeBtn.addEventListener("click", function () {
     if (!targetTextarea.value.trim()) {
       alert(t("alerts.enterHypothesis", {}, "仮説を入力してください。"));
@@ -1259,6 +1246,36 @@ function attachHypothesisActions(targetTextarea, entry, parentContainer = null, 
 
   actionBar.appendChild(addNodeBtn);
   actionBar.appendChild(scamperBtn);
+
+  if (parentContainer && parentContainer.classList.contains("scamper-tag-container")) {
+    const deleteScamperBtn = document.createElement("button");
+    deleteScamperBtn.type = "button";
+    deleteScamperBtn.className = "hypothesis-action-button scamper-delete-button";
+    deleteScamperBtn.innerText = t("buttons.delete", {}, "削除");
+    deleteScamperBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+
+      const tagLabel = parentContainer.querySelector(".scamper-tag");
+      const tagText = tagLabel ? tagLabel.innerText : optionLabel || "SCAMPER";
+      const confirmDelete = confirm(
+        t("confirms.deleteTag", { tag: tagText }, `「${tagText}」タグを削除しますか？`)
+      );
+      if (!confirmDelete) return;
+
+      if (tagLabel) {
+        removeScamperEntryByTag(tagLabel);
+        return;
+      }
+
+      if (parentContainer.parentNode) {
+        parentContainer.parentNode.removeChild(parentContainer);
+        logHypothesisAction("仮説: SCAMPER選択キャンセルで入力欄を削除");
+        scheduleHypothesisSave();
+      }
+    });
+
+    actionBar.appendChild(deleteScamperBtn);
+  }
 
   const parent = targetTextarea.parentNode;
   if (parent) {
@@ -1333,7 +1350,7 @@ function applyScamperToEntry(entry, option, parentContainer = null) {
     return `仮説: SCAMPER入力 (${option.label}) "${current}"`;
   });
 
-  // 右クリックで削除確認ダイアログを表示
+  // 旧右クリック削除ハンドラを無効化
   bindScamperTagDelete(tagLabel, tagContainer);
 
   tagContainer.appendChild(tagLabel);

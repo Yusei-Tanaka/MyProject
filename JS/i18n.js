@@ -64,7 +64,7 @@
         deleteKeyword: "キーワードの削除",
         addLink: "リンクの追加",
         deleteLink: "リンクの削除",
-        createHypothesis: "仮説を立案",
+        createHypothesis: "仮説を追加",
         enableArrows: "矢印を有効化",
         hypothesisArea: "仮説発散エリア",
         hypothesisMap: "仮説関係性マップ"
@@ -125,7 +125,7 @@
         selectTwoNodes: "2つのノードを選択してください。",
         edgeNotFoundBetweenNodes: "選択されたノード間にエッジが存在しません。",
         selectAtLeastOneNode: "少なくとも1つのノードを選択してください。",
-        hypothesisProcessFailed: "仮説立案の処理中にエラーが発生しました。ページを再読み込みしてください。",
+        hypothesisProcessFailed: "仮説追加の処理中にエラーが発生しました。ページを再読み込みしてください。",
         enterHypothesisToAdd: "追加する仮説の内容を入力してください。",
         mindmapUnavailable: "マインドマップが利用できません。ページを再読み込みしてください。",
         noMindmapParent: "マインドマップに親ノードがありません。",
@@ -181,7 +181,7 @@
       },
       buttons: {
         delete: "削除",
-        addNode: "仮説を立案",
+        addNode: "仮説を追加",
         expandHypothesis: "仮説を発散",
         cancel: "キャンセル",
         add: "追加"
@@ -209,7 +209,7 @@
         hypothesisDeleted: "仮説: 削除"
       },
       hypothesis: {
-        helpText: "「仮説立案」ボタンを押すとこの中に新しい仮説が追加されます。"
+        helpText: "「仮説を追加」ボタンを押すとこの中に新しい仮説が追加されます。"
       },
       scamper: {
         substitute: "置換 (Substitute)",
@@ -292,7 +292,7 @@
         deleteKeyword: "Delete keyword",
         addLink: "Add link",
         deleteLink: "Delete link",
-        createHypothesis: "Create hypothesis",
+        createHypothesis: "Add Hypothesis",
         enableArrows: "Enable arrows",
         hypothesisArea: "Hypothesis expansion area",
         hypothesisMap: "Hypothesis relation map"
@@ -409,7 +409,7 @@
       },
       buttons: {
         delete: "Delete",
-        addNode: "Create hypothesis",
+        addNode: "Add Hypothesis",
         expandHypothesis: "Expand hypothesis",
         cancel: "Cancel",
         add: "Add"
@@ -437,7 +437,7 @@
         hypothesisDeleted: "Hypothesis: deleted"
       },
       hypothesis: {
-        helpText: "Press the \"Create hypothesis\" button to add new hypotheses here."
+        helpText: "Press the \"Add Hypothesis\" button to add new hypotheses here."
       },
       scamper: {
         substitute: "Substitute",
