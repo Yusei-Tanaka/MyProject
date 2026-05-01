@@ -18,7 +18,7 @@
     <Node id="14" label="ocean energy power generation" x="-533" y="-92" />
     <Node id="15" label="electrical energy" x="-178" y="155" />
     <Node id="16" label="nuclear power generation" x="-14" y="296" />
-    <Node id="17" label="job market" x="-136" y="-59" />
+    <Node id="17" label="sustainable practices" x="-110" y="-68" />
   </Nodes>
   <Edges>
     <Edge id="e1" from="11" to="10" label="types" arrows="" />

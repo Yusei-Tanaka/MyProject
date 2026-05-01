@@ -1,23 +1,62 @@
 # Starts HTTP server, Flask API, Node saveXML, and Node backend API; saves PIDs for easy stop.
 $ErrorActionPreference = 'Stop'
 
-$root = "C:\Users\yuuse\MyProject"
+
+$root = if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Location).Path }
 $jsDir = Join-Path $root "JS"
 $pidFile = Join-Path $root ".start-all.pids"
-$python = "python"
-$node = "node"
+
+$pythonCmd = Get-Command python3 -ErrorAction SilentlyContinue
+if (-not $pythonCmd) {
+    $pythonCmd = Get-Command python -ErrorAction SilentlyContinue
+}
+if (-not $pythonCmd) {
+    throw "Python not found on PATH. Install Python 3 and ensure 'python3' or 'python' is available."
+}
+$python = $pythonCmd.Source
+
+$nodeCmd = Get-Command node -ErrorAction SilentlyContinue
+if (-not $nodeCmd) {
+    throw "Node.js not found on PATH. Install Node.js and ensure 'node' is available."
+}
+$node = $nodeCmd.Source
+
+$onWindows = $true
+if ($PSVersionTable.PSEdition -eq 'Core') {
+    $onWindows = $IsWindows
+}
+
 $xamppApacheStart = "C:\xampp\apache_start.bat"
 
-if (Test-Path $xamppApacheStart) {
+if ($onWindows -and (Test-Path $xamppApacheStart)) {
     Start-Process -FilePath $xamppApacheStart -WindowStyle Minimized
 }
 
-& $node ".\scripts\generate-client-config.js"
+$clientConfigScript = Join-Path (Join-Path $root "scripts") "generate-client-config.js"
+& $node $clientConfigScript
 
-$http = Start-Process -FilePath $python -ArgumentList "-m","http.server","8008","--bind","0.0.0.0" -WorkingDirectory $root -PassThru -WindowStyle Minimized
-$api  = Start-Process -FilePath $python -ArgumentList "api.py" -WorkingDirectory $root -PassThru -WindowStyle Minimized
-$nodeProc = Start-Process -FilePath $node -ArgumentList ".\saveXML.js" -WorkingDirectory $jsDir -PassThru -WindowStyle Minimized
-$backendProc = Start-Process -FilePath $node -ArgumentList ".\JS\server.js" -WorkingDirectory $root -PassThru -WindowStyle Minimized
+function Start-BackgroundProcess {
+    param(
+        [string]$FilePath,
+        [string[]]$ArgumentList,
+        [string]$WorkingDirectory
+    )
+
+    if ($onWindows) {
+        return Start-Process -FilePath $FilePath -ArgumentList $ArgumentList -WorkingDirectory $WorkingDirectory -PassThru -WindowStyle Minimized
+    }
+
+    return Start-Process -FilePath $FilePath -ArgumentList $ArgumentList -WorkingDirectory $WorkingDirectory -PassThru
+}
+
+$apiScript = Join-Path $root "api.py"
+$saveXmlScript = Join-Path $jsDir "saveXML.js"
+$backendScript = Join-Path (Join-Path $root "JS") "server.js"
+
+$http = Start-BackgroundProcess -FilePath $python -ArgumentList @("-m","http.server","8008","--bind","0.0.0.0") -WorkingDirectory $root
+$api  = Start-BackgroundProcess -FilePath $python -ArgumentList @($apiScript) -WorkingDirectory $root
+$nodeProc = Start-BackgroundProcess -FilePath $node -ArgumentList @($saveXmlScript) -WorkingDirectory $jsDir
+$backendProc = Start-BackgroundProcess -FilePath $node -ArgumentList @($backendScript) -WorkingDirectory $root
 
 $pidJson = [pscustomobject]@{
     http = $http.Id
@@ -29,4 +68,5 @@ $pidJson = [pscustomobject]@{
 Set-Content -Path $pidFile -Value $pidJson -Encoding ascii -Force
 
 Write-Host "Started: http.server(8008) PID $($http.Id), api.py PID $($api.Id), saveXML.js PID $($nodeProc.Id), JS/server.js PID $($backendProc.Id)."
-Write-Host "Use .\\stop.ps1 to stop them safely."
+$stopHint = if ($onWindows) { ".\\stop.ps1" } else { "pwsh ./stop.ps1" }
+Write-Host "Use $stopHint to stop them safely."

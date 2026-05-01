@@ -65,6 +65,18 @@ powershell -ExecutionPolicy Bypass -File .\start.ps1
 powershell -ExecutionPolicy Bypass -File .\stop.ps1
 ```
 
+### macOS / Linux（PowerShell 7）
+
+`powershell` コマンドは Windows 専用なので、macOS / Linux では `pwsh` を使ってください。
+
+```bash
+pwsh -File ./start.ps1
+```
+
+```bash
+pwsh -File ./stop.ps1
+```
+
 ## 5. API 単体起動（必要時）
 
 ```powershell
