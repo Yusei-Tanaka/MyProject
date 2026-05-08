@@ -27,36 +27,18 @@ const fetchWithTimeout = async (url, options = {}, timeoutMs = 8000) => {
 };
 
 const authenticateUser = async (id, password) => {
-  let res;
-  try {
-    res = await fetchWithTimeout(
-      `${authApiBase}/auth/login`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, password }),
-      },
-      8000
-    );
-  } catch (err) {
-    if (err && err.name === "AbortError") {
-      console.error("認証APIタイムアウト", err);
-      return { ok: false, reason: "timeout" };
-    }
-    console.error("認証API接続失敗", err);
-    return { ok: false, reason: "network" };
-  }
+  const res = await fetch(`${authApiBase}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id, password }),
+  });
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    console.error("ログイン失敗", res.status, body);
-    if (res.status === 401) {
-      return { ok: false, reason: "invalidCredentials" };
-    }
-    return { ok: false, reason: "server" };
+    console.error("ログイン失敗", body);
+    return false;
   }
-
-  return { ok: true };
+  return true;
 };
 
 const login = async () => {
@@ -73,21 +55,7 @@ const login = async () => {
   if (!authResult.ok) {
     userPasswordInput.value = "";
     userPasswordInput.focus();
-
-    if (authResult.reason === "timeout") {
-      alert(t("alerts.authTimeout", {}, "認証サーバへの接続がタイムアウトしました。もう一度お試しください。"));
-      return;
-    }
-    if (authResult.reason === "network") {
-      alert(t("alerts.authServerUnavailable", {}, "認証サーバへ接続できません。サーバ起動状態を確認してください。"));
-      return;
-    }
-    if (authResult.reason === "invalidCredentials") {
-      alert(t("alerts.loginFailed", {}, "ログインに失敗しました。登録済みユーザのID/パスワードを確認してください。"));
-      return;
-    }
-
-    alert(t("alerts.authFailed", {}, "認証に失敗しました。API接続を確認してください。"));
+    alert(t("alerts.loginFailed", {}, "ログインに失敗しました。登録済みユーザのID/パスワードを確認してください。"));
     return;
   }
 
