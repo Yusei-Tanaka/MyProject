@@ -153,6 +153,7 @@
         reopenSideView: "本当に整理は終わりましたか？",
         deleteTag: "「{tag}」タグを削除しますか？",
         deleteNodesHeader: "以下の {count} 件のノードを削除します。",
+        deleteMindmapNodesHeader: "以下の {count} 件のノード（子ノードを含む）を削除します。",
         deleteNodesFooter: "本当に削除してよいですか？"
       },
       prompts: {
@@ -381,6 +382,7 @@
         reopenSideView: "Are you sure your organizing work is finished?",
         deleteTag: "Delete tag \"{tag}\"?",
         deleteNodesHeader: "Delete {count} node(s):",
+        deleteMindmapNodesHeader: "Delete {count} node(s), including child nodes:",
         deleteNodesFooter: "Are you sure?"
       },
       prompts: {

@@ -684,21 +684,114 @@ window.addEventListener('DOMContentLoaded', function() {
     logMindmapAction(`マインドマップ: 子ノード追加 parent=${node.data.key} "${node.data.text}" text="${normalizedText}"`);
   }
 
-  /* ノードの削除 */
-  function removeNode(node) {
-    if (!node) return;
-    if (node.data && node.data.key === 0) {
+  function isTitleMindmapNode(node) {
+    return Boolean(node && node.data && node.data.key === 0);
+  }
+
+  function getMindmapNodeText(node) {
+    const text = node && node.data && node.data.text ? String(node.data.text).trim() : "";
+    return text || t("labels.untitledNode", {}, "(無題ノード)");
+  }
+
+  function getUniqueMindmapNodes(nodesList) {
+    const uniqueNodes = [];
+    const seenKeySet = new Set();
+    (Array.isArray(nodesList) ? nodesList : []).forEach(function(node) {
+      if (!(node instanceof go.Node) || !node.data) return;
+      const key = String(node.data.key);
+      if (seenKeySet.has(key)) return;
+      seenKeySet.add(key);
+      uniqueNodes.push(node);
+    });
+    return uniqueNodes;
+  }
+
+  function getTopLevelMindmapNodes(nodesList) {
+    const normalizedNodes = getUniqueMindmapNodes(nodesList);
+    const selectedNodeSet = new Set(normalizedNodes);
+    return normalizedNodes.filter(function(node) {
+      let ancestor = node.findTreeParentNode();
+      while (ancestor) {
+        if (selectedNodeSet.has(ancestor)) return false;
+        ancestor = ancestor.findTreeParentNode();
+      }
+      return true;
+    });
+  }
+
+  function collectSelectedMindmapNodes() {
+    const selected = [];
+    diagram.selection.each(function(part) {
+      if (part instanceof go.Node) {
+        selected.push(part);
+      }
+    });
+    return selected;
+  }
+
+  /* ノード削除（右クリック・キーボード共通） */
+  function removeNodesWithConfirm(nodesToDelete, source = "unknown") {
+    const normalizedNodes = getUniqueMindmapNodes(nodesToDelete);
+    if (normalizedNodes.length === 0) return false;
+
+    if (normalizedNodes.some(isTitleMindmapNode)) {
       alert(t("alerts.cannotDeleteTitleNode", {}, "タイトルノードは削除できません。"));
+      return false;
+    }
+
+    const rootNodes = getTopLevelMindmapNodes(normalizedNodes);
+    if (rootNodes.length === 0) return false;
+
+    const deleteKeySet = new Set();
+    rootNodes.forEach(function(rootNode) {
+      rootNode.findTreeParts().each(function(part) {
+        if (!(part instanceof go.Node)) return;
+        if (isTitleMindmapNode(part) || !part.data) return;
+        deleteKeySet.add(String(part.data.key));
+      });
+    });
+
+    const deleteCount = deleteKeySet.size;
+    if (deleteCount === 0) return false;
+
+    const confirmMessage = [
+      t(
+        "confirms.deleteMindmapNodesHeader",
+        { count: deleteCount },
+        `以下の ${deleteCount} 件のノード（子ノードを含む）を削除します。`
+      ),
+      ...rootNodes.map(function(node) {
+        return `- ${getMindmapNodeText(node)}`;
+      }),
+      t("confirms.deleteNodesFooter", {}, "本当に削除してよいですか？")
+    ].join("\n");
+
+    if (!confirm(confirmMessage)) return false;
+
+    diagram.startTransaction("remove subtree");
+    rootNodes.forEach(function(rootNode) {
+      const removedKey = rootNode.data && rootNode.data.key !== undefined ? rootNode.data.key : "";
+      const removedText = getMindmapNodeText(rootNode);
+      diagram.removeParts(rootNode.findTreeParts(), false);
+      logMindmapAction(`マインドマップ: ノード削除 source=${source} key=${removedKey} "${removedText}"`);
+    });
+    diagram.commitTransaction("remove subtree");
+    return true;
+  }
+
+  function removeNode(node) {
+    removeNodesWithConfirm([node], "contextmenu");
+  }
+
+  const baseDeleteSelection = diagram.commandHandler.deleteSelection.bind(diagram.commandHandler);
+  diagram.commandHandler.deleteSelection = function() {
+    const selectedNodes = collectSelectedMindmapNodes();
+    if (selectedNodes.length > 0) {
+      removeNodesWithConfirm(selectedNodes, "keyboard");
       return;
     }
-    const removedKey = node.data && node.data.key !== undefined ? node.data.key : "";
-    const removedText = node.data && node.data.text ? node.data.text : "";
-    diagram.startTransaction("remove subtree");
-    var subtree = node.findTreeParts();
-    diagram.removeParts(subtree, false);
-    diagram.commitTransaction("remove subtree");
-    logMindmapAction(`マインドマップ: ノード削除 key=${removedKey} "${removedText}"`);
-  }
+    baseDeleteSelection();
+  };
 
   /* 初期データをmyTitleから取得 */
   // localStorageからsearchTitleを取得

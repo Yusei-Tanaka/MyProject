@@ -624,6 +624,12 @@ function isEditableElement(target) {
   return tagName === "input" || tagName === "textarea" || tagName === "select";
 }
 
+function isInMindmapArea(target) {
+  const mindmapContainer = document.getElementById("myDiagramDiv");
+  if (!mindmapContainer || !target || typeof mindmapContainer.contains !== "function") return false;
+  return mindmapContainer === target || mindmapContainer.contains(target);
+}
+
 // ノード削除ボタン
 document.getElementById("deleteNodeBtn").addEventListener("click", function () {
   deleteSelectedNodesWithConfirm();
@@ -634,6 +640,7 @@ document.addEventListener("keydown", function (event) {
   const isDeleteKey = event.key === "Delete" || event.key === "Backspace";
   if (!isDeleteKey) return;
   if (isEditableElement(event.target)) return;
+  if (isInMindmapArea(event.target) || isInMindmapArea(document.activeElement)) return;
 
   event.preventDefault();
   deleteSelectedNodesWithConfirm();
