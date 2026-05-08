@@ -2,9 +2,20 @@ require("dotenv").config({ override: true });
 const express = require("express");
 const mysql = require("mysql2/promise");
 const crypto = require("crypto");
+const path = require("path");
 
 const app = express();
 app.use(express.json({ limit: "10mb" }));
+
+// 静的ファイル配信を追加 (プロジェクトのルートディレクトリを配信対象にする)
+const publicPath = path.join(__dirname, ".."); // JSディレクトリから一つ上の階層
+console.log(`[Server] Serving static files from: ${publicPath}`);
+app.use(express.static(publicPath));
+
+// ルートURL ('/') へのアクセス時に main.html を提供する
+app.get("/", (req, res) => {
+  res.sendFile(path.join(publicPath, "main.html"));
+});
 
 // シンプルなCORS許可（フロントが別ポートの場合用）
 app.use((req, res, next) => {
@@ -1636,7 +1647,7 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: "unexpected error" });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8008;
 const startServer = async () => {
   try {
     await ensureSchema();

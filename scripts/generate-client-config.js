@@ -27,7 +27,7 @@ const normalizePath = (value) => {
 const config = {
   protocol: normalizeProtocol(process.env.APP_PROTOCOL),
   host: String(process.env.APP_HOST || "auto").trim() || "auto",
-  apiPort: toPort(process.env.PORT, 3000),
+  apiPort: toPort(process.env.PORT, 8008),
   saveXmlPort: toPort(process.env.SAVE_XML_PORT, 3005),
   flaskApiPort: toPort(process.env.FLASK_API_PORT, 8000),
   phpMyAdminPath: normalizePath(process.env.PHPMYADMIN_PATH),
