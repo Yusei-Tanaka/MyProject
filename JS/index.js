@@ -27,18 +27,23 @@ const fetchWithTimeout = async (url, options = {}, timeoutMs = 8000) => {
 };
 
 const authenticateUser = async (id, password) => {
-  const res = await fetch(`${authApiBase}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id, password }),
-  });
+  try {
+    const res = await fetchWithTimeout(`${authApiBase}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, password }),
+    });
 
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    console.error("ログイン失敗", body);
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      console.error("ログイン失敗", body);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error("ログインAPI通信失敗", error);
     return false;
   }
-  return true;
 };
 
 const login = async () => {
@@ -52,7 +57,7 @@ const login = async () => {
   }
 
   const authResult = await authenticateUser(id, password);
-  if (!authResult.ok) {
+  if (!authResult) {
     userPasswordInput.value = "";
     userPasswordInput.focus();
     alert(t("alerts.loginFailed", {}, "ログインに失敗しました。登録済みユーザのID/パスワードを確認してください。"));
