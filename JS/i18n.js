@@ -55,10 +55,10 @@
         showSideView: "サイドビューを表示",
         hideSideView: "サイドビューを閉じる",
         log: "ログ",
-        keywordArea: "キーワード生成エリア",
+        keywordArea: "キーワード提示エリア",
         generate: "生成",
         generatedKeywords: "生成されたキーワード",
-        mapArea: "キーワードマップ構成エリア",
+        mapArea: "キーワードマップエリア",
         recenterTitle: "マップを中央に表示",
         addKeyword: "キーワードの追加",
         deleteKeyword: "キーワードの削除",
@@ -66,8 +66,8 @@
         deleteLink: "リンクの削除",
         createHypothesis: "仮説を追加",
         enableArrows: "矢印を有効化",
-        hypothesisArea: "仮説発散エリア",
-        hypothesisMap: "仮説関係性マップ"
+        hypothesisArea: "仮説洗練エリア",
+        hypothesisMap: "仮説構造化マップエリア"
       },
       userAdmin: {
         authHeading: "ユーザ管理画面",
@@ -134,7 +134,7 @@
         enterHypothesis: "仮説を入力してください。",
         questionFetchFailed: "質問が取得できませんでした。",
         apiCallFailed: "API呼び出し中にエラーが発生しました: {message}",
-        mindmapDbUserMissing: "ユーザー「{userId}」がDBに存在しないため、仮説関係性マップのDB保存をスキップしました。\nログインし直して（auth_user / host）利用してください。",
+        mindmapDbUserMissing: "ユーザー「{userId}」がDBに存在しないため、仮説構造化マップのDB保存をスキップしました。\nログインし直して（auth_user / host）利用してください。",
         hypothesisDbUserMissing: "ユーザー「{userId}」がDBに存在しないため、仮説のDB保存をスキップしました。\nログインし直して（auth_user / host）利用してください。",
         enterNodeName: "ノード名を入力してください。",
         cannotDeleteTitleNode: "タイトルノードは削除できません。"
@@ -174,7 +174,7 @@
         mapNodeAddTitle: "マインドマップにノードを追加",
         selectParentNode: "親ノードを選択",
         hypothesisToAdd: "追加する仮説",
-        selectQuestion: "質問を選択してください"
+        selectQuestion: "助言を選択してください"
       },
       placeholders: {
         hypothesisInput: "ここに仮説を入力",
@@ -284,10 +284,10 @@
         showSideView: "Show side view",
         hideSideView: "Hide side view",
         log: "Log",
-        keywordArea: "Keyword generation area",
+        keywordArea: "Keyword Suggestion Area",
         generate: "Generate",
         generatedKeywords: "Generated keywords",
-        mapArea: "Keyword map area",
+        mapArea: "Keyword Map Area",
         recenterTitle: "Center map",
         addKeyword: "Add keyword",
         deleteKeyword: "Delete keyword",
@@ -295,8 +295,8 @@
         deleteLink: "Delete link",
         createHypothesis: "Add Hypothesis",
         enableArrows: "Enable arrows",
-        hypothesisArea: "Hypothesis expansion area",
-        hypothesisMap: "Hypothesis relation map"
+        hypothesisArea: "Hypothesis Refinement Area",
+        hypothesisMap: "Hypothesis Structuring Map Area"
       },
       userAdmin: {
         authHeading: "User Administration",
@@ -403,7 +403,7 @@
         mapNodeAddTitle: "Add node to mindmap",
         selectParentNode: "Select parent node",
         hypothesisToAdd: "Hypothesis to add",
-        selectQuestion: "Please select a question"
+        selectQuestion: "Please select a advice"
       },
       placeholders: {
         hypothesisInput: "Enter hypothesis here",
