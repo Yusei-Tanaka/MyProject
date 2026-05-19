@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
-$base = "http://10.158.102.203:3000"
-$flask = "http://10.158.102.203:8000"
+$base = "http://10.158.102.176:3000"
+$flask = "http://10.158.102.176:8000"
 $user = "tanaka"
 $theme = "これからのエネルギーの作り方を考える"
 
