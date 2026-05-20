@@ -13,12 +13,22 @@ for (let i = 0; i < args.length; i += 1) {
   argMap.set(key, value);
 }
 
-const host = argMap.get("--host") || process.env.MIGRATE_API_HOST || "127.0.0.1";
+const normalizeProtocol = (value) =>
+  String(value || "http").trim().toLowerCase() === "https" ? "https" : "http";
+
+const resolvedAppHost = String(process.env.APP_HOST || "").trim();
+const defaultHost =
+  resolvedAppHost && resolvedAppHost.toLowerCase() !== "auto" ? resolvedAppHost : "127.0.0.1";
+
+const host = argMap.get("--host") || process.env.MIGRATE_API_HOST || defaultHost;
+const protocol = normalizeProtocol(
+  argMap.get("--protocol") || process.env.MIGRATE_API_PROTOCOL || process.env.APP_PROTOCOL
+);
 const port = Number(argMap.get("--port") || process.env.PORT || 3000);
 const xmlDir = path.resolve(argMap.get("--xml-dir") || path.join(__dirname, "..", "XML"));
 const dryRun = argMap.get("--dry-run") === "true";
 
-const apiBase = `http://${host}:${port}`;
+const apiBase = `${protocol}://${host}:${port}`;
 
 const sanitizeUserId = (value) => {
   const source = String(value || "").trim();

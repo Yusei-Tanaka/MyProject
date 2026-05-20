@@ -1,7 +1,68 @@
 $ErrorActionPreference = "Stop"
 
-$base = "http://10.158.102.176:3000"
-$flask = "http://10.158.102.176:8000"
+function Get-EnvValue {
+  param(
+    [string]$EnvPath,
+    [string]$Key,
+    [string]$DefaultValue = ""
+  )
+
+  if (-not $EnvPath -or -not (Test-Path $EnvPath)) {
+    return $DefaultValue
+  }
+
+  $pattern = "^\s*$([Regex]::Escape($Key))\s*=\s*(.*)\s*$"
+  foreach ($line in Get-Content -Path $EnvPath) {
+    if ($line -match '^\s*#') { continue }
+    if ($line -match $pattern) {
+      $value = $Matches[1].Trim()
+      if (
+        $value.Length -ge 2 -and
+        (
+          ($value.StartsWith('"') -and $value.EndsWith('"')) -or
+          ($value.StartsWith("'") -and $value.EndsWith("'"))
+        )
+      ) {
+        $value = $value.Substring(1, $value.Length - 2)
+      }
+      return $value
+    }
+  }
+
+  return $DefaultValue
+}
+
+function Find-EnvFile {
+  param([string]$StartDir)
+
+  $currentDir = (Resolve-Path $StartDir).Path
+  while ($true) {
+    $candidate = Join-Path $currentDir ".env"
+    if (Test-Path $candidate) { return $candidate }
+
+    $parent = Split-Path -Path $currentDir -Parent
+    if ([string]::IsNullOrWhiteSpace($parent) -or $parent -eq $currentDir) { break }
+    $currentDir = $parent
+  }
+
+  return $null
+}
+
+$scriptDir = if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Location).Path }
+$envPath = Find-EnvFile -StartDir $scriptDir
+
+$protocol = Get-EnvValue -EnvPath $envPath -Key "APP_PROTOCOL" -DefaultValue "http"
+$host = Get-EnvValue -EnvPath $envPath -Key "APP_HOST" -DefaultValue "127.0.0.1"
+$apiPort = Get-EnvValue -EnvPath $envPath -Key "PORT" -DefaultValue "3000"
+$flaskPort = Get-EnvValue -EnvPath $envPath -Key "FLASK_API_PORT" -DefaultValue "8000"
+
+$normalizedProtocol = if ($protocol.ToLower() -eq "https") { "https" } else { "http" }
+if ([string]::IsNullOrWhiteSpace($host) -or $host.ToLower() -eq "auto") {
+  $host = "127.0.0.1"
+}
+
+$base = "${normalizedProtocol}://${host}:${apiPort}"
+$flask = "${normalizedProtocol}://${host}:${flaskPort}"
 $user = "tanaka"
 $theme = "これからのエネルギーの作り方を考える"
 
