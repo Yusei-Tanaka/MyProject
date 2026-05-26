@@ -2,7 +2,7 @@
   const rawConfig = {
   "protocol": "http",
   "host": "auto",
-  "apiPort": 3000,
+  "apiPort": 8008,
   "saveXmlPort": 3005,
   "flaskApiPort": 8000,
   "phpMyAdminPath": "/phpmyadmin"
