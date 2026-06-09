@@ -174,7 +174,10 @@
         mapNodeAddTitle: "マインドマップにノードを追加",
         selectParentNode: "親ノードを選択",
         hypothesisToAdd: "追加する仮説",
-        selectQuestion: "助言を選択してください"
+        selectQuestion: "助言を選択してください",
+        createHypothesis: "新しい仮説を作成",
+        hypothesisContent: "仮説の内容",
+        selectKeywords: "キーワードを選択（任意）"
       },
       placeholders: {
         hypothesisInput: "ここに仮説を入力",
@@ -403,7 +406,10 @@
         mapNodeAddTitle: "Add node to mindmap",
         selectParentNode: "Select parent node",
         hypothesisToAdd: "Hypothesis to add",
-        selectQuestion: "Please select a advice"
+        selectQuestion: "Please select a advice",
+        createHypothesis: "Create New Hypothesis",
+        hypothesisContent: "Hypothesis Content",
+        selectKeywords: "Select Keywords (Optional)"
       },
       placeholders: {
         hypothesisInput: "Enter hypothesis here",
