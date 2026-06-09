@@ -655,8 +655,7 @@ window.addEventListener('DOMContentLoaded', function() {
     const labels = getMindmapKeywordLabels(data);
     if (labels.length === 0) return "";
     const separator = getCurrentThemeLanguage() === "en" ? ", " : "\u3001";
-    const keywordText = labels.join(separator);
-    return t("labels.basedKeywords", { keywords: keywordText }, "Based keywords: " + keywordText);
+    return labels.join(separator);
   }
 
   function clearMindmapNodeHighlight() {
@@ -781,20 +780,18 @@ window.addEventListener('DOMContentLoaded', function() {
           fill: "#FFFFFF"
         },
         new go.Binding("fill", "key", function(key) {
-          return key === 0 ? "#EBC350" : "#FFFFFF";
+          return key === 0 ? "#3D6FCC" : "#FFFFFF";
         }),
         new go.Binding("stroke", "key", function(key) {
-          return key === 0 ? "#EBC350" : "#3498DB";
+          return key === 0 ? "#3D6FCC" : "#3498DB";
         }),
         new go.Binding("fill", "isHighlighted", function(isHighlighted, shape) {
           const data = shape && shape.part ? shape.part.data : null;
-          if (data && data.key === 0) return "#EBC350";
-          if (isHighlighted) return "#E67E22";
+          if (isHighlighted) return "#FCE6C8";
+          if (data && data.key === 0) return "#3D6FCC";
           return "#FFFFFF";
         }).ofObject(),
         new go.Binding("stroke", "isHighlighted", function(isHighlighted, shape) {
-          const data = shape && shape.part ? shape.part.data : null;
-          if (data && data.key === 0) return "#EBC350";
           if (isHighlighted) return "#E67E22";
           return "#3498DB";
         }).ofObject(),
@@ -816,23 +813,55 @@ window.addEventListener('DOMContentLoaded', function() {
           return key === 0 ? NaN : getHypothesisNodeWidth();
         }),
         new go.Binding("stroke", "key", function(key) {
-          return "#000000";
+          return key === 0 ? "#FFFFFF" : "#000000";
         }),
         new go.Binding("stroke", "isHighlighted", function(isHighlighted, textBlock) {
-          return "#000000";
+          const data = textBlock && textBlock.part ? textBlock.part.data : null;
+          return data && data.key === 0 ? "#FFFFFF" : "#000000";
         }).ofObject()
       ),
       {
         click: (e, node) => handleMindmapNodeClick(node),
         toolTip:
           $("ToolTip",
+            $(go.Panel, "Auto",
+              $(go.Shape, "RoundedRectangle",
+                {
+                  fill: "#FFF8E8",
+                  stroke: "#E7A94C",
+                  strokeWidth: 1.5,
+                  parameter1: 8
+                }
+              ),
+              $(go.Panel, "Vertical",
+                {
+                  margin: 8,
+                  maxSize: new go.Size(260, NaN),
+                  stretch: go.GraphObject.Horizontal
+                },
+                $(go.TextBlock,
+                  {
+                    margin: new go.Margin(0, 0, 4, 0),
+                    stroke: "#A86E15",
+                    font: "bold 11px 'Segoe UI', sans-serif"
+                  },
+                  new go.Binding("text", "", function() {
+                    return t("labels.keywordTooltipTitle", {}, getCurrentThemeLanguage() === "en" ? "Keywords" : "キーワード");
+                  })
+                ),
+                $(go.TextBlock,
+                  {
+                    stroke: "#5A3C12",
+                    font: "bold 13px 'Segoe UI', sans-serif",
+                    wrap: go.TextBlock.WrapFit
+                  },
+                  new go.Binding("text", "", getMindmapKeywordTooltipText)
+                )
+              )
+            ),
             new go.Binding("visible", "", function(data) {
               return getMindmapKeywordLabels(data).length > 0;
-            }),
-            $(go.TextBlock,
-              { margin: 6, stroke: "#000000", font: "12px 'Segoe UI', sans-serif" },
-              new go.Binding("text", "", getMindmapKeywordTooltipText)
-            )
+            })
           )
       },
       {

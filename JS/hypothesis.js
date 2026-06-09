@@ -714,6 +714,10 @@ function showHypothesisAndKeywordDialog(options) {
   dialog.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
   dialog.style.boxSizing = "border-box";
   dialog.style.overflow = "hidden";
+  dialog.style.position = "absolute";
+  dialog.style.left = Math.max(16, Math.round((window.innerWidth - 500) / 2)) + "px";
+  dialog.style.top = Math.max(16, Math.round((window.innerHeight - 520) / 2)) + "px";
+  dialog.style.transform = "none";
 
   // タイトル
   const title = document.createElement("h3");
@@ -721,8 +725,52 @@ function showHypothesisAndKeywordDialog(options) {
   title.style.marginBottom = "15px";
   title.style.fontSize = "16px";
   title.style.fontWeight = "bold";
+  title.style.cursor = "move";
+  title.style.userSelect = "none";
   title.innerText = t("labels.createHypothesis", {}, "新しい仮説を作成");
   dialog.appendChild(title);
+
+  let isDragging = false;
+  let dragOffsetX = 0;
+  let dragOffsetY = 0;
+  const onDialogMouseMove = function (e) {
+    if (!isDragging) return;
+    let newLeft = e.clientX - dragOffsetX;
+    let newTop = e.clientY - dragOffsetY;
+    const dialogWidth = dialog.offsetWidth || 500;
+    const dialogHeight = dialog.offsetHeight || 520;
+    const maxLeft = window.innerWidth - dialogWidth - 16;
+    const maxTop = window.innerHeight - dialogHeight - 16;
+    if (newLeft < 0) newLeft = 0;
+    if (newLeft > maxLeft) newLeft = maxLeft;
+    if (newTop < 0) newTop = 0;
+    if (newTop > maxTop) newTop = maxTop;
+    dialog.style.left = newLeft + "px";
+    dialog.style.top = newTop + "px";
+  };
+  const onDialogMouseUp = function () {
+    isDragging = false;
+    document.body.style.userSelect = "";
+  };
+  const closeDialog = function () {
+    isDragging = false;
+    document.body.style.userSelect = "";
+    document.removeEventListener("mousemove", onDialogMouseMove);
+    document.removeEventListener("mouseup", onDialogMouseUp);
+    if (overlay.parentNode) {
+      overlay.parentNode.removeChild(overlay);
+    }
+  };
+  title.addEventListener("mousedown", function (e) {
+    e.preventDefault();
+    isDragging = true;
+    const rect = dialog.getBoundingClientRect();
+    dragOffsetX = e.clientX - rect.left;
+    dragOffsetY = e.clientY - rect.top;
+    document.body.style.userSelect = "none";
+  });
+  document.addEventListener("mousemove", onDialogMouseMove);
+  document.addEventListener("mouseup", onDialogMouseUp);
 
   // 仮説入力フィールド
   const hypothesisLabel = document.createElement("label");
@@ -838,7 +886,7 @@ function showHypothesisAndKeywordDialog(options) {
   cancelBtn.style.backgroundColor = "#f5f5f5";
   cancelBtn.style.cursor = "pointer";
   cancelBtn.addEventListener("click", function () {
-    document.body.removeChild(overlay);
+    closeDialog();
   });
 
   const addBtn = document.createElement("button");
@@ -902,7 +950,7 @@ function showHypothesisAndKeywordDialog(options) {
       window.addHypothesisToMindmap(hypothesisText, selectedKeywordLabels);
     }
 
-    document.body.removeChild(overlay);
+    closeDialog();
     logHypothesisAction(`仮説: マップから仮説追加 (${selectedIds.length}個のキーワードを選択) "${hypothesisText}"`);
     clearSelectionAfterHypothesisCreate();
   });

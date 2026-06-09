@@ -385,13 +385,11 @@ window.addEventListener('DOMContentLoaded', function() {
         }),
         new go.Binding("fill", "isHighlighted", function(isHighlighted, shape) {
           const data = shape && shape.part ? shape.part.data : null;
+          if (isHighlighted) return "#FCE6C8";
           if (data && data.key === 0) return "#EBC350";
-          if (isHighlighted) return "#E67E22";
           return "#FFFFFF";
         }).ofObject(),
         new go.Binding("stroke", "isHighlighted", function(isHighlighted, shape) {
-          const data = shape && shape.part ? shape.part.data : null;
-          if (data && data.key === 0) return "#EBC350";
           if (isHighlighted) return "#E67E22";
           return "#3498DB";
         }).ofObject(),
@@ -413,7 +411,11 @@ window.addEventListener('DOMContentLoaded', function() {
           return key === 0 ? NaN : getHypothesisNodeWidth();
         }),
         new go.Binding("stroke", "key", function(key) {
-          return "#000000";
+          return key === 0 ? "#FFFFFF" : "#000000";
+        }),
+        new go.Binding("stroke", "isHighlighted", function(isHighlighted, textBlock) {
+          const data = textBlock && textBlock.part ? textBlock.part.data : null;
+          return data && data.key === 0 ? "#FFFFFF" : "#000000";
         })
       ),
       {

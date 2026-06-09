@@ -9,5 +9,6 @@
 {"text":"It may be that nuclear power generation is not actually harmful\uff0e","parent":0,"key":-7,"loc":"844.2559407744817 90.94081624830794"},
 {"text":"It may be that there is no way to use nuclear power generation safely\uff0e","parent":-7,"key":-8,"loc":"839.2041829619817 216.71756999661588"},
 {"text":"It may be that methods utilizing nuclear power generation cannot be explored\uff0e","parent":0,"key":-9,"loc":"1048.8257864112172 90.94081624830794"},
-{"text":"Hybridizing solar thermal power with PV to serve as a thermal storage buffer could enable its use as a sustainable, 24/7 energy source that functions without over-reliance on expensive batteries.","parent":-5,"key":-10,"loc":"627.7428589011738 234.1355387466159"}
+{"text":"Hybridizing solar thermal power with PV to serve as a thermal storage buffer could enable its use as a sustainable, 24/7 energy source that functions without over-reliance on expensive batteries.","parent":-5,"key":-10,"loc":"627.7428589011738 234.1355387466159"},
+{"text":"\uff43","parent":-2,"basedNodeIds":[5,4],"basedKeywordLabels":["solar energy","nuclear energy"],"hypothesisEntryId":"hypothesis-entry-1781040047616-1","key":-11,"loc":"76.52148437499999 234.1355387466159"}
 ]}
