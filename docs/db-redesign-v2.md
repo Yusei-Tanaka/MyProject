@@ -11,6 +11,8 @@
 - テーマは履歴管理あり（バージョン保持）
 - テーマ削除は論理削除（`deleted_at`）
 - テーマ名は論理削除後に再利用可
+- テーマの主キーは **（user_id, theme_name, theme_language, is_active）の複合キー**
+- UIの言語設定に応じてテーマが分岐（ja/en）
 - 同時更新は楽観ロック（`lock_version`）
 - 子テーブルは `ON DELETE CASCADE`
 
@@ -49,6 +51,7 @@ CREATE TABLE IF NOT EXISTS themes (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   user_id VARCHAR(64) NOT NULL,
   theme_name VARCHAR(255) NOT NULL,
+  theme_language VARCHAR(8) NOT NULL DEFAULT 'ja',
   latest_version_no INT NOT NULL DEFAULT 0,
   lock_version BIGINT NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -57,8 +60,9 @@ CREATE TABLE IF NOT EXISTS themes (
   is_active TINYINT(1) AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE 0 END) STORED,
   CONSTRAINT fk_themes_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   INDEX idx_themes_user_updated (user_id, updated_at),
+  INDEX idx_themes_user_lang_updated (user_id, theme_language, updated_at),
   INDEX idx_themes_user_deleted (user_id, deleted_at),
-  UNIQUE KEY uk_themes_user_name_active (user_id, theme_name, is_active)
+  UNIQUE KEY uk_themes_user_name_lang_active (user_id, theme_name, theme_language, is_active)
 );
 
 CREATE TABLE IF NOT EXISTS theme_versions (
@@ -186,6 +190,7 @@ erDiagram
       bigint id PK
       varchar user_id FK
       varchar theme_name
+      varchar theme_language
       int latest_version_no
     }
 
@@ -254,6 +259,7 @@ erDiagram
       bigint id PK
       varchar user_id FK
       varchar theme_name
+      varchar theme_language
       int latest_version_no
       bigint lock_version
       timestamp deleted_at
@@ -339,14 +345,14 @@ erDiagram
 
 #### 一意制約
 
-- `themes`: `UNIQUE(user_id, theme_name, is_active)`
+- `themes`: `UNIQUE(user_id, theme_name, theme_language, is_active)` **← ユーザー・言語・テーマ名の複合キー**
 - `theme_versions`: `UNIQUE(theme_id, version_no)`
 - `keyword_nodes`: `UNIQUE(theme_version_id, client_node_id)`
 - `hypothesis_spreads`: `UNIQUE(theme_version_id)`
 
 #### 主要インデックス
 
-- `themes`: `idx_themes_user_updated (user_id, updated_at)`, `idx_themes_user_deleted (user_id, deleted_at)`
+- `themes`: `idx_themes_user_updated (user_id, updated_at)`, `idx_themes_user_lang_updated (user_id, theme_language, updated_at)`, `idx_themes_user_deleted (user_id, deleted_at)`
 - `theme_versions`: `idx_theme_versions_theme_saved_at (theme_id, saved_at)`
 - `keyword_nodes`: `idx_keyword_nodes_label (label)`
 - `keyword_edges`: `idx_keyword_edges_version_src (theme_version_id, src_client_node_id)`, `idx_keyword_edges_version_dst (theme_version_id, dst_client_node_id)`
@@ -392,9 +398,10 @@ erDiagram
 - 入力: `user_themes`（`content_json` 内の nodes/edges/hypothesis を利用）
 - 出力: `themes`, `theme_versions`, `keyword_nodes`, `keyword_edges`, `hypothesis_spreads`, `hypothesis_nodes`
 - 生成ルール:
-  - `themes`: `(user_id, theme_name)` ごとに1行
+  - `themes`: `(user_id, theme_name, theme_language)` ごとに1行（既存データは言語を推定or デフォルト ja を適用）
   - `theme_versions`: 初回は `version_no=1`
   - `latest_version_no=1`, `lock_version=0`
+  - `theme_language` は既存データに言語タグがあれば利用、なければ `'ja'` を設定
 
 ### Phase 3: 整合性検証
 
