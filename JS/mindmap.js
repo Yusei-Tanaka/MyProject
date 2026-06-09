@@ -529,7 +529,7 @@ window.addEventListener('DOMContentLoaded', function() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         themeName,
-          language: getCurrentThemeLanguage(),
+        language: getCurrentThemeLanguage(),
         content: {
           hypothesis: {
             mapNodes: collectMindmapHypothesisNodes(),
@@ -1212,63 +1212,55 @@ window.addEventListener('DOMContentLoaded', function() {
         }
 
         if (matched.length > 0) {
-          // Check if any matched container corresponds to the main hypothesis (top-level hypothesis)
-          var handledWholeBox = false;
           function normalizeCompareText(s) {
             try {
               return String(s || "").trim().replace(/\s+/g, " ").toLowerCase();
             } catch (_e) { return String(s || "").trim(); }
           }
 
-          var removedNorm = normalizeCompareText(removedText);
-
-          for (var mi = 0; mi < matched.length; mi++) {
-            var container = matched[mi];
-            try {
-              var box = container && typeof container.closest === 'function' ? container.closest('.hypothesis-box') : null;
-              if (box) {
-                var mainTa = box.querySelector && box.querySelector('textarea.hypothesis-text');
-                var mainText = mainTa ? String(mainTa.value || '').trim() : '';
-                // If the removed mindmap node text matches the main hypothesis text (normalized or partially), ask whether to delete the whole box
-                var mainNorm = normalizeCompareText(mainText);
-                var isMatch = false;
-                if (mainNorm && removedNorm && (mainNorm === removedNorm || mainNorm.indexOf(removedNorm) !== -1 || removedNorm.indexOf(mainNorm) !== -1)) {
-                  isMatch = true;
-                }
-                if (isMatch) {
-                  var deleteWhole = confirm(
-                    t(
-                      'confirms.deleteEntireHypothesisBox',
-                      {},
-                      'このノードは仮説ボックス内の主仮説に対応しています。仮説ボックスごと削除しますか？\nOK: ボックスごと削除\nキャンセル: SCAMPERタグのみ削除'
-                    )
-                  );
-                  if (deleteWhole) {
-                    try {
-                      if (box.parentNode) box.parentNode.removeChild(box);
-                    } catch (_e) { /* ignore */ }
-                    handledWholeBox = true;
-                    // update and save
-                    try {
-                      var wrapperElem = document.querySelector('#hypothesisWrapper');
-                      if (wrapperElem && typeof window.updateHypothesisNumbers === 'function') {
-                        window.updateHypothesisNumbers(wrapperElem);
-                      }
-                      if (typeof window.flushHypothesisSave === 'function') {
-                        window.flushHypothesisSave();
-                      } else if (typeof window.scheduleHypothesisSave === 'function') {
-                        window.scheduleHypothesisSave();
-                      }
-                    } catch (_e) { /* ignore */ }
-                    break;
-                  }
-                }
+          function findMainHypothesisBoxByRemovedText() {
+            var removedNorm = normalizeCompareText(removedText);
+            var entries = Array.prototype.slice.call(document.querySelectorAll('.hypothesis-box') || []);
+            for (var i = 0; i < entries.length; i += 1) {
+              var box = entries[i];
+              var mainTa = box.querySelector && box.querySelector('textarea.hypothesis-text');
+              var mainText = mainTa ? String(mainTa.value || '').trim() : '';
+              var mainNorm = normalizeCompareText(mainText);
+              if (mainNorm && removedNorm && (mainNorm === removedNorm || mainNorm.indexOf(removedNorm) !== -1 || removedNorm.indexOf(mainNorm) !== -1)) {
+                return box;
               }
-            } catch (_e) {
-              // ignore
+            }
+            return null;
+          }
+
+          var handledWholeBox = false;
+          var mainBox = findMainHypothesisBoxByRemovedText();
+          if (mainBox) {
+            var deleteWhole = confirm(
+              t(
+                'confirms.deleteEntireHypothesisBox',
+                {},
+                'このノードは仮説ボックス内の主仮説に対応しています。仮説ボックスごと削除しますか？\nOK: ボックスごと削除\nキャンセル: SCAMPERタグのみ削除'
+              )
+            );
+            if (deleteWhole) {
+              try {
+                if (mainBox.parentNode) mainBox.parentNode.removeChild(mainBox);
+              } catch (_e) { /* ignore */ }
+              handledWholeBox = true;
+              try {
+                var wrapperElem = document.querySelector('#hypothesisWrapper');
+                if (wrapperElem && typeof window.updateHypothesisNumbers === 'function') {
+                  window.updateHypothesisNumbers(wrapperElem);
+                }
+                if (typeof window.flushHypothesisSave === 'function') {
+                  window.flushHypothesisSave();
+                } else if (typeof window.scheduleHypothesisSave === 'function') {
+                  window.scheduleHypothesisSave();
+                }
+              } catch (_e) { /* ignore */ }
             }
           }
-          
 
           if (!handledWholeBox) {
             const shouldDelete = confirm(

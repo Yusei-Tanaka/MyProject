@@ -154,6 +154,8 @@
         deleteTag: "「{tag}」タグを削除しますか？",
         deleteNodesHeader: "以下の {count} 件のノードを削除します。",
         deleteHypothesisNode: "仮説と、対応する仮説構造化マップのノード（子ノードを含む）を削除します。\n本当によろしいですか？",
+        deleteEntireHypothesisBox: "このノードは仮説ボックス内の主仮説に対応しています。仮説ボックスごと削除しますか？\nOK: ボックスごと削除\nキャンセル: SCAMPERタグのみ削除",
+        deleteRelatedScamperTags: "対応するSCAMPERタグ（同じ色のSCAMPER入力）を削除しますか？\nOK: 削除\nキャンセル: 残す",
         deleteMindmapNodesHeader: "以下の {count} 件のノード（子ノードを含む）と、対応する仮説ボックスを削除します。",
         deleteNodesFooter: "本当に削除してよいですか？"
       },
@@ -387,6 +389,8 @@
         deleteTag: "Delete tag \"{tag}\"?",
         deleteNodesHeader: "Delete {count} node(s):",
         deleteHypothesisNode: "Delete the hypothesis and its corresponding node in the Hypothesis Structuring Map (including child nodes).\nAre you sure?",
+        deleteEntireHypothesisBox: "This node matches the main hypothesis inside the hypothesis box. Delete the entire hypothesis box?\nOK: Delete the whole box\nCancel: Delete SCAMPER tags only",
+        deleteRelatedScamperTags: "Delete the corresponding SCAMPER tags (same-colored SCAMPER inputs)?\nOK: Delete\nCancel: Keep them",
         deleteMindmapNodesHeader: "Delete {count} node(s) and corresponding hypothesis boxes (including child nodes):",
         deleteNodesFooter: "Are you sure?"
       },
