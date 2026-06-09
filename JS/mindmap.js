@@ -45,6 +45,154 @@ window.addEventListener('DOMContentLoaded', function() {
     return getCurrentThemeLanguage() === "en" ? 170 : 120;
   }
 
+  const MINDMAP_HIGHLIGHT_STYLES = [
+    { fill: "#DCE9FF", stroke: "#3D6FCC", text: "#173B7A" },
+    { fill: "#FCE6C8", stroke: "#E67E22", text: "#7A4208" },
+    { fill: "#E5F6D8", stroke: "#5BA84B", text: "#2D6020" },
+    { fill: "#F1E3FF", stroke: "#8B5CF6", text: "#4C1D95" },
+    { fill: "#FFE6E6", stroke: "#E25555", text: "#8B1E1E" },
+  ];
+
+  function getMindmapHighlightStyle(index) {
+    return MINDMAP_HIGHLIGHT_STYLES[index % MINDMAP_HIGHLIGHT_STYLES.length];
+  }
+
+  function rememberMindmapNodeBaseStyle(node) {
+    if (!node) return null;
+    if (node.__mindmapBaseStyle) return node.__mindmapBaseStyle;
+
+    const shape = node.findObject("MINDMAP_NODE_SHAPE");
+    const textBlock = node.findObject("MINDMAP_NODE_TEXT");
+    if (!shape || !textBlock) return null;
+
+    node.__mindmapBaseStyle = {
+      fill: shape.fill,
+      stroke: shape.stroke,
+      strokeWidth: shape.strokeWidth,
+      textStroke: textBlock.stroke,
+    };
+    return node.__mindmapBaseStyle;
+  }
+
+  function applyMindmapNodeHighlight(node, style) {
+    const baseStyle = rememberMindmapNodeBaseStyle(node);
+    if (!baseStyle) return false;
+
+    const shape = node.findObject("MINDMAP_NODE_SHAPE");
+    const textBlock = node.findObject("MINDMAP_NODE_TEXT");
+    if (!shape || !textBlock) return false;
+
+    const resolvedStyle = style && typeof style === "object" ? style : {};
+    const fill = typeof resolvedStyle.fill === "string" && resolvedStyle.fill ? resolvedStyle.fill : baseStyle.fill;
+    const stroke = typeof resolvedStyle.stroke === "string" && resolvedStyle.stroke ? resolvedStyle.stroke : baseStyle.stroke;
+    const textStroke = typeof resolvedStyle.text === "string" && resolvedStyle.text ? resolvedStyle.text : baseStyle.textStroke;
+
+    shape.fill = fill;
+    shape.stroke = stroke;
+    shape.strokeWidth = Math.max(3, baseStyle.strokeWidth || 2);
+    textBlock.stroke = textStroke;
+    node.__mindmapHighlightStyle = { fill: fill, stroke: stroke, text: textStroke };
+    node.__mindmapHighlighted = true;
+    return true;
+  }
+
+  function restoreMindmapNodeHighlight(node) {
+    const baseStyle = node && node.__mindmapBaseStyle;
+    if (!baseStyle) return false;
+
+    const shape = node.findObject("MINDMAP_NODE_SHAPE");
+    const textBlock = node.findObject("MINDMAP_NODE_TEXT");
+    if (!shape || !textBlock) return false;
+
+    shape.fill = baseStyle.fill;
+    shape.stroke = baseStyle.stroke;
+    shape.strokeWidth = baseStyle.strokeWidth;
+    textBlock.stroke = baseStyle.textStroke;
+    node.__mindmapHighlightStyle = null;
+    node.__mindmapHighlighted = false;
+    return true;
+  }
+
+  function findMindmapHypothesisNodesByText(hypothesisText) {
+    if (!diagram) return [];
+
+    const normalizedText = String(hypothesisText || "").trim();
+    if (!normalizedText) return [];
+
+    const nodes = [];
+    diagram.nodes.each(function(node) {
+      if (!node || !node.data || node.data.key === 0) return;
+      const nodeText = String(node.data.text || "").trim();
+      if (nodeText === normalizedText) {
+        nodes.push(node);
+      }
+    });
+
+    return nodes;
+  }
+
+  function findMindmapHypothesisNodesByEntryId(entryId) {
+    if (!diagram) return [];
+
+    const normalizedEntryId = String(entryId || "").trim();
+    if (!normalizedEntryId) return [];
+
+    const nodes = [];
+    diagram.nodes.each(function(node) {
+      if (!node || !node.data || node.data.key === 0) return;
+      if (String(node.data.hypothesisEntryId || "").trim() === normalizedEntryId) {
+        nodes.push(node);
+      }
+    });
+
+    return nodes;
+  }
+
+  function highlightMindmapNodesByTargets(targets) {
+    if (!diagram) return false;
+
+    clearMindmapNodeHighlight();
+
+    const defaultStyles = MINDMAP_HIGHLIGHT_STYLES;
+
+    const normalizedTargets = Array.isArray(targets)
+      ? targets.map(function(target, index) {
+          const fallbackStyle = getMindmapHighlightStyle(index);
+          if (typeof target === "string") {
+            return { text: target, style: fallbackStyle };
+          }
+          const text = String(target && target.text ? target.text : "").trim();
+          if (!text) return null;
+          const style = target && target.style && typeof target.style === "object" ? target.style : fallbackStyle;
+          return {
+            entryId: target && target.entryId ? String(target.entryId).trim() : "",
+            text,
+            style: {
+              fill: typeof style.fill === "string" && style.fill ? style.fill : fallbackStyle.fill,
+              stroke: typeof style.stroke === "string" && style.stroke ? style.stroke : fallbackStyle.stroke,
+              text: typeof style.text === "string" && style.text ? style.text : fallbackStyle.text,
+            },
+          };
+        }).filter(Boolean)
+      : [];
+
+    if (normalizedTargets.length === 0) return false;
+
+    let didHighlight = false;
+    normalizedTargets.forEach(function(target) {
+      const nodesByText = findMindmapHypothesisNodesByText(target.text);
+      const nodesByEntryId = target.entryId ? findMindmapHypothesisNodesByEntryId(target.entryId) : [];
+      const resolvedNodes = nodesByText.length > 0 ? nodesByText : nodesByEntryId;
+      resolvedNodes.forEach(function(node) {
+        if (applyMindmapNodeHighlight(node, target.style)) {
+          didHighlight = true;
+        }
+      });
+    });
+
+    return didHighlight;
+  }
+
   function sanitizeFilePart(value) {
     return String(value || "")
       .trim()
@@ -663,10 +811,10 @@ window.addEventListener('DOMContentLoaded', function() {
 
     let didClear = false;
     diagram.nodes.each(function(node) {
-      if (!node.isHighlighted) return;
-      node.isHighlighted = false;
-      node.updateTargetBindings();
-      didClear = true;
+      if (!node || !node.__mindmapHighlighted) return;
+      if (restoreMindmapNodeHighlight(node)) {
+        didClear = true;
+      }
     });
     diagram.clearSelection();
     return didClear;
@@ -688,8 +836,7 @@ window.addEventListener('DOMContentLoaded', function() {
     clearMindmapNodeHighlight();
     if (!(node instanceof go.Node) || !node.data || node.data.key === 0) return false;
 
-    node.isHighlighted = true;
-    node.updateTargetBindings();
+    applyMindmapNodeHighlight(node, getMindmapHighlightStyle(0));
     diagram.select(node);
     return true;
   }
@@ -721,8 +868,16 @@ window.addEventListener('DOMContentLoaded', function() {
   }
 
   window.highlightMindmapHypothesisNode = function(entryId, hypothesisText) {
+    const nodes = findMindmapHypothesisNodesByEntryId(entryId);
+    if (nodes.length > 0) {
+      return highlightMindmapNodesByTargets([{ entryId, text: hypothesisText, style: getMindmapHighlightStyle(0) }]);
+    }
     const node = findMindmapHypothesisNode(entryId, hypothesisText);
     return highlightMindmapNode(node);
+  };
+
+  window.highlightMindmapHypothesisNodes = function(targets) {
+    return highlightMindmapNodesByTargets(targets);
   };
 
   window.clearMindmapHypothesisHighlight = clearMindmapNodeHighlight;
@@ -775,6 +930,7 @@ window.addEventListener('DOMContentLoaded', function() {
       new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
       $(go.Shape, "RoundedRectangle",
         {
+          name: "MINDMAP_NODE_SHAPE",
           stroke: "#3498DB",
           strokeWidth: 2,
           fill: "#FFFFFF"
@@ -801,6 +957,7 @@ window.addEventListener('DOMContentLoaded', function() {
       ),
       $(go.TextBlock,
         {
+          name: "MINDMAP_NODE_TEXT",
           margin: 8,
           stroke: "#000000",
           font: "bold 14px 'Segoe UI', sans-serif"

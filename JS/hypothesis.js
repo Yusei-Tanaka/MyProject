@@ -964,6 +964,122 @@ function showHypothesisAndKeywordDialog(options) {
   console.log("仮説・キーワード統合ダイアログがDOMに追加されました");
 }
 
+const HYPOTHESIS_HIGHLIGHT_STYLES = [
+  { fill: "#DCE9FF", border: "#3D6FCC", text: "#173B7A" },
+  { fill: "#FCE6C8", border: "#E67E22", text: "#7A4208" },
+  { fill: "#E5F6D8", border: "#5BA84B", text: "#2D6020" },
+  { fill: "#F1E3FF", border: "#8B5CF6", text: "#4C1D95" },
+  { fill: "#FFE6E6", border: "#E25555", text: "#8B1E1E" },
+];
+
+function getHypothesisHighlightStyle(index) {
+  return HYPOTHESIS_HIGHLIGHT_STYLES[index % HYPOTHESIS_HIGHLIGHT_STYLES.length];
+}
+
+function clearHypothesisEntryHighlight() {
+  document.querySelectorAll(
+    ".hypothesis-box[data-hypothesis-highlighted='true'], .hypothesis-text[data-hypothesis-highlighted='true'], .scamper-edit-box[data-hypothesis-highlighted='true'], .scamper-tag-container[data-hypothesis-highlighted='true']"
+  ).forEach(function(element) {
+    element.style.backgroundColor = "";
+    element.style.borderColor = "";
+    element.style.boxShadow = "";
+    element.style.color = "";
+    element.style.outline = "";
+    element.style.setProperty("--hypothesis-highlight-border", "");
+    element.style.setProperty("--hypothesis-highlight-fill", "");
+    element.removeAttribute("data-hypothesis-highlighted");
+  });
+}
+
+function collectHypothesisEntryTargets(entry) {
+  if (!entry) return [];
+
+  const targets = [];
+  const entryId = ensureHypothesisEntryId(entry);
+  const hypothesisTextArea = entry.querySelector("textarea.hypothesis-text");
+  const hypothesisText = hypothesisTextArea ? String(hypothesisTextArea.value || "").trim() : "";
+  if (hypothesisText) {
+    targets.push({ entryId, text: hypothesisText, style: getHypothesisHighlightStyle(0), element: hypothesisTextArea });
+  }
+
+  const scamperBoxes = entry.querySelectorAll("textarea.scamper-edit-box");
+  scamperBoxes.forEach(function(textarea, index) {
+    const text = String(textarea.value || "").trim();
+    if (!text) return;
+    targets.push({ entryId, text, style: getHypothesisHighlightStyle(index + 1), element: textarea });
+  });
+
+  return targets;
+}
+
+function applyHypothesisEntryHighlight(entry) {
+  if (!entry) return false;
+
+  clearHypothesisEntryHighlight();
+  const targets = collectHypothesisEntryTargets(entry);
+  if (targets.length === 0) return false;
+
+  const entryStyle = targets[0].style;
+  entry.dataset.hypothesisHighlighted = "true";
+  entry.style.borderColor = entryStyle.border;
+  entry.style.boxShadow = `0 0 0 2px ${entryStyle.border}33, 0 10px 22px rgba(0, 0, 0, 0.08)`;
+
+  targets.forEach(function(target) {
+    const element = target.element;
+    if (!element) return;
+
+    element.dataset.hypothesisHighlighted = "true";
+    element.style.backgroundColor = target.style.fill;
+    element.style.borderColor = target.style.border;
+    element.style.boxShadow = `0 0 0 2px ${target.style.border}33`;
+    element.style.color = target.style.text;
+    if (element.classList.contains("scamper-edit-box")) {
+      const scamperContainer = element.closest(".scamper-tag-container");
+      if (scamperContainer) {
+        scamperContainer.dataset.hypothesisHighlighted = "true";
+        scamperContainer.style.borderLeft = `4px solid ${target.style.border}`;
+        scamperContainer.style.backgroundColor = `${target.style.fill}66`;
+      }
+    }
+  });
+
+  if (typeof window.highlightMindmapHypothesisNodes === "function") {
+    window.highlightMindmapHypothesisNodes(targets);
+  } else if (typeof window.highlightMindmapHypothesisNode === "function") {
+    const firstTarget = targets[0];
+    if (firstTarget) {
+      window.highlightMindmapHypothesisNode(null, firstTarget.text);
+    }
+  }
+
+  return true;
+}
+
+function installHypothesisEntryHighlightBindings() {
+  if (window.__hypothesisEntryHighlightBindingsInstalled) return;
+  window.__hypothesisEntryHighlightBindingsInstalled = true;
+
+  document.addEventListener("click", function(event) {
+    const entry = event.target && typeof event.target.closest === "function"
+      ? event.target.closest(".hypothesis-box")
+      : null;
+    if (!entry) return;
+    applyHypothesisEntryHighlight(entry);
+  });
+
+  document.addEventListener("focusin", function(event) {
+    const target = event.target;
+    if (!target || typeof target.closest !== "function") return;
+    if (!target.closest(".hypothesis-text, .scamper-edit-box")) return;
+    const entry = target.closest(".hypothesis-box");
+    if (entry) {
+      applyHypothesisEntryHighlight(entry);
+    }
+  });
+}
+
+installHypothesisEntryHighlightBindings();
+
 var hypothesisEntryIdSequence = 0;
 
 function createHypothesisEntryId() {
@@ -1254,11 +1370,25 @@ function getHypothesisEntryText(entry) {
 }
 
 function highlightMindmapNodeFromHypothesisEntry(entry) {
-  if (!entry || typeof window.highlightMindmapHypothesisNode !== "function") return;
-  window.highlightMindmapHypothesisNode(
-    ensureHypothesisEntryId(entry),
-    getHypothesisEntryText(entry)
-  );
+  if (!entry) return;
+
+  var targets = collectHypothesisEntryTargets(entry).map(function (target) {
+    return {
+      text: target.text,
+      style: target.style,
+    };
+  });
+
+  if (targets.length === 0) return;
+
+  if (typeof window.highlightMindmapHypothesisNodes === "function") {
+    window.highlightMindmapHypothesisNodes(targets);
+    return;
+  }
+
+  if (typeof window.highlightMindmapHypothesisNode === "function") {
+    window.highlightMindmapHypothesisNode(ensureHypothesisEntryId(entry), getHypothesisEntryText(entry));
+  }
 }
 
 window.activateHypothesisEntryFromMindmap = function (entryId, hypothesisText) {
@@ -1326,6 +1456,7 @@ function clearActiveHypothesisEntries() {
 window.clearHypothesisEntryActivation = function (options) {
   options = options || {};
   var cleared = clearActiveHypothesisEntries();
+  clearHypothesisEntryHighlight();
 
   if (options.clearKeywordSelection !== false) {
     if (typeof window.clearNodeSelection === "function") {
@@ -1355,7 +1486,10 @@ function bindOutsideClickToClearHypothesisActive() {
     }
 
     var cleared = clearActiveHypothesisEntries();
-    if (!cleared) return;
+    clearHypothesisEntryHighlight();
+    if (!cleared && typeof window.clearMindmapHypothesisHighlight !== "function") {
+      // No active box, but custom highlight styles still need to be cleared.
+    }
 
     if (typeof window.clearMindmapHypothesisHighlight === "function") {
       window.clearMindmapHypothesisHighlight();
