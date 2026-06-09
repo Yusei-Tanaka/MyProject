@@ -529,7 +529,7 @@ function bindDeleteButton(entry, wrapper) {
 
     const onDeleteClick = function () {
     const entryId = entry.dataset.hypothesisEntryId;
-    const confirmMsg = typeof t === 'function' ? t('confirms.deleteHypothesisNode', {}, '丮説と、対応する丮説構造化マップのノード（孰ノード含む）を削除します。\n本当によろしいですか？') : '丮説と、対応する丮説構造化マップのノード（孰ノード含む）を削除します。\n本当によろしいですか？';
+    const confirmMsg = typeof t === 'function' ? t('confirms.deleteHypothesisNode', {}, '仮説と、対応する仮説構造化マップのノード（子ノード含む）を削除します。\n本当によろしいですか？') : '仮説と、対応する仮説構造化マップのノード（子ノード含む）を削除します。\n本当によろしいですか？';
     if (!confirm(confirmMsg)) return;
 
     if (entryId && typeof window.deleteMindmapNodeByEntryId === 'function') {
@@ -538,7 +538,7 @@ function bindDeleteButton(entry, wrapper) {
 
     wrapper.removeChild(entry);
     updateHypothesisNumbers(wrapper);
-    logHypothesisAction("丮説: 削除");
+    logHypothesisActio("\u4eee\u8aac\u003a\u0020\u524a\u9664");
     scheduleHypothesisSave();
   };
 
@@ -2160,3 +2160,18 @@ const hypothesisApiHost = hypothesisHost;
 const hypothesisApiBaseUrl =
   hypothesisConfig.flaskApiBaseUrl ||
   `http://${hypothesisApiHost}:${Number(hypothesisConfig.flaskApiPort || 8000)}`;
+
+window.deleteHypothesisEntryById = function(entryId) {
+  const wrapper = document.getElementById("hypothesis-wrapper");
+  if (!wrapper) return;
+  const entries = wrapper.querySelectorAll(".hypothesis-box");
+  for (let i = 0; i < entries.length; i++) {
+    if (entries[i].dataset.hypothesisEntryId === String(entryId)) {
+      wrapper.removeChild(entries[i]);
+      if (typeof updateHypothesisNumbers === 'function') updateHypothesisNumbers(wrapper);
+      if (typeof logHypothesisAction === 'function') logHypothesisAction("\u4eee\u8aac\u003a\u0020\u524a\u9664");
+      if (typeof scheduleHypothesisSave === 'function') scheduleHypothesisSave();
+      break;
+    }
+  }
+};

@@ -153,7 +153,7 @@
         reopenSideView: "本当に整理は終わりましたか？",
         deleteTag: "「{tag}」タグを削除しますか？",
         deleteNodesHeader: "以下の {count} 件のノードを削除します。",
-        deleteMindmapNodesHeader: "以下の {count} 件のノード（子ノードを含む）を削除します。",
+        deleteMindmapNodesHeader: "\u4ee5\u4e0b\u306e\u0020\u007b\u0063\u006d\u0075\u006e\u0074\u007d\u0020\u4ef6\u306e\u30ce\u30fc\u30c4\uff08\u5b50\u30ce\u30fc\u30c4\u3092\u542b\u3080\uff09\u3068\u3001\u5bfe\u5fdc\u3059\u308b\u4eee\u8aac\u30db\u30cc\u30c8\u30b9\u3092\u524a\u9664\u3057\u304f\u3059\u3002",
         deleteNodesFooter: "本当に削除してよいですか？"
       },
       prompts: {
@@ -385,7 +385,7 @@
         reopenSideView: "Are you sure your organizing work is finished?",
         deleteTag: "Delete tag \"{tag}\"?",
         deleteNodesHeader: "Delete {count} node(s):",
-        deleteMindmapNodesHeader: "Delete {count} node(s), including child nodes:",
+        deleteMindmapNodesHeader: "Delete {count} node(s) and corresponding hypothesis boxes (including child nodes):",
         deleteNodesFooter: "Are you sure?"
       },
       prompts: {
