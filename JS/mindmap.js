@@ -92,6 +92,9 @@ window.addEventListener('DOMContentLoaded', function() {
     shape.strokeWidth = Math.max(3, baseStyle.strokeWidth || 2);
     textBlock.stroke = textStroke;
     node.__mindmapHighlightStyle = { fill: fill, stroke: stroke, text: textStroke };
+    node.data.hypothesisHighlightKey = typeof resolvedStyle.key === "number" || typeof resolvedStyle.key === "string"
+      ? String(resolvedStyle.key)
+      : "0";
     node.__mindmapHighlighted = true;
     return true;
   }
@@ -109,6 +112,9 @@ window.addEventListener('DOMContentLoaded', function() {
     shape.strokeWidth = baseStyle.strokeWidth;
     textBlock.stroke = baseStyle.textStroke;
     node.__mindmapHighlightStyle = null;
+    if (node.data) {
+      delete node.data.hypothesisHighlightKey;
+    }
     node.__mindmapHighlighted = false;
     return true;
   }
@@ -1157,16 +1163,151 @@ window.addEventListener('DOMContentLoaded', function() {
       const removedKey = rootNode.data && rootNode.data.key !== undefined ? rootNode.data.key : "";
       const removedText = getMindmapNodeText(rootNode);
 
-      const entryIdsToDelete = [];
-      rootNode.findTreeParts().each(function(part) {
-        if (part instanceof go.Node && part.data && part.data.hypothesisEntryId) {
-          entryIdsToDelete.push(String(part.data.hypothesisEntryId));
+      const highlightKey = rootNode.data && rootNode.data.hypothesisHighlightKey !== undefined
+        ? String(rootNode.data.hypothesisHighlightKey)
+        : "";
+      const entryIdForNode = rootNode.data && rootNode.data.hypothesisEntryId !== undefined
+        ? String(rootNode.data.hypothesisEntryId)
+        : "";
+      try {
+        let matched = [];
+        if (highlightKey) {
+          const selector = '.scamper-tag-container[data-hypothesis-highlight-key="' + highlightKey + '"]';
+          matched = Array.prototype.slice.call(document.querySelectorAll(selector) || []);
         }
-      });
-      if (entryIdsToDelete.length > 0 && typeof window.deleteHypothesisEntryById === "function") {
-        entryIdsToDelete.forEach(function(id) {
-          window.deleteHypothesisEntryById(id);
-        });
+
+        // Fallback: if no highlight-key matches, try matching by hypothesisEntryId on the enclosing hypothesis-box
+        if ((matched.length === 0) && entryIdForNode) {
+          const containers = Array.prototype.slice.call(document.querySelectorAll('.scamper-tag-container') || []);
+          matched = containers.filter(function(container) {
+            try {
+              var box = container.closest && container.closest('.hypothesis-box');
+              return box && box.dataset && String(box.dataset.hypothesisEntryId) === entryIdForNode;
+            } catch (_e) {
+              return false;
+            }
+          });
+        }
+
+        if (matched.length === 0) {
+          // Try alternative selector: scamper-edit-box inside hypothesis-box with matching entryId
+          if (entryIdForNode) {
+            try {
+              var textareas = Array.prototype.slice.call(document.querySelectorAll('textarea.scamper-edit-box') || []);
+              textareas.forEach(function(ta) {
+                try {
+                  var box = ta.closest && ta.closest('.hypothesis-box');
+                  if (box && box.dataset && String(box.dataset.hypothesisEntryId) === entryIdForNode) {
+                    var container = ta.closest && ta.closest('.scamper-tag-container');
+                    if (container) matched.push(container);
+                  }
+                } catch (_e) {
+                  // ignore
+                }
+              });
+            } catch (_e) {
+              // ignore
+            }
+          }
+        }
+
+        if (matched.length > 0) {
+          // Check if any matched container corresponds to the main hypothesis (top-level hypothesis)
+          var handledWholeBox = false;
+          function normalizeCompareText(s) {
+            try {
+              return String(s || "").trim().replace(/\s+/g, " ").toLowerCase();
+            } catch (_e) { return String(s || "").trim(); }
+          }
+
+          var removedNorm = normalizeCompareText(removedText);
+
+          for (var mi = 0; mi < matched.length; mi++) {
+            var container = matched[mi];
+            try {
+              var box = container && typeof container.closest === 'function' ? container.closest('.hypothesis-box') : null;
+              if (box) {
+                var mainTa = box.querySelector && box.querySelector('textarea.hypothesis-text');
+                var mainText = mainTa ? String(mainTa.value || '').trim() : '';
+                // If the removed mindmap node text matches the main hypothesis text (normalized or partially), ask whether to delete the whole box
+                var mainNorm = normalizeCompareText(mainText);
+                var isMatch = false;
+                if (mainNorm && removedNorm && (mainNorm === removedNorm || mainNorm.indexOf(removedNorm) !== -1 || removedNorm.indexOf(mainNorm) !== -1)) {
+                  isMatch = true;
+                }
+                if (isMatch) {
+                  var deleteWhole = confirm(
+                    t(
+                      'confirms.deleteEntireHypothesisBox',
+                      {},
+                      'このノードは仮説ボックス内の主仮説に対応しています。仮説ボックスごと削除しますか？\nOK: ボックスごと削除\nキャンセル: SCAMPERタグのみ削除'
+                    )
+                  );
+                  if (deleteWhole) {
+                    try {
+                      if (box.parentNode) box.parentNode.removeChild(box);
+                    } catch (_e) { /* ignore */ }
+                    handledWholeBox = true;
+                    // update and save
+                    try {
+                      var wrapperElem = document.querySelector('#hypothesisWrapper');
+                      if (wrapperElem && typeof window.updateHypothesisNumbers === 'function') {
+                        window.updateHypothesisNumbers(wrapperElem);
+                      }
+                      if (typeof window.flushHypothesisSave === 'function') {
+                        window.flushHypothesisSave();
+                      } else if (typeof window.scheduleHypothesisSave === 'function') {
+                        window.scheduleHypothesisSave();
+                      }
+                    } catch (_e) { /* ignore */ }
+                    break;
+                  }
+                }
+              }
+            } catch (_e) {
+              // ignore
+            }
+          }
+          
+
+          if (!handledWholeBox) {
+            const shouldDelete = confirm(
+              t(
+                "confirms.deleteRelatedScamperTags",
+                {},
+                "対応するSCAMPERタグ（同じ色のSCAMPER入力）を削除しますか？\nOK: 削除\nキャンセル: 残す"
+              ) + "\n\n" + ("削除対象: " + matched.length + " 件")
+            );
+            if (shouldDelete) {
+              var removedAny = false;
+              matched.forEach(function(el) {
+                try {
+                  if (el.parentNode) {
+                    el.parentNode.removeChild(el);
+                    removedAny = true;
+                  }
+                } catch (_e) { /* ignore */ }
+              });
+
+              // If we removed something, try to update hypothesis numbers and trigger save
+              try {
+                var wrapper = document.querySelector('#hypothesisWrapper');
+                if (wrapper && typeof window.updateHypothesisNumbers === 'function') {
+                  window.updateHypothesisNumbers(wrapper);
+                }
+                if (typeof window.flushHypothesisSave === 'function') {
+                  window.flushHypothesisSave();
+                } else if (typeof window.scheduleHypothesisSave === 'function') {
+                  window.scheduleHypothesisSave();
+                }
+              } catch (_e) {
+                // ignore
+              }
+            }
+          }
+        }
+      } catch (_e) {
+        // DOM access may fail in some embed contexts; fall back silently
       }
 
       diagram.removeParts(rootNode.findTreeParts(), false);

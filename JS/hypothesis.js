@@ -976,6 +976,13 @@ function getHypothesisHighlightStyle(index) {
   return HYPOTHESIS_HIGHLIGHT_STYLES[index % HYPOTHESIS_HIGHLIGHT_STYLES.length];
 }
 
+function getHighlightKeyFromStyle(style, fallbackIndex) {
+  if (!style || typeof style !== "object") return String(typeof fallbackIndex === "number" ? fallbackIndex : 0);
+  if (typeof style.key === "string" && style.key) return style.key;
+  if (typeof style.key === "number") return String(style.key);
+  return String(typeof fallbackIndex === "number" ? fallbackIndex : 0);
+}
+
 function clearHypothesisEntryHighlight() {
   document.querySelectorAll(
     ".hypothesis-box[data-hypothesis-highlighted='true'], .hypothesis-text[data-hypothesis-highlighted='true'], .scamper-edit-box[data-hypothesis-highlighted='true'], .scamper-tag-container[data-hypothesis-highlighted='true']"
@@ -999,14 +1006,14 @@ function collectHypothesisEntryTargets(entry) {
   const hypothesisTextArea = entry.querySelector("textarea.hypothesis-text");
   const hypothesisText = hypothesisTextArea ? String(hypothesisTextArea.value || "").trim() : "";
   if (hypothesisText) {
-    targets.push({ entryId, text: hypothesisText, style: getHypothesisHighlightStyle(0), element: hypothesisTextArea });
+    targets.push({ entryId, text: hypothesisText, style: { ...getHypothesisHighlightStyle(0), key: 0 }, element: hypothesisTextArea, highlightKey: 0 });
   }
 
   const scamperBoxes = entry.querySelectorAll("textarea.scamper-edit-box");
   scamperBoxes.forEach(function(textarea, index) {
     const text = String(textarea.value || "").trim();
     if (!text) return;
-    targets.push({ entryId, text, style: getHypothesisHighlightStyle(index + 1), element: textarea });
+    targets.push({ entryId, text, style: { ...getHypothesisHighlightStyle(index + 1), key: index + 1 }, element: textarea, highlightKey: index + 1 });
   });
 
   return targets;
@@ -1020,6 +1027,7 @@ function applyHypothesisEntryHighlight(entry) {
   if (targets.length === 0) return false;
 
   const entryStyle = targets[0].style;
+  entry.dataset.hypothesisHighlightKey = String(targets[0].highlightKey);
   entry.dataset.hypothesisHighlighted = "true";
   entry.style.borderColor = entryStyle.border;
   entry.style.boxShadow = `0 0 0 2px ${entryStyle.border}33, 0 10px 22px rgba(0, 0, 0, 0.08)`;
@@ -1029,6 +1037,7 @@ function applyHypothesisEntryHighlight(entry) {
     if (!element) return;
 
     element.dataset.hypothesisHighlighted = "true";
+    element.dataset.hypothesisHighlightKey = String(target.highlightKey);
     element.style.backgroundColor = target.style.fill;
     element.style.borderColor = target.style.border;
     element.style.boxShadow = `0 0 0 2px ${target.style.border}33`;
@@ -1037,6 +1046,7 @@ function applyHypothesisEntryHighlight(entry) {
       const scamperContainer = element.closest(".scamper-tag-container");
       if (scamperContainer) {
         scamperContainer.dataset.hypothesisHighlighted = "true";
+        scamperContainer.dataset.hypothesisHighlightKey = String(target.highlightKey);
         scamperContainer.style.borderLeft = `4px solid ${target.style.border}`;
         scamperContainer.style.backgroundColor = `${target.style.fill}66`;
       }
@@ -2356,4 +2366,42 @@ window.deleteHypothesisEntryById = function(entryId) {
       break;
     }
   }
+};
+
+window.deleteHypothesisEntriesByHighlightKey = function(highlightKey) {
+  const wrapper = document.getElementById("hypothesisWrapper") || document.querySelector(".hypothesis-wrapper") || document.querySelector(".hypothesis-area");
+  if (!wrapper) return 0;
+
+  const normalizedHighlightKey = String(highlightKey || "").trim();
+  if (!normalizedHighlightKey) return 0;
+  // 削除対象はエントリ丸ごとではなく，該当するscamper-tag-containerのみを削除する
+  const entries = Array.from(wrapper.querySelectorAll(".hypothesis-box"));
+  let removedCount = 0;
+
+  entries.forEach(function(entry) {
+    // 各エントリ内のscamper-tag-containerを検索して，highlightKeyが一致するものを削除する
+    const containers = Array.from(entry.querySelectorAll(".scamper-tag-container"));
+    containers.forEach(function(container) {
+      if (String(container.dataset.hypothesisHighlightKey || "").trim() === normalizedHighlightKey) {
+        if (container.parentNode) {
+          container.parentNode.removeChild(container);
+          removedCount += 1;
+        }
+      }
+    });
+
+    // .scamper-tags が空になったら親コンテナを削除
+    const tagWrap = entry.querySelector('.scamper-tags');
+    if (tagWrap && tagWrap.children.length === 0 && tagWrap.parentNode) {
+      tagWrap.parentNode.removeChild(tagWrap);
+    }
+  });
+
+  if (removedCount > 0) {
+    if (typeof updateHypothesisNumbers === 'function') updateHypothesisNumbers(wrapper);
+    if (typeof logHypothesisAction === 'function') logHypothesisAction("仮説: SCAMPER入力削除");
+    if (typeof scheduleHypothesisSave === 'function') scheduleHypothesisSave();
+  }
+
+  return removedCount;
 };
