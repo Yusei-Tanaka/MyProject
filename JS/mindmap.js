@@ -781,20 +781,22 @@ window.addEventListener('DOMContentLoaded', function() {
           fill: "#FFFFFF"
         },
         new go.Binding("fill", "key", function(key) {
-          return key === 0 ? "#E67E22" : "#FFFFFF";
+          return key === 0 ? "#EBC350" : "#FFFFFF";
         }),
         new go.Binding("stroke", "key", function(key) {
-          return key === 0 ? "#E67E22" : "#3498DB";
+          return key === 0 ? "#EBC350" : "#3498DB";
         }),
         new go.Binding("fill", "isHighlighted", function(isHighlighted, shape) {
           const data = shape && shape.part ? shape.part.data : null;
+          if (data && data.key === 0) return "#EBC350";
           if (isHighlighted) return "#E67E22";
-          return data && data.key === 0 ? "#E67E22" : "#FFFFFF";
+          return "#FFFFFF";
         }).ofObject(),
         new go.Binding("stroke", "isHighlighted", function(isHighlighted, shape) {
           const data = shape && shape.part ? shape.part.data : null;
+          if (data && data.key === 0) return "#EBC350";
           if (isHighlighted) return "#E67E22";
-          return data && data.key === 0 ? "#E67E22" : "#3498DB";
+          return "#3498DB";
         }).ofObject(),
         new go.Binding("strokeWidth", "isHighlighted", function(isHighlighted) {
           return isHighlighted ? 4 : 2;
@@ -803,7 +805,7 @@ window.addEventListener('DOMContentLoaded', function() {
       $(go.TextBlock,
         {
           margin: 8,
-          stroke: "#34495E",
+          stroke: "#000000",
           font: "bold 14px 'Segoe UI', sans-serif"
         },
         new go.Binding("text").makeTwoWay(),
@@ -814,11 +816,10 @@ window.addEventListener('DOMContentLoaded', function() {
           return key === 0 ? NaN : getHypothesisNodeWidth();
         }),
         new go.Binding("stroke", "key", function(key) {
-          return key === 0 ? "#FFFFFF" : "#34495E";
+          return "#000000";
         }),
         new go.Binding("stroke", "isHighlighted", function(isHighlighted, textBlock) {
-          const data = textBlock && textBlock.part ? textBlock.part.data : null;
-          return isHighlighted || (data && data.key === 0) ? "#FFFFFF" : "#34495E";
+          return "#000000";
         }).ofObject()
       ),
       {
@@ -829,7 +830,7 @@ window.addEventListener('DOMContentLoaded', function() {
               return getMindmapKeywordLabels(data).length > 0;
             }),
             $(go.TextBlock,
-              { margin: 6, stroke: "#34495E", font: "12px 'Segoe UI', sans-serif" },
+              { margin: 6, stroke: "#000000", font: "12px 'Segoe UI', sans-serif" },
               new go.Binding("text", "", getMindmapKeywordTooltipText)
             )
           )

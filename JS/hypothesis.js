@@ -2162,7 +2162,7 @@ const hypothesisApiBaseUrl =
   `http://${hypothesisApiHost}:${Number(hypothesisConfig.flaskApiPort || 8000)}`;
 
 window.deleteHypothesisEntryById = function(entryId) {
-  const wrapper = document.getElementById("hypothesis-wrapper");
+  const wrapper = document.getElementById("hypothesisWrapper") || document.querySelector(".hypothesis-wrapper") || document.querySelector(".hypothesis-area");
   if (!wrapper) return;
   const entries = wrapper.querySelectorAll(".hypothesis-box");
   for (let i = 0; i < entries.length; i++) {
