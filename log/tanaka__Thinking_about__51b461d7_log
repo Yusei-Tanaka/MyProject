@@ -1196,3 +1196,19 @@
       [2026/6/10 7:26:21] マインドマップ: ノード削除 source=contextmenu key=-11 "asfa"
       [2026/6/10 7:26:27] マインドマップ: ノード削除 source=contextmenu key=-12 "weywy"
       [2026/6/10 7:26:36] 仮説: 削除
+      [2026/6/10 7:27:16] 生成されたキーワードの組み合わせ: energy, future
+      [2026/6/10 7:27:42] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="asfag"
+      [2026/6/10 7:27:42] 仮説: 追加 (基づくキーワード: nuclear energy、solar energy)
+      [2026/6/10 7:27:42] 仮説: マップから仮説追加 (2個のキーワードを選択) "asfag"
+      [2026/6/10 7:27:45] 仮説: SCAMPER選択 Combine
+      [2026/6/10 7:27:47] 仮説: 生成質問一覧 [How might we combine solar energy with nuclear energy to create a more efficient and sustainable power generation system? / What if we integrated biomass power generation techniques with solar thermal power generation to enhance energy output? / Could we explore the potential of combining hydropower with ocean energy power generation to create a more resilient energy network?]
+      [2026/6/10 7:27:48] 仮説: 生成質問を選択 "Could we explore the potential of combining hydropower with ocean energy power generation to create a more resilient energy network?"
+      [2026/6/10 7:27:50] 仮説: SCAMPER入力 (Combine) "shsfhsfa"
+      [2026/6/10 7:27:53] 仮説: マインドマップへノード追加 parent=-11 "asfag" text="shsfhsfa"
+      [2026/6/10 7:27:53] マインドマップ: 子ノード追加 parent=-11 "asfag" text="shsfhsfa"
+      [2026/6/10 7:28:00] 仮説: SCAMPER選択 Adapt
+      [2026/6/10 7:28:02] 仮説: 生成質問一覧 [How might we adapt existing nuclear energy technologies to enhance their safety and sustainability in combination with solar energy systems? / What modifications can we make to current solar thermal power generation methods to increase their efficiency and integration with nuclear energy? / In what ways can we combine the principles of biomass power generation with solar energy to create a more sustainable energy solution?]
+      [2026/6/10 7:28:03] 仮説: 生成質問を選択 "In what ways can we combine the principles of biomass power generation with solar energy to create a more sustainable energy solution?"
+      [2026/6/10 7:28:07] 仮説: SCAMPER入力 (Adapt) "jfdgkjeyw"
+      [2026/6/10 7:28:10] 仮説: マインドマップへノード追加 parent=-12 "shsfhsfa" text="jfdgkjeyw"
+      [2026/6/10 7:28:10] マインドマップ: 子ノード追加 parent=-12 "shsfhsfa" text="jfdgkjeyw"
