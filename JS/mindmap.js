@@ -1047,6 +1047,30 @@ window.addEventListener('DOMContentLoaded', function() {
     });
   };
 
+  window.deleteMindmapNodeByEntryId = function (entryId) {
+    if (!diagram.model || !entryId) return false;
+    var nodeDataToRemove = null;
+    var nodeArray = diagram.model.nodeDataArray;
+    for (var i = 0; i < nodeArray.length; i++) {
+      if (String(nodeArray[i].hypothesisEntryId) === String(entryId)) {
+        nodeDataToRemove = nodeArray[i];
+        break;
+      }
+    }
+    if (nodeDataToRemove) {
+      diagram.startTransaction('delete mindmap node by entry id');
+      var node = diagram.findNodeForData(nodeDataToRemove);
+      if (node) {
+        diagram.removeParts(node.findTreeParts(), false);
+      } else {
+        diagram.model.removeNodeData(nodeDataToRemove);
+      }
+      diagram.commitTransaction('delete mindmap node by entry id');
+      return true;
+    }
+    return false;
+  };
+
   window.addMindmapChild = function (parentKey, text, metadata) {
     if (!diagram.model) return false;
     if (!text || !text.trim()) return false;

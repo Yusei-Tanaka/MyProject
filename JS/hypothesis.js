@@ -527,10 +527,18 @@ function bindDeleteButton(entry, wrapper) {
     delBtn.removeEventListener("click", delBtn.__hypothesisDeleteHandler);
   }
 
-  const onDeleteClick = function () {
+    const onDeleteClick = function () {
+    const entryId = entry.dataset.hypothesisEntryId;
+    const confirmMsg = typeof t === 'function' ? t('confirms.deleteHypothesisNode', {}, '丮説と、対応する丮説構造化マップのノード（孰ノード含む）を削除します。\n本当によろしいですか？') : '丮説と、対応する丮説構造化マップのノード（孰ノード含む）を削除します。\n本当によろしいですか？';
+    if (!confirm(confirmMsg)) return;
+
+    if (entryId && typeof window.deleteMindmapNodeByEntryId === 'function') {
+      window.deleteMindmapNodeByEntryId(entryId);
+    }
+
     wrapper.removeChild(entry);
     updateHypothesisNumbers(wrapper);
-    logHypothesisAction("仮説: 削除");
+    logHypothesisAction("丮説: 削除");
     scheduleHypothesisSave();
   };
 
