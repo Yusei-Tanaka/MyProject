@@ -1,6 +1,6 @@
 # DB再構成設計（V2案）
 
-最終更新: 2026-02-17
+最終更新: 2026-04-22
 
 ## 1. 決定事項（確定）
 
@@ -397,11 +397,15 @@ erDiagram
 
 - 入力: `user_themes`（`content_json` 内の nodes/edges/hypothesis を利用）
 - 出力: `themes`, `theme_versions`, `keyword_nodes`, `keyword_edges`, `hypothesis_spreads`, `hypothesis_nodes`
+- 言語推定ロジック（優先順）:
+  1. payload.language から ja/en を抽出できれば使用
+  2. theme_name から日本語文字（ひらがな・カタカナ・漢字）を検出したら `'ja'`
+  3. theme_name から英字を検出したら `'en'`
+  4. デフォルトは `'ja'`
 - 生成ルール:
-  - `themes`: `(user_id, theme_name, theme_language)` ごとに1行（既存データは言語を推定or デフォルト ja を適用）
+  - `themes`: `(user_id, theme_name, theme_language)` ごとに1行
   - `theme_versions`: 初回は `version_no=1`
   - `latest_version_no=1`, `lock_version=0`
-  - `theme_language` は既存データに言語タグがあれば利用、なければ `'ja'` を設定
 
 ### Phase 3: 整合性検証
 
