@@ -240,9 +240,9 @@ erDiagram
 
     THEMES {
       bigint id PK
-      varchar user_id FK "複合キー part1"
-      varchar theme_name "複合キー part2"
-      varchar theme_language "複合キー part3 (ja/en)"
+      varchar user_id FK "ユニーク制約 part1"
+      varchar theme_name "ユニーク制約 part2"
+      varchar theme_language "ユニーク制約 part3 (ja/en)"
       int latest_version_no
     }
 
@@ -311,13 +311,13 @@ erDiagram
 
     THEMES {
       bigint id PK
-      varchar user_id FK "複合キー part1"
-      varchar theme_name "複合キー part2"
-      varchar theme_language "複合キー part3 (ja/en)"
+      varchar user_id FK "ユニーク制約 part1"
+      varchar theme_name "ユニーク制約 part2"
+      varchar theme_language "ユニーク制約 part3 (ja/en)"
       int latest_version_no
       bigint lock_version
       timestamp deleted_at
-      tinyint is_active "複合キー part4"
+      tinyint is_active "ユニーク制約 part4"
       timestamp created_at
       timestamp updated_at
     }
@@ -384,10 +384,10 @@ erDiagram
     }
 ```
 
-> **重要**: THEMES テーブルの複合キー構造  
-> - **技術的PK** = `id` (AUTO_INCREMENT)  
-> - **論理的キー** = `(user_id, theme_name, theme_language, is_active)` (UNIQUE制約)  
-> つまり、ユーザー・言語・テーマ名・アクティブ状態の 4 つの組み合わせがテーマを一意に特定する設計です。
+> **重要**: THEMES テーブルの設計構造  
+> - **主キー（PK）** = `id` (AUTO_INCREMENT, 実際のレコード識別子)  
+> - **ユニーク制約** = `(user_id, theme_name, theme_language, is_active)` (論理的キー)  
+> つまり、ユーザー・言語・テーマ名・アクティブ状態の 4 つの組み合わせが唯一のテーマを表しますが、**言語は PK ではなく、一意性を保証する制約の一部** です。
 
 ### 7.3 物理ER補足（インデックス/制約）
 
