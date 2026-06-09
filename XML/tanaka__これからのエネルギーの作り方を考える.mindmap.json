@@ -1,9 +1,7 @@
 { "class": "TreeModel",
   "nodeDataArray": [
-{"key":0,"text":"\u3053\u308c\u304b\u3089\u306e\u30a8\u30cd\u30eb\u30ae\u30fc\u306e\u4f5c\u308a\u65b9\u3092\u8003\u3048\u308b","loc":"93.01346843411585 0"},
-{"text":"\uff46\uff47\uff47","parent":0,"key":-5,"loc":"0 90.94081624830794"},
-{"text":"iii","parent":0,"key":-10,"loc":"85.52284749830794 90.94081624830794"},
-{"text":"\u3042\u3044\u3046\u3048\u304a","parent":0,"key":-11,"loc":"140.98124187161588 90.94081624830794"},
-{"text":"\u3042\u3044\u3046\u3048\u304a","parent":0,"key":-12,"loc":"254.5040893699238 90.94081624830794"},
-{"text":"\u304b\u304d\u304f\u3051\u3053","parent":0,"key":-13,"loc":"368.02693686823176 90.94081624830794"}
+{"key":0,"text":"\u3053\u308c\u304b\u3089\u306e\u30a8\u30cd\u30eb\u30ae\u30fc\u306e\u4f5c\u308a\u65b9\u3092\u8003\u3048\u308b","loc":"0 0"},
+{"text":"saa","parent":0,"basedNodeIds":[1],"basedKeywordLabels":["\u975e\u518d\u751f\u53ef\u80fd\u30a8\u30cd\u30eb\u30ae\u30fc"],"hypothesisEntryId":"hypothesis-entry-1781033783275-1","key":-2,"loc":"73.52470906334602 90.94081624830794"},
+{"text":"kokok","parent":0,"basedNodeIds":[4,5,6],"basedKeywordLabels":["\u592a\u967d\u5149\u767a\u96fb","\u6c34\u529b\u767a\u96fb","\u30d0\u30a4\u30aa\u30de\u30b9\u767a\u96fb"],"hypothesisEntryId":"hypothesis-entry-1781033997189-2","key":-3,"loc":"138.27314249915395 90.94081624830794"},
+{"text":"dddd","parent":-3,"basedNodeIds":[5,4,3,14],"basedKeywordLabels":["\u6c34\u529b\u767a\u96fb","\u592a\u967d\u5149\u767a\u96fb","\u30a8\u30cd\u30eb\u30ae\u30fc","\u5730\u57df\u5408\u610f"],"hypothesisEntryId":"hypothesis-entry-1781034205846-3","key":-4,"loc":"141.03827921790395 181.88163249661588"}
 ]}

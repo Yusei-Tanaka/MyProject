@@ -484,3 +484,27 @@
       [2026/6/10 0:23:17] UI: left side view shown
       [2026/6/10 0:24:33] 生成されたキーワードの組み合わせ: energy, future
       [2026/6/10 1:01:14] Keyword map: centered
+      [2026/6/10 4:52:31] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 4:52:31] Keyword map: centered (no nodes)
+      [2026/6/10 4:52:32] 仮説: 復元しました
+      [2026/6/10 4:52:32] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 4:52:32] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 4:52:32] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 4:52:40] UI: left side view shown
+      [2026/6/10 4:53:27] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 4:53:27] Keyword map: centered (no nodes)
+      [2026/6/10 4:53:27] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 4:53:27] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 4:53:27] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 4:53:27] 仮説: 復元しました
+      [2026/6/10 4:53:30] UI: left side view shown
+      [2026/6/10 4:53:50] 仮説: マインドマップへノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="It may be that solar thermal power generation cannot be widely adopted．"
+      [2026/6/10 4:53:50] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="It may be that solar thermal power generation cannot be widely adopted．"
+      [2026/6/10 4:54:00] マインドマップ: ノード削除 source=contextmenu key=-11 "It may be that solar thermal power generation cannot be widely adopted．"
+      [2026/6/10 4:58:04] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 4:58:04] Keyword map: centered (no nodes)
+      [2026/6/10 4:58:04] 仮説: 復元しました
+      [2026/6/10 4:58:04] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 4:58:04] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 4:58:04] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 4:58:07] UI: left side view shown

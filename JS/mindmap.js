@@ -568,6 +568,7 @@ window.addEventListener('DOMContentLoaded', function() {
     "undoManager.isEnabled": true,
     allowInsert: false
   });
+  diagram.toolManager.hoverDelay = 0;
 
   function handleDiagramResize() {
     if (!diagram) return;
@@ -581,6 +582,172 @@ window.addEventListener('DOMContentLoaded', function() {
   function logMindmapAction(message) {
     if (typeof window.addSystemLog === "function") {
       window.addSystemLog(message);
+    }
+  }
+
+  function normalizeMindmapArray(value) {
+    if (Array.isArray(value)) {
+      return value
+        .map(function(item) {
+          return String(item || "").trim();
+        })
+        .filter(Boolean);
+    }
+
+    if (typeof value === "string" && value.trim()) {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) {
+          return normalizeMindmapArray(parsed);
+        }
+      } catch (_error) {
+        // Fall back to comma-separated labels.
+      }
+
+      return value
+        .split(/[\u3001,]/)
+        .map(function(item) {
+          return String(item || "").trim();
+        })
+        .filter(Boolean);
+    }
+
+    return [];
+  }
+
+  function getMindmapKeywordLabels(data) {
+    return normalizeMindmapArray(data && data.basedKeywordLabels);
+  }
+
+  function getMindmapKeywordNodeIds(data) {
+    return normalizeMindmapArray(data && data.basedNodeIds);
+  }
+
+  function findKeywordNodeIdsByLabels(labels) {
+    if (!window.nodes || typeof window.nodes.get !== "function") return [];
+
+    const wantedLabels = new Set(normalizeMindmapArray(labels));
+    if (wantedLabels.size === 0) return [];
+
+    const ids = [];
+    window.nodes.get().forEach(function(node) {
+      const labelsToMatch = [];
+      const nodeLabel = String(node && node.label ? node.label : "").trim();
+      if (nodeLabel) labelsToMatch.push(nodeLabel);
+
+      if (node && node.i18nLabels && typeof node.i18nLabels === "object") {
+        Object.keys(node.i18nLabels).forEach(function(langKey) {
+          const localized = String(node.i18nLabels[langKey] || "").trim();
+          if (localized) labelsToMatch.push(localized);
+        });
+      }
+
+      if (labelsToMatch.some(function(label) { return wantedLabels.has(label); })) {
+        ids.push(node.id);
+      }
+    });
+
+    return ids;
+  }
+
+  function getMindmapKeywordTooltipText(data) {
+    if (!data || data.key === 0) return "";
+    const labels = getMindmapKeywordLabels(data);
+    if (labels.length === 0) return "";
+    const separator = getCurrentThemeLanguage() === "en" ? ", " : "\u3001";
+    const keywordText = labels.join(separator);
+    return t("labels.basedKeywords", { keywords: keywordText }, "Based keywords: " + keywordText);
+  }
+
+  function clearMindmapNodeHighlight() {
+    if (!diagram) return false;
+
+    let didClear = false;
+    diagram.nodes.each(function(node) {
+      if (!node.isHighlighted) return;
+      node.isHighlighted = false;
+      node.updateTargetBindings();
+      didClear = true;
+    });
+    diagram.clearSelection();
+    return didClear;
+  }
+
+  function clearMindmapInteractionHighlights() {
+    clearMindmapNodeHighlight();
+
+    if (typeof window.clearHypothesisEntryActivation === "function") {
+      window.clearHypothesisEntryActivation({ clearKeywordSelection: true });
+    } else if (typeof window.clearNodeSelection === "function") {
+      window.clearNodeSelection();
+    } else if (typeof window.setSelectedNodes === "function") {
+      window.setSelectedNodes([]);
+    }
+  }
+
+  function highlightMindmapNode(node) {
+    clearMindmapNodeHighlight();
+    if (!(node instanceof go.Node) || !node.data || node.data.key === 0) return false;
+
+    node.isHighlighted = true;
+    node.updateTargetBindings();
+    diagram.select(node);
+    return true;
+  }
+
+  function findMindmapHypothesisNode(entryId, hypothesisText) {
+    if (!diagram) return null;
+
+    const normalizedEntryId = String(entryId || "").trim();
+    const normalizedText = String(hypothesisText || "").trim();
+    let matchedById = null;
+    let matchedByText = null;
+
+    diagram.nodes.each(function(node) {
+      if (matchedById || !node || !node.data || node.data.key === 0) return;
+
+      const nodeEntryId = String(node.data.hypothesisEntryId || "").trim();
+      if (normalizedEntryId && nodeEntryId === normalizedEntryId) {
+        matchedById = node;
+        return;
+      }
+
+      const nodeText = String(node.data.text || "").trim();
+      if (!matchedByText && normalizedText && nodeText === normalizedText) {
+        matchedByText = node;
+      }
+    });
+
+    return matchedById || matchedByText;
+  }
+
+  window.highlightMindmapHypothesisNode = function(entryId, hypothesisText) {
+    const node = findMindmapHypothesisNode(entryId, hypothesisText);
+    return highlightMindmapNode(node);
+  };
+
+  window.clearMindmapHypothesisHighlight = clearMindmapNodeHighlight;
+
+  diagram.addDiagramListener("BackgroundSingleClicked", function() {
+    clearMindmapInteractionHighlights();
+  });
+
+  function handleMindmapNodeClick(node) {
+    if (!node || !node.data || node.data.key === 0) return;
+    highlightMindmapNode(node);
+
+    const nodeIds = getMindmapKeywordNodeIds(node.data);
+    const labels = getMindmapKeywordLabels(node.data);
+    const resolvedNodeIds = nodeIds.length > 0 ? nodeIds : findKeywordNodeIdsByLabels(labels);
+
+    if (resolvedNodeIds.length > 0 && typeof window.setSelectedNodes === "function") {
+      window.setSelectedNodes(resolvedNodeIds);
+    } else if (typeof window.clearNodeSelection === "function") {
+      window.clearNodeSelection();
+    }
+
+    if (typeof window.activateHypothesisEntryFromMindmap === "function") {
+      window.activateHypothesisEntryFromMindmap(node.data.hypothesisEntryId, node.data.text);
     }
   }
 
@@ -618,7 +785,20 @@ window.addEventListener('DOMContentLoaded', function() {
         }),
         new go.Binding("stroke", "key", function(key) {
           return key === 0 ? "#E67E22" : "#3498DB";
-        })
+        }),
+        new go.Binding("fill", "isHighlighted", function(isHighlighted, shape) {
+          const data = shape && shape.part ? shape.part.data : null;
+          if (isHighlighted) return "#E67E22";
+          return data && data.key === 0 ? "#E67E22" : "#FFFFFF";
+        }).ofObject(),
+        new go.Binding("stroke", "isHighlighted", function(isHighlighted, shape) {
+          const data = shape && shape.part ? shape.part.data : null;
+          if (isHighlighted) return "#E67E22";
+          return data && data.key === 0 ? "#E67E22" : "#3498DB";
+        }).ofObject(),
+        new go.Binding("strokeWidth", "isHighlighted", function(isHighlighted) {
+          return isHighlighted ? 4 : 2;
+        }).ofObject()
       ),
       $(go.TextBlock,
         {
@@ -635,8 +815,25 @@ window.addEventListener('DOMContentLoaded', function() {
         }),
         new go.Binding("stroke", "key", function(key) {
           return key === 0 ? "#FFFFFF" : "#34495E";
-        })
+        }),
+        new go.Binding("stroke", "isHighlighted", function(isHighlighted, textBlock) {
+          const data = textBlock && textBlock.part ? textBlock.part.data : null;
+          return isHighlighted || (data && data.key === 0) ? "#FFFFFF" : "#34495E";
+        }).ofObject()
       ),
+      {
+        click: (e, node) => handleMindmapNodeClick(node),
+        toolTip:
+          $("ToolTip",
+            new go.Binding("visible", "", function(data) {
+              return getMindmapKeywordLabels(data).length > 0;
+            }),
+            $(go.TextBlock,
+              { margin: 6, stroke: "#34495E", font: "12px 'Segoe UI', sans-serif" },
+              new go.Binding("text", "", getMindmapKeywordTooltipText)
+            )
+          )
+      },
       {
         doubleClick: (e, node) => {
           const oldText = node.data.text;
@@ -654,7 +851,7 @@ window.addEventListener('DOMContentLoaded', function() {
           $("ContextMenu",
             $("ContextMenuButton",
               $(go.TextBlock, t("buttons.addNode", {}, "仮説を立案")),
-              { click: (e, obj) => addChild(obj.part.adornedPart) }
+              { click: (e, obj) => handleAddHypothesisFromMindmap(obj.part.adornedPart) }
             ),
             $("ContextMenuButton",
               $(go.TextBlock, t("buttons.delete", {}, "削除")),
@@ -850,9 +1047,10 @@ window.addEventListener('DOMContentLoaded', function() {
     });
   };
 
-  window.addMindmapChild = function (parentKey, text) {
+  window.addMindmapChild = function (parentKey, text, metadata) {
     if (!diagram.model) return false;
     if (!text || !text.trim()) return false;
+    metadata = metadata || {};
 
     var normalizedKey = parentKey;
     var parentNode = diagram.findNodeForKey(normalizedKey);
@@ -868,6 +1066,15 @@ window.addEventListener('DOMContentLoaded', function() {
 
     diagram.startTransaction("add mindmap child");
     var newNodeData = { text: text.trim(), parent: parentNode.data.key };
+    if (Array.isArray(metadata.basedNodeIds)) {
+      newNodeData.basedNodeIds = metadata.basedNodeIds.slice();
+    }
+    if (Array.isArray(metadata.basedKeywordLabels)) {
+      newNodeData.basedKeywordLabels = metadata.basedKeywordLabels.slice();
+    }
+    if (metadata.hypothesisEntryId) {
+      newNodeData.hypothesisEntryId = String(metadata.hypothesisEntryId);
+    }
     diagram.model.addNodeData(newNodeData);
     diagram.commitTransaction("add mindmap child");
     diagram.select(diagram.findNodeForData(newNodeData));
@@ -875,3 +1082,34 @@ window.addEventListener('DOMContentLoaded', function() {
     return true;
   };
 });
+
+function readMindmapDataArray(value) {
+  if (Array.isArray(value)) return value.slice();
+  if (typeof value === "string" && value.trim()) {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (_error) {
+      return value.split(/[\u3001,]/).map(function(item) {
+        return String(item || "").trim();
+      }).filter(Boolean);
+    }
+  }
+  return [];
+}
+
+// 仮説関係性マップのノードから仮説を追加
+function handleAddHypothesisFromMindmap(node) {
+  const data = node && node.data ? node.data : null;
+  if (!data) return;
+
+  if (typeof window.showHypothesisAndKeywordDialog === "function") {
+    window.showHypothesisAndKeywordDialog({
+      parentMindmapKey: data.key,
+      defaultNodeIds: [],
+      defaultKeywordLabels: [],
+    });
+  } else {
+    alert("仮説追加機能が利用できません。ページを再読み込みしてください。");
+  }
+}

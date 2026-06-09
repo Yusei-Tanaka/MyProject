@@ -548,6 +548,7 @@ function bindScamperTagDelete(tagLabel) {
 }
 
 function rebindHypothesisEntry(entry) {
+  ensureHypothesisEntryId(entry);
   bindHypothesisEntrySelection(entry);
 
   entry.querySelectorAll(".hypothesis-action-bar").forEach(function (bar) {
@@ -670,24 +671,321 @@ async function restoreHypothesisState() {
   }
 }
 
-// 仮説エントリを追加する（選択キーワードを基に1エントリ追加）
-function addHypothesisEntry(nodeIds) {
-  var container = ensureHypothesisContainer();
-  var wrapper = container.querySelector("#hypothesisWrapper");
-  if (!wrapper) return;
+// 仮説入力とキーワード選択を同時に行うダイアログを表示（仮説関係性マップの「仮説を立案」メニュー用）
+function showHypothesisAndKeywordDialog(options) {
+  options = options || {};
+  const parentMindmapKey = options.parentMindmapKey;
+  const allNodes =
+    window.nodes && typeof window.nodes.get === "function" ? window.nodes.get() : [];
 
-  // 選択キーワードラベル取得（先頭リストは表示しない）
+  // オーバーレイを作成
+  const overlay = document.createElement("div");
+  overlay.className = "hypothesis-keyword-dialog-overlay";
+  overlay.style.position = "fixed";
+  overlay.style.top = "0";
+  overlay.style.left = "0";
+  overlay.style.width = "100%";
+  overlay.style.height = "100%";
+  overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+  overlay.style.display = "flex";
+  overlay.style.alignItems = "center";
+  overlay.style.justifyContent = "center";
+  overlay.style.zIndex = "10000";
+
+  // ダイアログを作成
+  const dialog = document.createElement("div");
+  dialog.className = "hypothesis-keyword-dialog";
+  dialog.style.backgroundColor = "white";
+  dialog.style.borderRadius = "8px";
+  dialog.style.padding = "20px";
+  dialog.style.maxWidth = "500px";
+  dialog.style.width = "90%";
+  dialog.style.maxHeight = "80vh";
+  dialog.style.display = "flex";
+  dialog.style.flexDirection = "column";
+  dialog.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
+  dialog.style.boxSizing = "border-box";
+  dialog.style.overflow = "hidden";
+
+  // タイトル
+  const title = document.createElement("h3");
+  title.style.marginTop = "0";
+  title.style.marginBottom = "15px";
+  title.style.fontSize = "16px";
+  title.style.fontWeight = "bold";
+  title.innerText = t("labels.createHypothesis", {}, "新しい仮説を作成");
+  dialog.appendChild(title);
+
+  // 仮説入力フィールド
+  const hypothesisLabel = document.createElement("label");
+  hypothesisLabel.style.display = "block";
+  hypothesisLabel.style.marginBottom = "8px";
+  hypothesisLabel.style.fontSize = "14px";
+  hypothesisLabel.style.fontWeight = "bold";
+  hypothesisLabel.innerText = t("labels.hypothesisContent", {}, "仮説の内容");
+  dialog.appendChild(hypothesisLabel);
+
+  const hypothesisTextarea = document.createElement("textarea");
+  hypothesisTextarea.className = "hypothesis-input-textarea";
+  hypothesisTextarea.style.width = "100%";
+  hypothesisTextarea.style.minHeight = "80px";
+  hypothesisTextarea.style.marginBottom = "15px";
+  hypothesisTextarea.style.padding = "10px";
+  hypothesisTextarea.style.border = "1px solid #ddd";
+  hypothesisTextarea.style.borderRadius = "4px";
+  hypothesisTextarea.style.fontFamily = "inherit";
+  hypothesisTextarea.style.fontSize = "14px";
+  hypothesisTextarea.style.boxSizing = "border-box";
+  hypothesisTextarea.style.maxWidth = "100%";
+  hypothesisTextarea.placeholder = t("placeholders.hypothesisInput", {}, "ここに仮説を入力してください");
+  dialog.appendChild(hypothesisTextarea);
+
+  // キーワード選択ラベル
+  const keywordLabel = document.createElement("label");
+  keywordLabel.style.display = "block";
+  keywordLabel.style.marginBottom = "8px";
+  keywordLabel.style.fontSize = "14px";
+  keywordLabel.style.fontWeight = "bold";
+  keywordLabel.innerText = t("labels.selectKeywords", {}, "キーワードを選択（任意）");
+  dialog.appendChild(keywordLabel);
+
+  // チェックボックスリスト（スクロール可能）
+  const listContainer = document.createElement("div");
+  listContainer.style.flex = "1";
+  listContainer.style.overflowY = "auto";
+  listContainer.style.marginBottom = "15px";
+  listContainer.style.border = "1px solid #ddd";
+  listContainer.style.borderRadius = "4px";
+  listContainer.style.paddingTop = "10px";
+  listContainer.style.paddingBottom = "10px";
+  listContainer.style.paddingLeft = "10px";
+  listContainer.style.paddingRight = "10px";
+  listContainer.style.maxHeight = "200px";
+  listContainer.style.boxSizing = "border-box";
+
+  const selectedNodeIds = new Set(
+    (Array.isArray(options.defaultNodeIds) ? options.defaultNodeIds : []).map(function (id) {
+      return String(id);
+    })
+  );
+  const defaultKeywordLabelSet = new Set(normalizeKeywordLabels(options.defaultKeywordLabels));
+
+  if (defaultKeywordLabelSet.size > 0) {
+    allNodes.forEach(function (node) {
+      if (node && defaultKeywordLabelSet.has(String(node.label || "").trim())) {
+        selectedNodeIds.add(String(node.id));
+      }
+    });
+  }
+
+  allNodes.forEach((node) => {
+    const checkboxWrapper = document.createElement("div");
+    checkboxWrapper.style.marginBottom = "8px";
+    checkboxWrapper.style.display = "flex";
+    checkboxWrapper.style.alignItems = "center";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = String(node.id);
+    checkbox.checked = selectedNodeIds.has(String(node.id));
+    checkbox.style.marginRight = "8px";
+    checkbox.addEventListener("change", function () {
+      if (this.checked) {
+        selectedNodeIds.add(String(node.id));
+      } else {
+        selectedNodeIds.delete(String(node.id));
+      }
+    });
+
+    const label = document.createElement("label");
+    label.style.flex = "1";
+    label.style.cursor = "pointer";
+    label.style.margin = "0";
+    label.style.fontSize = "14px";
+    label.innerText = String(node.label || t("labels.untitledNode", {}, "(無題ノード)"));
+    label.addEventListener("click", function () {
+      checkbox.checked = !checkbox.checked;
+      checkbox.dispatchEvent(new Event("change"));
+    });
+
+    checkboxWrapper.appendChild(checkbox);
+    checkboxWrapper.appendChild(label);
+    listContainer.appendChild(checkboxWrapper);
+  });
+
+  dialog.appendChild(listContainer);
+
+  // ボタン行
+  const buttonRow = document.createElement("div");
+  buttonRow.style.display = "flex";
+  buttonRow.style.gap = "10px";
+  buttonRow.style.justifyContent = "flex-end";
+
+  const cancelBtn = document.createElement("button");
+  cancelBtn.type = "button";
+  cancelBtn.innerText = t("buttons.cancel", {}, "キャンセル");
+  cancelBtn.style.padding = "8px 16px";
+  cancelBtn.style.borderRadius = "4px";
+  cancelBtn.style.border = "1px solid #ccc";
+  cancelBtn.style.backgroundColor = "#f5f5f5";
+  cancelBtn.style.cursor = "pointer";
+  cancelBtn.addEventListener("click", function () {
+    document.body.removeChild(overlay);
+  });
+
+  const addBtn = document.createElement("button");
+  addBtn.type = "button";
+  addBtn.innerText = t("buttons.add", {}, "追加");
+  addBtn.style.padding = "8px 16px";
+  addBtn.style.borderRadius = "4px";
+  addBtn.style.border = "none";
+  addBtn.style.backgroundColor = "#007bff";
+  addBtn.style.color = "white";
+  addBtn.style.cursor = "pointer";
+  addBtn.addEventListener("click", function () {
+    const hypothesisText = hypothesisTextarea.value.trim();
+    if (!hypothesisText) {
+      alert(t("alerts.enterHypothesis", {}, "仮説を入力してください。"));
+      return;
+    }
+
+    const selectedIds = Array.from(selectedNodeIds).map((id) => {
+      const numericId = Number(id);
+      return Number.isNaN(numericId) ? id : numericId;
+    });
+
+    // キーワードラベルを取得
+    const selectedKeywordLabels = selectedIds.map((id) => {
+      const node = window.nodes && typeof window.nodes.get === "function" ? window.nodes.get(id) : null;
+      return node ? String(node.label || "") : "";
+    }).filter(Boolean);
+
+    const entryId = createHypothesisEntryId();
+
+    if (parentMindmapKey !== undefined && parentMindmapKey !== null) {
+      if (typeof window.addMindmapChild !== "function") {
+        alert(t("alerts.mindmapUnavailable", {}, "マインドマップが利用できません。ページを再読み込みしてください。"));
+        return;
+      }
+
+      const success = window.addMindmapChild(parentMindmapKey, hypothesisText, {
+        basedNodeIds: selectedIds,
+        basedKeywordLabels: selectedKeywordLabels,
+        hypothesisEntryId: entryId,
+      });
+      if (!success) {
+        alert(t("alerts.mindmapNodeAddFailed", {}, "ノードの追加に失敗しました。"));
+        return;
+      }
+    }
+
+    // 新しいエントリを追加（選択されたキーワードで）
+    addHypothesisEntry(selectedIds, {
+      hypothesisText,
+      keywordLabels: selectedKeywordLabels,
+      entryId,
+    });
+
+    // マインドマップに仮説ノードを追加
+    if (
+      (parentMindmapKey === undefined || parentMindmapKey === null) &&
+      typeof window.addHypothesisToMindmap === "function"
+    ) {
+      window.addHypothesisToMindmap(hypothesisText, selectedKeywordLabels);
+    }
+
+    document.body.removeChild(overlay);
+    logHypothesisAction(`仮説: マップから仮説追加 (${selectedIds.length}個のキーワードを選択) "${hypothesisText}"`);
+    clearSelectionAfterHypothesisCreate();
+  });
+
+  buttonRow.appendChild(cancelBtn);
+  buttonRow.appendChild(addBtn);
+  dialog.appendChild(buttonRow);
+
+  overlay.appendChild(dialog);
+  document.body.appendChild(overlay);
+  console.log("仮説・キーワード統合ダイアログがDOMに追加されました");
+}
+
+var hypothesisEntryIdSequence = 0;
+
+function createHypothesisEntryId() {
+  hypothesisEntryIdSequence += 1;
+  return "hypothesis-entry-" + Date.now() + "-" + hypothesisEntryIdSequence;
+}
+
+function ensureHypothesisEntryId(entry, preferredId) {
+  if (!entry || !entry.dataset) return "";
+  if (preferredId) {
+    entry.dataset.hypothesisEntryId = String(preferredId);
+  }
+  if (!entry.dataset.hypothesisEntryId) {
+    entry.dataset.hypothesisEntryId = createHypothesisEntryId();
+  }
+  return entry.dataset.hypothesisEntryId;
+}
+
+function normalizeKeywordLabels(labels) {
+  return (Array.isArray(labels) ? labels : [])
+    .map(function (label) {
+      return String(label || "").trim();
+    })
+    .filter(Boolean);
+}
+
+function getKeywordLabelsFromNodeIds(nodeIds) {
   var nodeDataSet = window.nodes;
-  var keywordLabels = nodeIds.map(function (id) {
+  return (Array.isArray(nodeIds) ? nodeIds : []).map(function (id) {
     var n = nodeDataSet && typeof nodeDataSet.get === "function" ? nodeDataSet.get(id) : null;
     return n ? n.label : t("labels.undefined", {}, "(未定義)");
   });
+}
+
+function findHypothesisEntryById(entryId) {
+  if (!entryId) return null;
+  var entries = document.querySelectorAll(".hypothesis-box");
+  for (var i = 0; i < entries.length; i += 1) {
+    if (entries[i].dataset && entries[i].dataset.hypothesisEntryId === String(entryId)) {
+      return entries[i];
+    }
+  }
+  return null;
+}
+
+function findHypothesisEntryByText(text) {
+  var wanted = String(text || "").trim();
+  if (!wanted) return null;
+  var entries = document.querySelectorAll(".hypothesis-box");
+  for (var i = 0; i < entries.length; i += 1) {
+    var textarea = entries[i].querySelector("textarea.hypothesis-text");
+    if (textarea && String(textarea.value || "").trim() === wanted) {
+      return entries[i];
+    }
+  }
+  return null;
+}
+
+// 仮説エントリを追加する（選択キーワードを基に1エントリ追加）
+function addHypothesisEntry(nodeIds, options) {
+  nodeIds = Array.isArray(nodeIds) ? nodeIds : [];
+  options = options || {};
+  var container = ensureHypothesisContainer();
+  var wrapper = container.querySelector("#hypothesisWrapper");
+  if (!wrapper) return null;
+
+  // 選択キーワードラベル取得（先頭リストは表示しない）
+  var keywordLabels = normalizeKeywordLabels(options.keywordLabels);
+  if (keywordLabels.length === 0) {
+    keywordLabels = getKeywordLabelsFromNodeIds(nodeIds);
+  }
 
   // エントリ作成
   var entry = document.createElement("div");
   entry.className = "hypothesis-box";
   entry.dataset.basedNodeIds = JSON.stringify(nodeIds);
   entry.dataset.basedKeywordLabels = JSON.stringify(keywordLabels);
+  ensureHypothesisEntryId(entry, options.entryId);
 
   var hdr = document.createElement("div");
   hdr.className = "hypothesis-box-header";
@@ -709,7 +1007,7 @@ function addHypothesisEntry(nodeIds) {
   var ta = document.createElement("textarea");
   ta.className = "hypothesis-text";
   ta.placeholder = t("placeholders.hypothesisInput", {}, "ここに仮説を入力");
-  ta.value = ""; // 初期は空白
+  ta.value = options.hypothesisText ? String(options.hypothesisText) : "";
   attachHypothesisTextareaLogging(ta, function (current) {
     return `仮説: 入力 "${current}"`;
   });
@@ -733,6 +1031,7 @@ function addHypothesisEntry(nodeIds) {
   entry.scrollIntoView({ behavior: "smooth" });
   logHypothesisAction(`仮説: 追加 (基づくキーワード: ${keywordLabels.join("、")})`);
   scheduleHypothesisSave();
+  return entry;
 }
 
 // 表示されている仮説の番号を更新
@@ -892,7 +1191,32 @@ function setHypothesisEntryActive(entry) {
   entry.classList.add("is-active");
 }
 
+function getHypothesisEntryText(entry) {
+  if (!entry) return "";
+  var textarea = entry.querySelector("textarea.hypothesis-text");
+  return textarea ? String(textarea.value || "").trim() : "";
+}
+
+function highlightMindmapNodeFromHypothesisEntry(entry) {
+  if (!entry || typeof window.highlightMindmapHypothesisNode !== "function") return;
+  window.highlightMindmapHypothesisNode(
+    ensureHypothesisEntryId(entry),
+    getHypothesisEntryText(entry)
+  );
+}
+
+window.activateHypothesisEntryFromMindmap = function (entryId, hypothesisText) {
+  var entry = findHypothesisEntryById(entryId) || findHypothesisEntryByText(hypothesisText);
+  if (!entry) return false;
+
+  setHypothesisEntryActive(entry);
+  entry.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  return true;
+};
+
 function selectNodesFromHypothesisEntry(entry) {
+  highlightMindmapNodeFromHypothesisEntry(entry);
+
   var nodeIds = filterExistingNodeIds(getNodeIdsForHypothesisEntry(entry));
   if (nodeIds.length === 0) {
     if (typeof window.clearNodeSelection === "function") {
@@ -943,6 +1267,21 @@ function clearActiveHypothesisEntries() {
   return true;
 }
 
+window.clearHypothesisEntryActivation = function (options) {
+  options = options || {};
+  var cleared = clearActiveHypothesisEntries();
+
+  if (options.clearKeywordSelection !== false) {
+    if (typeof window.clearNodeSelection === "function") {
+      window.clearNodeSelection();
+    } else if (typeof window.setSelectedNodes === "function") {
+      window.setSelectedNodes([]);
+    }
+  }
+
+  return cleared;
+};
+
 function bindOutsideClickToClearHypothesisActive() {
   if (document.body && document.body.dataset.boundHypothesisOutsideClear === "true") {
     return;
@@ -954,8 +1293,17 @@ function bindOutsideClickToClearHypothesisActive() {
       return;
     }
 
+    var clickedInMindmap = target && typeof target.closest === "function" && target.closest("#myDiagramDiv");
+    if (clickedInMindmap) {
+      return;
+    }
+
     var cleared = clearActiveHypothesisEntries();
     if (!cleared) return;
+
+    if (typeof window.clearMindmapHypothesisHighlight === "function") {
+      window.clearMindmapHypothesisHighlight();
+    }
 
     var clickedInNetwork = target && typeof target.closest === "function" && target.closest("#mynetwork");
     if (clickedInNetwork) {
@@ -1185,7 +1533,11 @@ function addNodeToNetwork(entry, sourceTextarea) {
 
     const selectedIndex = parseInt(select.value, 10);
     const parentNode = mindmapNodes[selectedIndex] || mindmapNodes[0];
-    const success = window.addMindmapChild(parentNode.key, trimmed);
+    const success = window.addMindmapChild(parentNode.key, trimmed, {
+      basedNodeIds: getNodeIdsForHypothesisEntry(entry),
+      basedKeywordLabels: parseKeywordLabelsFromEntry(entry),
+      hypothesisEntryId: ensureHypothesisEntryId(entry),
+    });
     if (!success) {
       alert(t("alerts.mindmapNodeAddFailed", {}, "ノードの追加に失敗しました。"));
       return;
