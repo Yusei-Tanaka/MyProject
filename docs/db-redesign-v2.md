@@ -2,6 +2,56 @@
 
 最終更新: 2026-04-22
 
+## 0. 基本情報
+
+### 使用DBMS
+- **MariaDB** 12.1 以上
+- 標準ポート: 3306
+- 文字コード: `utf8mb4` (Unicode対応)
+
+### デフォルト接続情報
+```
+ホスト: 127.0.0.1
+ポート: 3306
+ユーザー: appuser
+パスワード: app_pass
+データベース: myapp
+```
+
+### 接続元アプリケーション
+| アプリケーション | 言語 | 役割 |
+|----------|------|------|
+| `JS/server.js` | Node.js | メインAPI（Express）、ユーザ・テーマ管理 |
+| `api.py` | Python | Flask API（生成AI連携用） |
+
+### アーキテクチャ
+```
+User (Browser)
+    ↓
+Express API (Node.js, port 3000)
+    ↓
+MariaDB (port 3306)
+```
+
+### 初期セットアップ
+
+MariaDB にログインして実行:
+```sql
+CREATE DATABASE IF NOT EXISTS myapp CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS 'appuser'@'%' IDENTIFIED BY 'app_pass';
+GRANT ALL PRIVILEGES ON myapp.* TO 'appuser'@'%';
+FLUSH PRIVILEGES;
+```
+
+### phpMyAdmin でのアクセス
+- URL: `http://localhost/phpmyadmin` または `http://127.0.0.1/phpmyadmin`
+- ユーザー: `appuser`
+- パスワード: `app_pass`
+
+> **注意**: Apache が 80 番ポートで起動していることを確認してください（start.ps1 で自動起動可能）
+
+---
+
 ## 1. 決定事項（確定）
 
 - ID方式は `BIGINT AUTO_INCREMENT`
@@ -11,7 +61,9 @@
 - テーマは履歴管理あり（バージョン保持）
 - テーマ削除は論理削除（`deleted_at`）
 - テーマ名は論理削除後に再利用可
-- テーマの主キーは **（user_id, theme_name, theme_language, is_active）の複合キー**
+- **テーマの複合キーは `(user_id, theme_name, theme_language, is_active)` で一意に特定**
+  - ユーザー＆言語＆テーマ名の組み合わせで唯一のテーマが決まる
+  - 同一ユーザーでも言語が違えば同じテーマ名を再利用可能
 - UIの言語設定に応じてテーマが分岐（ja/en）
 - 同時更新は楽観ロック（`lock_version`）
 - 子テーブルは `ON DELETE CASCADE`
@@ -188,9 +240,9 @@ erDiagram
 
     THEMES {
       bigint id PK
-      varchar user_id FK
-      varchar theme_name
-      varchar theme_language
+      varchar user_id FK "複合キー part1"
+      varchar theme_name "複合キー part2"
+      varchar theme_language "複合キー part3 (ja/en)"
       int latest_version_no
     }
 
@@ -236,6 +288,8 @@ erDiagram
     }
 ```
 
+> **注**: THEMES テーブルは `id` が主キーですが、`(user_id, theme_name, theme_language, is_active)` で一意制約を持つため、実質的には **この 4 つの組み合わせがテーマを一意に特定します**。
+
 ### 7.2 物理ER図（テーブル定義ベース）
 
 ```mermaid
@@ -257,13 +311,13 @@ erDiagram
 
     THEMES {
       bigint id PK
-      varchar user_id FK
-      varchar theme_name
-      varchar theme_language
+      varchar user_id FK "複合キー part1"
+      varchar theme_name "複合キー part2"
+      varchar theme_language "複合キー part3 (ja/en)"
       int latest_version_no
       bigint lock_version
       timestamp deleted_at
-      tinyint is_active
+      tinyint is_active "複合キー part4"
       timestamp created_at
       timestamp updated_at
     }
@@ -330,6 +384,11 @@ erDiagram
     }
 ```
 
+> **重要**: THEMES テーブルの複合キー構造  
+> - **技術的PK** = `id` (AUTO_INCREMENT)  
+> - **論理的キー** = `(user_id, theme_name, theme_language, is_active)` (UNIQUE制約)  
+> つまり、ユーザー・言語・テーマ名・アクティブ状態の 4 つの組み合わせがテーマを一意に特定する設計です。
+
 ### 7.3 物理ER補足（インデックス/制約）
 
 #### 主キー / 外部キー
@@ -345,7 +404,10 @@ erDiagram
 
 #### 一意制約
 
-- `themes`: `UNIQUE(user_id, theme_name, theme_language, is_active)` **← ユーザー・言語・テーマ名の複合キー**
+- `themes`: `UNIQUE(user_id, theme_name, theme_language, is_active)` **← ユーザー・言語・テーマ名・アクティブの複合キー**
+  - 同じユーザーでも、言語が異なれば同じテーマ名を使用可能
+  - 例：user1 の「SDGs」(ja) と user1 の「SDGs」(en) は別のテーマとして存在
+  - `is_active=1` の制約により、削除済みテーマ（`is_active=0`）とは別に管理
 - `theme_versions`: `UNIQUE(theme_id, version_no)`
 - `keyword_nodes`: `UNIQUE(theme_version_id, client_node_id)`
 - `hypothesis_spreads`: `UNIQUE(theme_version_id)`
