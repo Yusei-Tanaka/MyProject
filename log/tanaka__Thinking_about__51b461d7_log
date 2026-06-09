@@ -603,3 +603,33 @@
       [2026/6/10 5:35:40] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
       [2026/6/10 5:35:42] UI: left side view shown
       [2026/6/10 5:35:50] マインドマップ: ノード削除 source=contextmenu key=-11 "aaaa"
+      [2026/6/10 5:51:33] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 5:51:33] Keyword map: centered (no nodes)
+      [2026/6/10 5:51:33] 仮説: 復元しました
+      [2026/6/10 5:51:33] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 5:51:33] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 5:51:33] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 5:51:41] 仮説: マップから仮説追加 (2個のキーワードを選択) "aa"
+      [2026/6/10 5:51:41] 仮説: 追加 (基づくキーワード: nuclear energy、sound energy)
+      [2026/6/10 5:51:41] マインドマップ: 子ノード追加 parent=-2 "It may be that promoting biomass power generation could lead to sustainable energy．" text="aa"
+      [2026/6/10 5:51:43] UI: left side view shown
+      [2026/6/10 5:52:01] 仮説: 追加 (基づくキーワード: sound energy)
+      [2026/6/10 5:52:01] マインドマップ: 子ノード追加 parent=-2 "It may be that promoting biomass power generation could lead to sustainable energy．" text="a"
+      [2026/6/10 5:52:01] 仮説: マップから仮説追加 (1個のキーワードを選択) "a"
+      [2026/6/10 5:52:08] マインドマップ: ノード削除 source=contextmenu key=-11 "a"
+      [2026/6/10 5:58:15] 仮説: 追加 (基づくキーワード: sound energy、energy)
+      [2026/6/10 5:58:15] 仮説: マップから仮説追加 (2個のキーワードを選択) "pp"
+      [2026/6/10 5:58:15] マインドマップ: 子ノード追加 parent=-2 "It may be that promoting biomass power generation could lead to sustainable energy．" text="pp"
+      [2026/6/10 6:00:32] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:00:32] Keyword map: centered (no nodes)
+      [2026/6/10 6:00:32] 仮説: 復元しました
+      [2026/6/10 6:00:32] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:00:33] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:00:33] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:00:36] UI: left side view shown
+      [2026/6/10 6:00:42] 仮説: 削除
+      [2026/6/10 6:00:47] マインドマップ: 子ノード追加 parent=-2 "It may be that promoting biomass power generation could lead to sustainable energy．" text="dd"
+      [2026/6/10 6:00:47] 仮説: マップから仮説追加 (2個のキーワードを選択) "dd"
+      [2026/6/10 6:00:47] 仮説: 追加 (基づくキーワード: nuclear energy、solar energy)
+      [2026/6/10 6:00:52] マインドマップ: ノード削除 source=contextmenu key=-11 "dd"
+      [2026/6/10 6:00:55] 仮説: 削除

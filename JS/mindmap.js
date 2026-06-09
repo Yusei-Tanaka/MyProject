@@ -969,7 +969,20 @@ window.addEventListener('DOMContentLoaded', function() {
     rootNodes.forEach(function(rootNode) {
       const removedKey = rootNode.data && rootNode.data.key !== undefined ? rootNode.data.key : "";
       const removedText = getMindmapNodeText(rootNode);
-      const entryIdsToDelete = []; rootNode.findTreeParts().each(function(part) { if (part instanceof go.Node && part.data && part.data.hypothesisEntryId) { entryIdsToDelete.push(String(part.data.hypothesisEntryId)); } }); if (entryIdsToDelete.length > 0 && typeof window.deleteHypothesisEntryById === "function") { entryIdsToDelete.forEach(function(id) { window.deleteHypothesisEntryById(id); }); } diagram.removeParts(rootNode.findTreeParts(), false);
+
+      const entryIdsToDelete = [];
+      rootNode.findTreeParts().each(function(part) {
+        if (part instanceof go.Node && part.data && part.data.hypothesisEntryId) {
+          entryIdsToDelete.push(String(part.data.hypothesisEntryId));
+        }
+      });
+      if (entryIdsToDelete.length > 0 && typeof window.deleteHypothesisEntryById === "function") {
+        entryIdsToDelete.forEach(function(id) {
+          window.deleteHypothesisEntryById(id);
+        });
+      }
+
+      diagram.removeParts(rootNode.findTreeParts(), false);
       logMindmapAction(`マインドマップ: ノード削除 source=${source} key=${removedKey} "${removedText}"`);
     });
     diagram.commitTransaction("remove subtree");

@@ -538,7 +538,7 @@ function bindDeleteButton(entry, wrapper) {
 
     wrapper.removeChild(entry);
     updateHypothesisNumbers(wrapper);
-    logHypothesisActio("\u4eee\u8aac\u003a\u0020\u524a\u9664");
+    logHypothesisAction("\u4eee\u8aac\u003a\u0020\u524a\u9664");
     scheduleHypothesisSave();
   };
 
