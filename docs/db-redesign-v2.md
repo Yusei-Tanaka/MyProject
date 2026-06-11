@@ -1,6 +1,56 @@
 # DB再構成設計（V2案）
 
-最終更新: 2026-02-17
+最終更新: 2026-04-22
+
+## 0. 基本情報
+
+### 使用DBMS
+- **MariaDB** 12.1 以上
+- 標準ポート: 3306
+- 文字コード: `utf8mb4` (Unicode対応)
+
+### デフォルト接続情報
+```
+ホスト: 127.0.0.1
+ポート: 3306
+ユーザー: appuser
+パスワード: app_pass
+データベース: myapp
+```
+
+### 接続元アプリケーション
+| アプリケーション | 言語 | 役割 |
+|----------|------|------|
+| `JS/server.js` | Node.js | メインAPI（Express）、ユーザ・テーマ管理 |
+| `api.py` | Python | Flask API（生成AI連携用） |
+
+### アーキテクチャ
+```
+User (Browser)
+    ↓
+Express API (Node.js, port 3000)
+    ↓
+MariaDB (port 3306)
+```
+
+### 初期セットアップ
+
+MariaDB にログインして実行:
+```sql
+CREATE DATABASE IF NOT EXISTS myapp CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS 'appuser'@'%' IDENTIFIED BY 'app_pass';
+GRANT ALL PRIVILEGES ON myapp.* TO 'appuser'@'%';
+FLUSH PRIVILEGES;
+```
+
+### phpMyAdmin でのアクセス
+- URL: `http://localhost/phpmyadmin` または `http://127.0.0.1/phpmyadmin`
+- ユーザー: `appuser`
+- パスワード: `app_pass`
+
+> **注意**: Apache が 80 番ポートで起動していることを確認してください（start.ps1 で自動起動可能）
+
+---
 
 ## 1. 決定事項（確定）
 
@@ -11,6 +61,10 @@
 - テーマは履歴管理あり（バージョン保持）
 - テーマ削除は論理削除（`deleted_at`）
 - テーマ名は論理削除後に再利用可
+- **テーマの複合キーは `(user_id, theme_name, theme_language, is_active)` で一意に特定**
+  - ユーザー＆言語＆テーマ名の組み合わせで唯一のテーマが決まる
+  - 同一ユーザーでも言語が違えば同じテーマ名を再利用可能
+- UIの言語設定に応じてテーマが分岐（ja/en）
 - 同時更新は楽観ロック（`lock_version`）
 - 子テーブルは `ON DELETE CASCADE`
 
@@ -49,6 +103,7 @@ CREATE TABLE IF NOT EXISTS themes (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   user_id VARCHAR(64) NOT NULL,
   theme_name VARCHAR(255) NOT NULL,
+  theme_language VARCHAR(8) NOT NULL DEFAULT 'ja',
   latest_version_no INT NOT NULL DEFAULT 0,
   lock_version BIGINT NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -57,8 +112,9 @@ CREATE TABLE IF NOT EXISTS themes (
   is_active TINYINT(1) AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE 0 END) STORED,
   CONSTRAINT fk_themes_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   INDEX idx_themes_user_updated (user_id, updated_at),
+  INDEX idx_themes_user_lang_updated (user_id, theme_language, updated_at),
   INDEX idx_themes_user_deleted (user_id, deleted_at),
-  UNIQUE KEY uk_themes_user_name_active (user_id, theme_name, is_active)
+  UNIQUE KEY uk_themes_user_name_lang_active (user_id, theme_name, theme_language, is_active)
 );
 
 CREATE TABLE IF NOT EXISTS theme_versions (
@@ -184,8 +240,9 @@ erDiagram
 
     THEMES {
       bigint id PK
-      varchar user_id FK
-      varchar theme_name
+      varchar user_id FK "ユニーク制約 part1"
+      varchar theme_name "ユニーク制約 part2"
+      varchar theme_language "ユニーク制約 part3 (ja/en)"
       int latest_version_no
     }
 
@@ -231,6 +288,8 @@ erDiagram
     }
 ```
 
+> **注**: THEMES テーブルは `id` が主キーですが、`(user_id, theme_name, theme_language, is_active)` で一意制約を持つため、実質的には **この 4 つの組み合わせがテーマを一意に特定します**。
+
 ### 7.2 物理ER図（テーブル定義ベース）
 
 ```mermaid
@@ -252,12 +311,13 @@ erDiagram
 
     THEMES {
       bigint id PK
-      varchar user_id FK
-      varchar theme_name
+      varchar user_id FK "ユニーク制約 part1"
+      varchar theme_name "ユニーク制約 part2"
+      varchar theme_language "ユニーク制約 part3 (ja/en)"
       int latest_version_no
       bigint lock_version
       timestamp deleted_at
-      tinyint is_active
+      tinyint is_active "ユニーク制約 part4"
       timestamp created_at
       timestamp updated_at
     }
@@ -324,6 +384,11 @@ erDiagram
     }
 ```
 
+> **重要**: THEMES テーブルの設計構造  
+> - **主キー（PK）** = `id` (AUTO_INCREMENT, 実際のレコード識別子)  
+> - **ユニーク制約** = `(user_id, theme_name, theme_language, is_active)` (論理的キー)  
+> つまり、ユーザー・言語・テーマ名・アクティブ状態の 4 つの組み合わせが唯一のテーマを表しますが、**言語は PK ではなく、一意性を保証する制約の一部** です。
+
 ### 7.3 物理ER補足（インデックス/制約）
 
 #### 主キー / 外部キー
@@ -339,14 +404,17 @@ erDiagram
 
 #### 一意制約
 
-- `themes`: `UNIQUE(user_id, theme_name, is_active)`
+- `themes`: `UNIQUE(user_id, theme_name, theme_language, is_active)` **← ユーザー・言語・テーマ名・アクティブの複合キー**
+  - 同じユーザーでも、言語が異なれば同じテーマ名を使用可能
+  - 例：user1 の「SDGs」(ja) と user1 の「SDGs」(en) は別のテーマとして存在
+  - `is_active=1` の制約により、削除済みテーマ（`is_active=0`）とは別に管理
 - `theme_versions`: `UNIQUE(theme_id, version_no)`
 - `keyword_nodes`: `UNIQUE(theme_version_id, client_node_id)`
 - `hypothesis_spreads`: `UNIQUE(theme_version_id)`
 
 #### 主要インデックス
 
-- `themes`: `idx_themes_user_updated (user_id, updated_at)`, `idx_themes_user_deleted (user_id, deleted_at)`
+- `themes`: `idx_themes_user_updated (user_id, updated_at)`, `idx_themes_user_lang_updated (user_id, theme_language, updated_at)`, `idx_themes_user_deleted (user_id, deleted_at)`
 - `theme_versions`: `idx_theme_versions_theme_saved_at (theme_id, saved_at)`
 - `keyword_nodes`: `idx_keyword_nodes_label (label)`
 - `keyword_edges`: `idx_keyword_edges_version_src (theme_version_id, src_client_node_id)`, `idx_keyword_edges_version_dst (theme_version_id, dst_client_node_id)`
@@ -391,8 +459,13 @@ erDiagram
 
 - 入力: `user_themes`（`content_json` 内の nodes/edges/hypothesis を利用）
 - 出力: `themes`, `theme_versions`, `keyword_nodes`, `keyword_edges`, `hypothesis_spreads`, `hypothesis_nodes`
+- 言語推定ロジック（優先順）:
+  1. payload.language から ja/en を抽出できれば使用
+  2. theme_name から日本語文字（ひらがな・カタカナ・漢字）を検出したら `'ja'`
+  3. theme_name から英字を検出したら `'en'`
+  4. デフォルトは `'ja'`
 - 生成ルール:
-  - `themes`: `(user_id, theme_name)` ごとに1行
+  - `themes`: `(user_id, theme_name, theme_language)` ごとに1行
   - `theme_versions`: 初回は `version_no=1`
   - `latest_version_no=1`, `lock_version=0`
 

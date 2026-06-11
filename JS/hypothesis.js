@@ -527,10 +527,18 @@ function bindDeleteButton(entry, wrapper) {
     delBtn.removeEventListener("click", delBtn.__hypothesisDeleteHandler);
   }
 
-  const onDeleteClick = function () {
+    const onDeleteClick = function () {
+    const entryId = entry.dataset.hypothesisEntryId;
+    const confirmMsg = typeof t === 'function' ? t('confirms.deleteHypothesisNode', {}, '仮説と、対応する仮説構造化マップのノード（子ノード含む）を削除します。\n本当によろしいですか？') : '仮説と、対応する仮説構造化マップのノード（子ノード含む）を削除します。\n本当によろしいですか？';
+    if (!confirm(confirmMsg)) return;
+
+    if (entryId && typeof window.deleteMindmapNodeByEntryId === 'function') {
+      window.deleteMindmapNodeByEntryId(entryId);
+    }
+
     wrapper.removeChild(entry);
     updateHypothesisNumbers(wrapper);
-    logHypothesisAction("仮説: 削除");
+    logHypothesisAction("\u4eee\u8aac\u003a\u0020\u524a\u9664");
     scheduleHypothesisSave();
   };
 
@@ -548,6 +556,7 @@ function bindScamperTagDelete(tagLabel) {
 }
 
 function rebindHypothesisEntry(entry) {
+  ensureHypothesisEntryId(entry);
   bindHypothesisEntrySelection(entry);
 
   entry.querySelectorAll(".hypothesis-action-bar").forEach(function (bar) {
@@ -670,24 +679,495 @@ async function restoreHypothesisState() {
   }
 }
 
-// 仮説エントリを追加する（選択キーワードを基に1エントリ追加）
-function addHypothesisEntry(nodeIds) {
-  var container = ensureHypothesisContainer();
-  var wrapper = container.querySelector("#hypothesisWrapper");
-  if (!wrapper) return;
+// 仮説入力とキーワード選択を同時に行うダイアログを表示（仮説関係性マップの「仮説を立案」メニュー用）
+function showHypothesisAndKeywordDialog(options) {
+  options = options || {};
+  const parentMindmapKey = options.parentMindmapKey;
+  const allNodes =
+    window.nodes && typeof window.nodes.get === "function" ? window.nodes.get() : [];
 
-  // 選択キーワードラベル取得（先頭リストは表示しない）
+  // オーバーレイを作成
+  const overlay = document.createElement("div");
+  overlay.className = "hypothesis-keyword-dialog-overlay";
+  overlay.style.position = "fixed";
+  overlay.style.top = "0";
+  overlay.style.left = "0";
+  overlay.style.width = "100%";
+  overlay.style.height = "100%";
+  overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+  overlay.style.display = "flex";
+  overlay.style.alignItems = "center";
+  overlay.style.justifyContent = "center";
+  overlay.style.zIndex = "10000";
+
+  // ダイアログを作成
+  const dialog = document.createElement("div");
+  dialog.className = "hypothesis-keyword-dialog";
+  dialog.style.backgroundColor = "white";
+  dialog.style.borderRadius = "8px";
+  dialog.style.padding = "20px";
+  dialog.style.maxWidth = "500px";
+  dialog.style.width = "90%";
+  dialog.style.maxHeight = "80vh";
+  dialog.style.display = "flex";
+  dialog.style.flexDirection = "column";
+  dialog.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
+  dialog.style.boxSizing = "border-box";
+  dialog.style.overflow = "hidden";
+  dialog.style.position = "absolute";
+  dialog.style.left = Math.max(16, Math.round((window.innerWidth - 500) / 2)) + "px";
+  dialog.style.top = Math.max(16, Math.round((window.innerHeight - 520) / 2)) + "px";
+  dialog.style.transform = "none";
+
+  // タイトル
+  const title = document.createElement("h3");
+  title.style.marginTop = "0";
+  title.style.marginBottom = "15px";
+  title.style.fontSize = "16px";
+  title.style.fontWeight = "bold";
+  title.style.cursor = "move";
+  title.style.userSelect = "none";
+  title.innerText = t("labels.createHypothesis", {}, "新しい仮説を作成");
+  dialog.appendChild(title);
+
+  let isDragging = false;
+  let dragOffsetX = 0;
+  let dragOffsetY = 0;
+  const onDialogMouseMove = function (e) {
+    if (!isDragging) return;
+    let newLeft = e.clientX - dragOffsetX;
+    let newTop = e.clientY - dragOffsetY;
+    const dialogWidth = dialog.offsetWidth || 500;
+    const dialogHeight = dialog.offsetHeight || 520;
+    const maxLeft = window.innerWidth - dialogWidth - 16;
+    const maxTop = window.innerHeight - dialogHeight - 16;
+    if (newLeft < 0) newLeft = 0;
+    if (newLeft > maxLeft) newLeft = maxLeft;
+    if (newTop < 0) newTop = 0;
+    if (newTop > maxTop) newTop = maxTop;
+    dialog.style.left = newLeft + "px";
+    dialog.style.top = newTop + "px";
+  };
+  const onDialogMouseUp = function () {
+    isDragging = false;
+    document.body.style.userSelect = "";
+  };
+  const closeDialog = function () {
+    isDragging = false;
+    document.body.style.userSelect = "";
+    document.removeEventListener("mousemove", onDialogMouseMove);
+    document.removeEventListener("mouseup", onDialogMouseUp);
+    if (overlay.parentNode) {
+      overlay.parentNode.removeChild(overlay);
+    }
+  };
+  title.addEventListener("mousedown", function (e) {
+    e.preventDefault();
+    isDragging = true;
+    const rect = dialog.getBoundingClientRect();
+    dragOffsetX = e.clientX - rect.left;
+    dragOffsetY = e.clientY - rect.top;
+    document.body.style.userSelect = "none";
+  });
+  document.addEventListener("mousemove", onDialogMouseMove);
+  document.addEventListener("mouseup", onDialogMouseUp);
+
+  // 仮説入力フィールド
+  const hypothesisLabel = document.createElement("label");
+  hypothesisLabel.style.display = "block";
+  hypothesisLabel.style.marginBottom = "8px";
+  hypothesisLabel.style.fontSize = "14px";
+  hypothesisLabel.style.fontWeight = "bold";
+  hypothesisLabel.innerText = t("labels.hypothesisContent", {}, "仮説の内容");
+  dialog.appendChild(hypothesisLabel);
+
+  const hypothesisTextarea = document.createElement("textarea");
+  hypothesisTextarea.className = "hypothesis-input-textarea";
+  hypothesisTextarea.style.width = "100%";
+  hypothesisTextarea.style.minHeight = "80px";
+  hypothesisTextarea.style.marginBottom = "15px";
+  hypothesisTextarea.style.padding = "10px";
+  hypothesisTextarea.style.border = "1px solid #ddd";
+  hypothesisTextarea.style.borderRadius = "4px";
+  hypothesisTextarea.style.fontFamily = "inherit";
+  hypothesisTextarea.style.fontSize = "14px";
+  hypothesisTextarea.style.boxSizing = "border-box";
+  hypothesisTextarea.style.maxWidth = "100%";
+  hypothesisTextarea.placeholder = t("placeholders.hypothesisInput", {}, "ここに仮説を入力してください");
+  dialog.appendChild(hypothesisTextarea);
+
+  // キーワード選択ラベル
+  const keywordLabel = document.createElement("label");
+  keywordLabel.style.display = "block";
+  keywordLabel.style.marginBottom = "8px";
+  keywordLabel.style.fontSize = "14px";
+  keywordLabel.style.fontWeight = "bold";
+  keywordLabel.innerText = t("labels.selectKeywords", {}, "キーワードを選択（任意）");
+  dialog.appendChild(keywordLabel);
+
+  // チェックボックスリスト（スクロール可能）
+  const listContainer = document.createElement("div");
+  listContainer.style.flex = "1";
+  listContainer.style.overflowY = "auto";
+  listContainer.style.marginBottom = "15px";
+  listContainer.style.border = "1px solid #ddd";
+  listContainer.style.borderRadius = "4px";
+  listContainer.style.paddingTop = "10px";
+  listContainer.style.paddingBottom = "10px";
+  listContainer.style.paddingLeft = "10px";
+  listContainer.style.paddingRight = "10px";
+  listContainer.style.maxHeight = "200px";
+  listContainer.style.boxSizing = "border-box";
+
+  const selectedNodeIds = new Set(
+    (Array.isArray(options.defaultNodeIds) ? options.defaultNodeIds : []).map(function (id) {
+      return String(id);
+    })
+  );
+  const defaultKeywordLabelSet = new Set(normalizeKeywordLabels(options.defaultKeywordLabels));
+
+  if (defaultKeywordLabelSet.size > 0) {
+    allNodes.forEach(function (node) {
+      if (node && defaultKeywordLabelSet.has(String(node.label || "").trim())) {
+        selectedNodeIds.add(String(node.id));
+      }
+    });
+  }
+
+  allNodes.forEach((node) => {
+    const checkboxWrapper = document.createElement("div");
+    checkboxWrapper.style.marginBottom = "8px";
+    checkboxWrapper.style.display = "flex";
+    checkboxWrapper.style.alignItems = "center";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = String(node.id);
+    checkbox.checked = selectedNodeIds.has(String(node.id));
+    checkbox.style.marginRight = "8px";
+    checkbox.addEventListener("change", function () {
+      if (this.checked) {
+        selectedNodeIds.add(String(node.id));
+      } else {
+        selectedNodeIds.delete(String(node.id));
+      }
+    });
+
+    const label = document.createElement("label");
+    label.style.flex = "1";
+    label.style.cursor = "pointer";
+    label.style.margin = "0";
+    label.style.fontSize = "14px";
+    label.innerText = String(node.label || t("labels.untitledNode", {}, "(無題ノード)"));
+    label.addEventListener("click", function () {
+      checkbox.checked = !checkbox.checked;
+      checkbox.dispatchEvent(new Event("change"));
+    });
+
+    checkboxWrapper.appendChild(checkbox);
+    checkboxWrapper.appendChild(label);
+    listContainer.appendChild(checkboxWrapper);
+  });
+
+  dialog.appendChild(listContainer);
+
+  // ボタン行
+  const buttonRow = document.createElement("div");
+  buttonRow.style.display = "flex";
+  buttonRow.style.gap = "10px";
+  buttonRow.style.justifyContent = "flex-end";
+
+  const cancelBtn = document.createElement("button");
+  cancelBtn.type = "button";
+  cancelBtn.innerText = t("buttons.cancel", {}, "キャンセル");
+  cancelBtn.style.padding = "8px 16px";
+  cancelBtn.style.borderRadius = "4px";
+  cancelBtn.style.border = "1px solid #ccc";
+  cancelBtn.style.backgroundColor = "#f5f5f5";
+  cancelBtn.style.cursor = "pointer";
+  cancelBtn.addEventListener("click", function () {
+    closeDialog();
+  });
+
+  const addBtn = document.createElement("button");
+  addBtn.type = "button";
+  addBtn.innerText = t("buttons.add", {}, "追加");
+  addBtn.style.padding = "8px 16px";
+  addBtn.style.borderRadius = "4px";
+  addBtn.style.border = "none";
+  addBtn.style.backgroundColor = "#007bff";
+  addBtn.style.color = "white";
+  addBtn.style.cursor = "pointer";
+  addBtn.addEventListener("click", function () {
+    const hypothesisText = hypothesisTextarea.value.trim();
+    if (!hypothesisText) {
+      alert(t("alerts.enterHypothesis", {}, "仮説を入力してください。"));
+      return;
+    }
+
+    const selectedIds = Array.from(selectedNodeIds).map((id) => {
+      const numericId = Number(id);
+      return Number.isNaN(numericId) ? id : numericId;
+    });
+
+    // キーワードラベルを取得
+    const selectedKeywordLabels = selectedIds.map((id) => {
+      const node = window.nodes && typeof window.nodes.get === "function" ? window.nodes.get(id) : null;
+      return node ? String(node.label || "") : "";
+    }).filter(Boolean);
+
+    const entryId = createHypothesisEntryId();
+
+    if (parentMindmapKey !== undefined && parentMindmapKey !== null) {
+      if (typeof window.addMindmapChild !== "function") {
+        alert(t("alerts.mindmapUnavailable", {}, "マインドマップが利用できません。ページを再読み込みしてください。"));
+        return;
+      }
+
+      const success = window.addMindmapChild(parentMindmapKey, hypothesisText, {
+        basedNodeIds: selectedIds,
+        basedKeywordLabels: selectedKeywordLabels,
+        hypothesisEntryId: entryId,
+      });
+      if (!success) {
+        alert(t("alerts.mindmapNodeAddFailed", {}, "ノードの追加に失敗しました。"));
+        return;
+      }
+    }
+
+    // 新しいエントリを追加（選択されたキーワードで）
+    addHypothesisEntry(selectedIds, {
+      hypothesisText,
+      keywordLabels: selectedKeywordLabels,
+      entryId,
+    });
+
+    // マインドマップに仮説ノードを追加
+    if (
+      (parentMindmapKey === undefined || parentMindmapKey === null) &&
+      typeof window.addHypothesisToMindmap === "function"
+    ) {
+      window.addHypothesisToMindmap(hypothesisText, selectedKeywordLabels);
+    }
+
+    closeDialog();
+    logHypothesisAction(`仮説: マップから仮説追加 (${selectedIds.length}個のキーワードを選択) "${hypothesisText}"`);
+    clearSelectionAfterHypothesisCreate();
+  });
+
+  buttonRow.appendChild(cancelBtn);
+  buttonRow.appendChild(addBtn);
+  dialog.appendChild(buttonRow);
+
+  overlay.appendChild(dialog);
+  document.body.appendChild(overlay);
+  console.log("仮説・キーワード統合ダイアログがDOMに追加されました");
+}
+
+const HYPOTHESIS_HIGHLIGHT_STYLES = [
+  { fill: "#DCE9FF", border: "#3D6FCC", text: "#173B7A" },
+  { fill: "#FCE6C8", border: "#E67E22", text: "#7A4208" },
+  { fill: "#E5F6D8", border: "#5BA84B", text: "#2D6020" },
+  { fill: "#F1E3FF", border: "#8B5CF6", text: "#4C1D95" },
+  { fill: "#FFE6E6", border: "#E25555", text: "#8B1E1E" },
+];
+
+function getHypothesisHighlightStyle(index) {
+  return HYPOTHESIS_HIGHLIGHT_STYLES[index % HYPOTHESIS_HIGHLIGHT_STYLES.length];
+}
+
+function getHighlightKeyFromStyle(style, fallbackIndex) {
+  if (!style || typeof style !== "object") return String(typeof fallbackIndex === "number" ? fallbackIndex : 0);
+  if (typeof style.key === "string" && style.key) return style.key;
+  if (typeof style.key === "number") return String(style.key);
+  return String(typeof fallbackIndex === "number" ? fallbackIndex : 0);
+}
+
+function clearHypothesisEntryHighlight() {
+  document.querySelectorAll(
+    ".hypothesis-box[data-hypothesis-highlighted='true'], .hypothesis-text[data-hypothesis-highlighted='true'], .scamper-edit-box[data-hypothesis-highlighted='true'], .scamper-tag-container[data-hypothesis-highlighted='true']"
+  ).forEach(function(element) {
+    element.style.backgroundColor = "";
+    element.style.borderColor = "";
+    element.style.boxShadow = "";
+    element.style.color = "";
+    element.style.outline = "";
+    element.style.setProperty("--hypothesis-highlight-border", "");
+    element.style.setProperty("--hypothesis-highlight-fill", "");
+    element.removeAttribute("data-hypothesis-highlighted");
+  });
+}
+
+function collectHypothesisEntryTargets(entry) {
+  if (!entry) return [];
+
+  const targets = [];
+  const entryId = ensureHypothesisEntryId(entry);
+  const hypothesisTextArea = entry.querySelector("textarea.hypothesis-text");
+  const hypothesisText = hypothesisTextArea ? String(hypothesisTextArea.value || "").trim() : "";
+  if (hypothesisText) {
+    targets.push({ entryId, text: hypothesisText, style: { ...getHypothesisHighlightStyle(0), key: 0 }, element: hypothesisTextArea, highlightKey: 0 });
+  }
+
+  const scamperBoxes = entry.querySelectorAll("textarea.scamper-edit-box");
+  scamperBoxes.forEach(function(textarea, index) {
+    const text = String(textarea.value || "").trim();
+    if (!text) return;
+    targets.push({ entryId, text, style: { ...getHypothesisHighlightStyle(index + 1), key: index + 1 }, element: textarea, highlightKey: index + 1 });
+  });
+
+  return targets;
+}
+
+function applyHypothesisEntryHighlight(entry) {
+  if (!entry) return false;
+
+  clearHypothesisEntryHighlight();
+  const targets = collectHypothesisEntryTargets(entry);
+  if (targets.length === 0) return false;
+
+  const entryStyle = targets[0].style;
+  entry.dataset.hypothesisHighlightKey = String(targets[0].highlightKey);
+  entry.dataset.hypothesisHighlighted = "true";
+  entry.style.borderColor = entryStyle.border;
+  entry.style.boxShadow = `0 0 0 2px ${entryStyle.border}33, 0 10px 22px rgba(0, 0, 0, 0.08)`;
+
+  targets.forEach(function(target) {
+    const element = target.element;
+    if (!element) return;
+
+    element.dataset.hypothesisHighlighted = "true";
+    element.dataset.hypothesisHighlightKey = String(target.highlightKey);
+    element.style.backgroundColor = target.style.fill;
+    element.style.borderColor = target.style.border;
+    element.style.boxShadow = `0 0 0 2px ${target.style.border}33`;
+    element.style.color = target.style.text;
+    if (element.classList.contains("scamper-edit-box")) {
+      const scamperContainer = element.closest(".scamper-tag-container");
+      if (scamperContainer) {
+        scamperContainer.dataset.hypothesisHighlighted = "true";
+        scamperContainer.dataset.hypothesisHighlightKey = String(target.highlightKey);
+        scamperContainer.style.borderLeft = `4px solid ${target.style.border}`;
+        scamperContainer.style.backgroundColor = `${target.style.fill}66`;
+      }
+    }
+  });
+
+  if (typeof window.highlightMindmapHypothesisNodes === "function") {
+    window.highlightMindmapHypothesisNodes(targets);
+  } else if (typeof window.highlightMindmapHypothesisNode === "function") {
+    const firstTarget = targets[0];
+    if (firstTarget) {
+      window.highlightMindmapHypothesisNode(null, firstTarget.text);
+    }
+  }
+
+  return true;
+}
+
+function installHypothesisEntryHighlightBindings() {
+  if (window.__hypothesisEntryHighlightBindingsInstalled) return;
+  window.__hypothesisEntryHighlightBindingsInstalled = true;
+
+  document.addEventListener("click", function(event) {
+    const entry = event.target && typeof event.target.closest === "function"
+      ? event.target.closest(".hypothesis-box")
+      : null;
+    if (!entry) return;
+    applyHypothesisEntryHighlight(entry);
+  });
+
+  document.addEventListener("focusin", function(event) {
+    const target = event.target;
+    if (!target || typeof target.closest !== "function") return;
+    if (!target.closest(".hypothesis-text, .scamper-edit-box")) return;
+    const entry = target.closest(".hypothesis-box");
+    if (entry) {
+      applyHypothesisEntryHighlight(entry);
+    }
+  });
+}
+
+installHypothesisEntryHighlightBindings();
+
+var hypothesisEntryIdSequence = 0;
+
+function createHypothesisEntryId() {
+  hypothesisEntryIdSequence += 1;
+  return "hypothesis-entry-" + Date.now() + "-" + hypothesisEntryIdSequence;
+}
+
+function ensureHypothesisEntryId(entry, preferredId) {
+  if (!entry || !entry.dataset) return "";
+  if (preferredId) {
+    entry.dataset.hypothesisEntryId = String(preferredId);
+  }
+  if (!entry.dataset.hypothesisEntryId) {
+    entry.dataset.hypothesisEntryId = createHypothesisEntryId();
+  }
+  return entry.dataset.hypothesisEntryId;
+}
+
+function normalizeKeywordLabels(labels) {
+  return (Array.isArray(labels) ? labels : [])
+    .map(function (label) {
+      return String(label || "").trim();
+    })
+    .filter(Boolean);
+}
+
+function getKeywordLabelsFromNodeIds(nodeIds) {
   var nodeDataSet = window.nodes;
-  var keywordLabels = nodeIds.map(function (id) {
+  return (Array.isArray(nodeIds) ? nodeIds : []).map(function (id) {
     var n = nodeDataSet && typeof nodeDataSet.get === "function" ? nodeDataSet.get(id) : null;
     return n ? n.label : t("labels.undefined", {}, "(未定義)");
   });
+}
+
+function findHypothesisEntryById(entryId) {
+  if (!entryId) return null;
+  var entries = document.querySelectorAll(".hypothesis-box");
+  for (var i = 0; i < entries.length; i += 1) {
+    if (entries[i].dataset && entries[i].dataset.hypothesisEntryId === String(entryId)) {
+      return entries[i];
+    }
+  }
+  return null;
+}
+
+function findHypothesisEntryByText(text) {
+  var wanted = String(text || "").trim();
+  if (!wanted) return null;
+  var entries = document.querySelectorAll(".hypothesis-box");
+  for (var i = 0; i < entries.length; i += 1) {
+    var textarea = entries[i].querySelector("textarea.hypothesis-text");
+    if (textarea && String(textarea.value || "").trim() === wanted) {
+      return entries[i];
+    }
+  }
+  return null;
+}
+
+// 仮説エントリを追加する（選択キーワードを基に1エントリ追加）
+function addHypothesisEntry(nodeIds, options) {
+  nodeIds = Array.isArray(nodeIds) ? nodeIds : [];
+  options = options || {};
+  var container = ensureHypothesisContainer();
+  var wrapper = container.querySelector("#hypothesisWrapper");
+  if (!wrapper) return null;
+
+  // 選択キーワードラベル取得（先頭リストは表示しない）
+  var keywordLabels = normalizeKeywordLabels(options.keywordLabels);
+  if (keywordLabels.length === 0) {
+    keywordLabels = getKeywordLabelsFromNodeIds(nodeIds);
+  }
 
   // エントリ作成
   var entry = document.createElement("div");
   entry.className = "hypothesis-box";
   entry.dataset.basedNodeIds = JSON.stringify(nodeIds);
   entry.dataset.basedKeywordLabels = JSON.stringify(keywordLabels);
+  ensureHypothesisEntryId(entry, options.entryId);
 
   var hdr = document.createElement("div");
   hdr.className = "hypothesis-box-header";
@@ -709,7 +1189,7 @@ function addHypothesisEntry(nodeIds) {
   var ta = document.createElement("textarea");
   ta.className = "hypothesis-text";
   ta.placeholder = t("placeholders.hypothesisInput", {}, "ここに仮説を入力");
-  ta.value = ""; // 初期は空白
+  ta.value = options.hypothesisText ? String(options.hypothesisText) : "";
   attachHypothesisTextareaLogging(ta, function (current) {
     return `仮説: 入力 "${current}"`;
   });
@@ -733,6 +1213,7 @@ function addHypothesisEntry(nodeIds) {
   entry.scrollIntoView({ behavior: "smooth" });
   logHypothesisAction(`仮説: 追加 (基づくキーワード: ${keywordLabels.join("、")})`);
   scheduleHypothesisSave();
+  return entry;
 }
 
 // 表示されている仮説の番号を更新
@@ -892,7 +1373,46 @@ function setHypothesisEntryActive(entry) {
   entry.classList.add("is-active");
 }
 
+function getHypothesisEntryText(entry) {
+  if (!entry) return "";
+  var textarea = entry.querySelector("textarea.hypothesis-text");
+  return textarea ? String(textarea.value || "").trim() : "";
+}
+
+function highlightMindmapNodeFromHypothesisEntry(entry) {
+  if (!entry) return;
+
+  var targets = collectHypothesisEntryTargets(entry).map(function (target) {
+    return {
+      text: target.text,
+      style: target.style,
+    };
+  });
+
+  if (targets.length === 0) return;
+
+  if (typeof window.highlightMindmapHypothesisNodes === "function") {
+    window.highlightMindmapHypothesisNodes(targets);
+    return;
+  }
+
+  if (typeof window.highlightMindmapHypothesisNode === "function") {
+    window.highlightMindmapHypothesisNode(ensureHypothesisEntryId(entry), getHypothesisEntryText(entry));
+  }
+}
+
+window.activateHypothesisEntryFromMindmap = function (entryId, hypothesisText) {
+  var entry = findHypothesisEntryById(entryId) || findHypothesisEntryByText(hypothesisText);
+  if (!entry) return false;
+
+  setHypothesisEntryActive(entry);
+  entry.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  return true;
+};
+
 function selectNodesFromHypothesisEntry(entry) {
+  highlightMindmapNodeFromHypothesisEntry(entry);
+
   var nodeIds = filterExistingNodeIds(getNodeIdsForHypothesisEntry(entry));
   if (nodeIds.length === 0) {
     if (typeof window.clearNodeSelection === "function") {
@@ -943,6 +1463,22 @@ function clearActiveHypothesisEntries() {
   return true;
 }
 
+window.clearHypothesisEntryActivation = function (options) {
+  options = options || {};
+  var cleared = clearActiveHypothesisEntries();
+  clearHypothesisEntryHighlight();
+
+  if (options.clearKeywordSelection !== false) {
+    if (typeof window.clearNodeSelection === "function") {
+      window.clearNodeSelection();
+    } else if (typeof window.setSelectedNodes === "function") {
+      window.setSelectedNodes([]);
+    }
+  }
+
+  return cleared;
+};
+
 function bindOutsideClickToClearHypothesisActive() {
   if (document.body && document.body.dataset.boundHypothesisOutsideClear === "true") {
     return;
@@ -954,8 +1490,20 @@ function bindOutsideClickToClearHypothesisActive() {
       return;
     }
 
+    var clickedInMindmap = target && typeof target.closest === "function" && target.closest("#myDiagramDiv");
+    if (clickedInMindmap) {
+      return;
+    }
+
     var cleared = clearActiveHypothesisEntries();
-    if (!cleared) return;
+    clearHypothesisEntryHighlight();
+    if (!cleared && typeof window.clearMindmapHypothesisHighlight !== "function") {
+      // No active box, but custom highlight styles still need to be cleared.
+    }
+
+    if (typeof window.clearMindmapHypothesisHighlight === "function") {
+      window.clearMindmapHypothesisHighlight();
+    }
 
     var clickedInNetwork = target && typeof target.closest === "function" && target.closest("#mynetwork");
     if (clickedInNetwork) {
@@ -1185,7 +1733,11 @@ function addNodeToNetwork(entry, sourceTextarea) {
 
     const selectedIndex = parseInt(select.value, 10);
     const parentNode = mindmapNodes[selectedIndex] || mindmapNodes[0];
-    const success = window.addMindmapChild(parentNode.key, trimmed);
+    const success = window.addMindmapChild(parentNode.key, trimmed, {
+      basedNodeIds: getNodeIdsForHypothesisEntry(entry),
+      basedKeywordLabels: parseKeywordLabelsFromEntry(entry),
+      hypothesisEntryId: ensureHypothesisEntryId(entry),
+    });
     if (!success) {
       alert(t("alerts.mindmapNodeAddFailed", {}, "ノードの追加に失敗しました。"));
       return;
@@ -1800,3 +2352,56 @@ const hypothesisApiHost = hypothesisHost;
 const hypothesisApiBaseUrl =
   hypothesisConfig.flaskApiBaseUrl ||
   `http://${hypothesisApiHost}:${Number(hypothesisConfig.flaskApiPort || 8000)}`;
+
+window.deleteHypothesisEntryById = function(entryId) {
+  const wrapper = document.getElementById("hypothesisWrapper") || document.querySelector(".hypothesis-wrapper") || document.querySelector(".hypothesis-area");
+  if (!wrapper) return;
+  const entries = wrapper.querySelectorAll(".hypothesis-box");
+  for (let i = 0; i < entries.length; i++) {
+    if (entries[i].dataset.hypothesisEntryId === String(entryId)) {
+      wrapper.removeChild(entries[i]);
+      if (typeof updateHypothesisNumbers === 'function') updateHypothesisNumbers(wrapper);
+      if (typeof logHypothesisAction === 'function') logHypothesisAction("\u4eee\u8aac\u003a\u0020\u524a\u9664");
+      if (typeof scheduleHypothesisSave === 'function') scheduleHypothesisSave();
+      break;
+    }
+  }
+};
+
+window.deleteHypothesisEntriesByHighlightKey = function(highlightKey) {
+  const wrapper = document.getElementById("hypothesisWrapper") || document.querySelector(".hypothesis-wrapper") || document.querySelector(".hypothesis-area");
+  if (!wrapper) return 0;
+
+  const normalizedHighlightKey = String(highlightKey || "").trim();
+  if (!normalizedHighlightKey) return 0;
+  // 削除対象はエントリ丸ごとではなく，該当するscamper-tag-containerのみを削除する
+  const entries = Array.from(wrapper.querySelectorAll(".hypothesis-box"));
+  let removedCount = 0;
+
+  entries.forEach(function(entry) {
+    // 各エントリ内のscamper-tag-containerを検索して，highlightKeyが一致するものを削除する
+    const containers = Array.from(entry.querySelectorAll(".scamper-tag-container"));
+    containers.forEach(function(container) {
+      if (String(container.dataset.hypothesisHighlightKey || "").trim() === normalizedHighlightKey) {
+        if (container.parentNode) {
+          container.parentNode.removeChild(container);
+          removedCount += 1;
+        }
+      }
+    });
+
+    // .scamper-tags が空になったら親コンテナを削除
+    const tagWrap = entry.querySelector('.scamper-tags');
+    if (tagWrap && tagWrap.children.length === 0 && tagWrap.parentNode) {
+      tagWrap.parentNode.removeChild(tagWrap);
+    }
+  });
+
+  if (removedCount > 0) {
+    if (typeof updateHypothesisNumbers === 'function') updateHypothesisNumbers(wrapper);
+    if (typeof logHypothesisAction === 'function') logHypothesisAction("仮説: SCAMPER入力削除");
+    if (typeof scheduleHypothesisSave === 'function') scheduleHypothesisSave();
+  }
+
+  return removedCount;
+};

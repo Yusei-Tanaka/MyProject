@@ -153,7 +153,10 @@
         reopenSideView: "本当に整理は終わりましたか？",
         deleteTag: "「{tag}」タグを削除しますか？",
         deleteNodesHeader: "以下の {count} 件のノードを削除します。",
-        deleteMindmapNodesHeader: "以下の {count} 件のノード（子ノードを含む）を削除します。",
+        deleteHypothesisNode: "仮説と、対応する仮説構造化マップのノード（子ノードを含む）を削除します。\n本当によろしいですか？",
+        deleteEntireHypothesisBox: "このノードは仮説ボックス内の主仮説に対応しています。仮説ボックスごと削除しますか？\nOK: ボックスごと削除\nキャンセル: SCAMPERタグのみ削除",
+        deleteRelatedScamperTags: "対応するSCAMPERタグ（同じ色のSCAMPER入力）を削除しますか？\nOK: 削除\nキャンセル: 残す",
+        deleteMindmapNodesHeader: "以下の {count} 件のノード（子ノードを含む）と、対応する仮説ボックスを削除します。",
         deleteNodesFooter: "本当に削除してよいですか？"
       },
       prompts: {
@@ -174,7 +177,10 @@
         mapNodeAddTitle: "マインドマップにノードを追加",
         selectParentNode: "親ノードを選択",
         hypothesisToAdd: "追加する仮説",
-        selectQuestion: "助言を選択してください"
+        selectQuestion: "助言を選択してください",
+        createHypothesis: "新しい仮説を作成",
+        hypothesisContent: "仮説の内容",
+        selectKeywords: "キーワードを選択（任意）"
       },
       placeholders: {
         hypothesisInput: "ここに仮説を入力",
@@ -382,7 +388,10 @@
         reopenSideView: "Are you sure your organizing work is finished?",
         deleteTag: "Delete tag \"{tag}\"?",
         deleteNodesHeader: "Delete {count} node(s):",
-        deleteMindmapNodesHeader: "Delete {count} node(s), including child nodes:",
+        deleteHypothesisNode: "Delete the hypothesis and its corresponding node in the Hypothesis Structuring Map (including child nodes).\nAre you sure?",
+        deleteEntireHypothesisBox: "This node matches the main hypothesis inside the hypothesis box. Delete the entire hypothesis box?\nOK: Delete the whole box\nCancel: Delete SCAMPER tags only",
+        deleteRelatedScamperTags: "Delete the corresponding SCAMPER tags (same-colored SCAMPER inputs)?\nOK: Delete\nCancel: Keep them",
+        deleteMindmapNodesHeader: "Delete {count} node(s) and corresponding hypothesis boxes (including child nodes):",
         deleteNodesFooter: "Are you sure?"
       },
       prompts: {
@@ -403,7 +412,10 @@
         mapNodeAddTitle: "Add node to mindmap",
         selectParentNode: "Select parent node",
         hypothesisToAdd: "Hypothesis to add",
-        selectQuestion: "Please select a advice"
+        selectQuestion: "Please select a advice",
+        createHypothesis: "Create New Hypothesis",
+        hypothesisContent: "Hypothesis Content",
+        selectKeywords: "Select Keywords (Optional)"
       },
       placeholders: {
         hypothesisInput: "Enter hypothesis here",

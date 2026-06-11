@@ -45,6 +45,160 @@ window.addEventListener('DOMContentLoaded', function() {
     return getCurrentThemeLanguage() === "en" ? 170 : 120;
   }
 
+  const MINDMAP_HIGHLIGHT_STYLES = [
+    { fill: "#DCE9FF", stroke: "#3D6FCC", text: "#173B7A" },
+    { fill: "#FCE6C8", stroke: "#E67E22", text: "#7A4208" },
+    { fill: "#E5F6D8", stroke: "#5BA84B", text: "#2D6020" },
+    { fill: "#F1E3FF", stroke: "#8B5CF6", text: "#4C1D95" },
+    { fill: "#FFE6E6", stroke: "#E25555", text: "#8B1E1E" },
+  ];
+
+  function getMindmapHighlightStyle(index) {
+    return MINDMAP_HIGHLIGHT_STYLES[index % MINDMAP_HIGHLIGHT_STYLES.length];
+  }
+
+  function rememberMindmapNodeBaseStyle(node) {
+    if (!node) return null;
+    if (node.__mindmapBaseStyle) return node.__mindmapBaseStyle;
+
+    const shape = node.findObject("MINDMAP_NODE_SHAPE");
+    const textBlock = node.findObject("MINDMAP_NODE_TEXT");
+    if (!shape || !textBlock) return null;
+
+    node.__mindmapBaseStyle = {
+      fill: shape.fill,
+      stroke: shape.stroke,
+      strokeWidth: shape.strokeWidth,
+      textStroke: textBlock.stroke,
+    };
+    return node.__mindmapBaseStyle;
+  }
+
+  function applyMindmapNodeHighlight(node, style) {
+    const baseStyle = rememberMindmapNodeBaseStyle(node);
+    if (!baseStyle) return false;
+
+    const shape = node.findObject("MINDMAP_NODE_SHAPE");
+    const textBlock = node.findObject("MINDMAP_NODE_TEXT");
+    if (!shape || !textBlock) return false;
+
+    const resolvedStyle = style && typeof style === "object" ? style : {};
+    const fill = typeof resolvedStyle.fill === "string" && resolvedStyle.fill ? resolvedStyle.fill : baseStyle.fill;
+    const stroke = typeof resolvedStyle.stroke === "string" && resolvedStyle.stroke ? resolvedStyle.stroke : baseStyle.stroke;
+    const textStroke = typeof resolvedStyle.text === "string" && resolvedStyle.text ? resolvedStyle.text : baseStyle.textStroke;
+
+    shape.fill = fill;
+    shape.stroke = stroke;
+    shape.strokeWidth = Math.max(3, baseStyle.strokeWidth || 2);
+    textBlock.stroke = textStroke;
+    node.__mindmapHighlightStyle = { fill: fill, stroke: stroke, text: textStroke };
+    node.data.hypothesisHighlightKey = typeof resolvedStyle.key === "number" || typeof resolvedStyle.key === "string"
+      ? String(resolvedStyle.key)
+      : "0";
+    node.__mindmapHighlighted = true;
+    return true;
+  }
+
+  function restoreMindmapNodeHighlight(node) {
+    const baseStyle = node && node.__mindmapBaseStyle;
+    if (!baseStyle) return false;
+
+    const shape = node.findObject("MINDMAP_NODE_SHAPE");
+    const textBlock = node.findObject("MINDMAP_NODE_TEXT");
+    if (!shape || !textBlock) return false;
+
+    shape.fill = baseStyle.fill;
+    shape.stroke = baseStyle.stroke;
+    shape.strokeWidth = baseStyle.strokeWidth;
+    textBlock.stroke = baseStyle.textStroke;
+    node.__mindmapHighlightStyle = null;
+    if (node.data) {
+      delete node.data.hypothesisHighlightKey;
+    }
+    node.__mindmapHighlighted = false;
+    return true;
+  }
+
+  function findMindmapHypothesisNodesByText(hypothesisText) {
+    if (!diagram) return [];
+
+    const normalizedText = String(hypothesisText || "").trim();
+    if (!normalizedText) return [];
+
+    const nodes = [];
+    diagram.nodes.each(function(node) {
+      if (!node || !node.data || node.data.key === 0) return;
+      const nodeText = String(node.data.text || "").trim();
+      if (nodeText === normalizedText) {
+        nodes.push(node);
+      }
+    });
+
+    return nodes;
+  }
+
+  function findMindmapHypothesisNodesByEntryId(entryId) {
+    if (!diagram) return [];
+
+    const normalizedEntryId = String(entryId || "").trim();
+    if (!normalizedEntryId) return [];
+
+    const nodes = [];
+    diagram.nodes.each(function(node) {
+      if (!node || !node.data || node.data.key === 0) return;
+      if (String(node.data.hypothesisEntryId || "").trim() === normalizedEntryId) {
+        nodes.push(node);
+      }
+    });
+
+    return nodes;
+  }
+
+  function highlightMindmapNodesByTargets(targets) {
+    if (!diagram) return false;
+
+    clearMindmapNodeHighlight();
+
+    const defaultStyles = MINDMAP_HIGHLIGHT_STYLES;
+
+    const normalizedTargets = Array.isArray(targets)
+      ? targets.map(function(target, index) {
+          const fallbackStyle = getMindmapHighlightStyle(index);
+          if (typeof target === "string") {
+            return { text: target, style: fallbackStyle };
+          }
+          const text = String(target && target.text ? target.text : "").trim();
+          if (!text) return null;
+          const style = target && target.style && typeof target.style === "object" ? target.style : fallbackStyle;
+          return {
+            entryId: target && target.entryId ? String(target.entryId).trim() : "",
+            text,
+            style: {
+              fill: typeof style.fill === "string" && style.fill ? style.fill : fallbackStyle.fill,
+              stroke: typeof style.stroke === "string" && style.stroke ? style.stroke : fallbackStyle.stroke,
+              text: typeof style.text === "string" && style.text ? style.text : fallbackStyle.text,
+            },
+          };
+        }).filter(Boolean)
+      : [];
+
+    if (normalizedTargets.length === 0) return false;
+
+    let didHighlight = false;
+    normalizedTargets.forEach(function(target) {
+      const nodesByText = findMindmapHypothesisNodesByText(target.text);
+      const nodesByEntryId = target.entryId ? findMindmapHypothesisNodesByEntryId(target.entryId) : [];
+      const resolvedNodes = nodesByText.length > 0 ? nodesByText : nodesByEntryId;
+      resolvedNodes.forEach(function(node) {
+        if (applyMindmapNodeHighlight(node, target.style)) {
+          didHighlight = true;
+        }
+      });
+    });
+
+    return didHighlight;
+  }
+
   function sanitizeFilePart(value) {
     return String(value || "")
       .trim()
@@ -375,7 +529,7 @@ window.addEventListener('DOMContentLoaded', function() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         themeName,
-          language: getCurrentThemeLanguage(),
+        language: getCurrentThemeLanguage(),
         content: {
           hypothesis: {
             mapNodes: collectMindmapHypothesisNodes(),
@@ -568,6 +722,7 @@ window.addEventListener('DOMContentLoaded', function() {
     "undoManager.isEnabled": true,
     allowInsert: false
   });
+  diagram.toolManager.hoverDelay = 0;
 
   function handleDiagramResize() {
     if (!diagram) return;
@@ -581,6 +736,178 @@ window.addEventListener('DOMContentLoaded', function() {
   function logMindmapAction(message) {
     if (typeof window.addSystemLog === "function") {
       window.addSystemLog(message);
+    }
+  }
+
+  function normalizeMindmapArray(value) {
+    if (Array.isArray(value)) {
+      return value
+        .map(function(item) {
+          return String(item || "").trim();
+        })
+        .filter(Boolean);
+    }
+
+    if (typeof value === "string" && value.trim()) {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) {
+          return normalizeMindmapArray(parsed);
+        }
+      } catch (_error) {
+        // Fall back to comma-separated labels.
+      }
+
+      return value
+        .split(/[\u3001,]/)
+        .map(function(item) {
+          return String(item || "").trim();
+        })
+        .filter(Boolean);
+    }
+
+    return [];
+  }
+
+  function getMindmapKeywordLabels(data) {
+    return normalizeMindmapArray(data && data.basedKeywordLabels);
+  }
+
+  function getMindmapKeywordNodeIds(data) {
+    return normalizeMindmapArray(data && data.basedNodeIds);
+  }
+
+  function findKeywordNodeIdsByLabels(labels) {
+    if (!window.nodes || typeof window.nodes.get !== "function") return [];
+
+    const wantedLabels = new Set(normalizeMindmapArray(labels));
+    if (wantedLabels.size === 0) return [];
+
+    const ids = [];
+    window.nodes.get().forEach(function(node) {
+      const labelsToMatch = [];
+      const nodeLabel = String(node && node.label ? node.label : "").trim();
+      if (nodeLabel) labelsToMatch.push(nodeLabel);
+
+      if (node && node.i18nLabels && typeof node.i18nLabels === "object") {
+        Object.keys(node.i18nLabels).forEach(function(langKey) {
+          const localized = String(node.i18nLabels[langKey] || "").trim();
+          if (localized) labelsToMatch.push(localized);
+        });
+      }
+
+      if (labelsToMatch.some(function(label) { return wantedLabels.has(label); })) {
+        ids.push(node.id);
+      }
+    });
+
+    return ids;
+  }
+
+  function getMindmapKeywordTooltipText(data) {
+    if (!data || data.key === 0) return "";
+    const labels = getMindmapKeywordLabels(data);
+    if (labels.length === 0) return "";
+    const separator = getCurrentThemeLanguage() === "en" ? ", " : "\u3001";
+    return labels.join(separator);
+  }
+
+  function clearMindmapNodeHighlight() {
+    if (!diagram) return false;
+
+    let didClear = false;
+    diagram.nodes.each(function(node) {
+      if (!node || !node.__mindmapHighlighted) return;
+      if (restoreMindmapNodeHighlight(node)) {
+        didClear = true;
+      }
+    });
+    diagram.clearSelection();
+    return didClear;
+  }
+
+  function clearMindmapInteractionHighlights() {
+    clearMindmapNodeHighlight();
+
+    if (typeof window.clearHypothesisEntryActivation === "function") {
+      window.clearHypothesisEntryActivation({ clearKeywordSelection: true });
+    } else if (typeof window.clearNodeSelection === "function") {
+      window.clearNodeSelection();
+    } else if (typeof window.setSelectedNodes === "function") {
+      window.setSelectedNodes([]);
+    }
+  }
+
+  function highlightMindmapNode(node) {
+    clearMindmapNodeHighlight();
+    if (!(node instanceof go.Node) || !node.data || node.data.key === 0) return false;
+
+    applyMindmapNodeHighlight(node, getMindmapHighlightStyle(0));
+    diagram.select(node);
+    return true;
+  }
+
+  function findMindmapHypothesisNode(entryId, hypothesisText) {
+    if (!diagram) return null;
+
+    const normalizedEntryId = String(entryId || "").trim();
+    const normalizedText = String(hypothesisText || "").trim();
+    let matchedById = null;
+    let matchedByText = null;
+
+    diagram.nodes.each(function(node) {
+      if (matchedById || !node || !node.data || node.data.key === 0) return;
+
+      const nodeEntryId = String(node.data.hypothesisEntryId || "").trim();
+      if (normalizedEntryId && nodeEntryId === normalizedEntryId) {
+        matchedById = node;
+        return;
+      }
+
+      const nodeText = String(node.data.text || "").trim();
+      if (!matchedByText && normalizedText && nodeText === normalizedText) {
+        matchedByText = node;
+      }
+    });
+
+    return matchedById || matchedByText;
+  }
+
+  window.highlightMindmapHypothesisNode = function(entryId, hypothesisText) {
+    const nodes = findMindmapHypothesisNodesByEntryId(entryId);
+    if (nodes.length > 0) {
+      return highlightMindmapNodesByTargets([{ entryId, text: hypothesisText, style: getMindmapHighlightStyle(0) }]);
+    }
+    const node = findMindmapHypothesisNode(entryId, hypothesisText);
+    return highlightMindmapNode(node);
+  };
+
+  window.highlightMindmapHypothesisNodes = function(targets) {
+    return highlightMindmapNodesByTargets(targets);
+  };
+
+  window.clearMindmapHypothesisHighlight = clearMindmapNodeHighlight;
+
+  diagram.addDiagramListener("BackgroundSingleClicked", function() {
+    clearMindmapInteractionHighlights();
+  });
+
+  function handleMindmapNodeClick(node) {
+    if (!node || !node.data || node.data.key === 0) return;
+    highlightMindmapNode(node);
+
+    const nodeIds = getMindmapKeywordNodeIds(node.data);
+    const labels = getMindmapKeywordLabels(node.data);
+    const resolvedNodeIds = nodeIds.length > 0 ? nodeIds : findKeywordNodeIdsByLabels(labels);
+
+    if (resolvedNodeIds.length > 0 && typeof window.setSelectedNodes === "function") {
+      window.setSelectedNodes(resolvedNodeIds);
+    } else if (typeof window.clearNodeSelection === "function") {
+      window.clearNodeSelection();
+    }
+
+    if (typeof window.activateHypothesisEntryFromMindmap === "function") {
+      window.activateHypothesisEntryFromMindmap(node.data.hypothesisEntryId, node.data.text);
     }
   }
 
@@ -609,21 +936,36 @@ window.addEventListener('DOMContentLoaded', function() {
       new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
       $(go.Shape, "RoundedRectangle",
         {
+          name: "MINDMAP_NODE_SHAPE",
           stroke: "#3498DB",
           strokeWidth: 2,
           fill: "#FFFFFF"
         },
         new go.Binding("fill", "key", function(key) {
-          return key === 0 ? "#E67E22" : "#FFFFFF";
+          return key === 0 ? "#3D6FCC" : "#FFFFFF";
         }),
         new go.Binding("stroke", "key", function(key) {
-          return key === 0 ? "#E67E22" : "#3498DB";
-        })
+          return key === 0 ? "#3D6FCC" : "#3498DB";
+        }),
+        new go.Binding("fill", "isHighlighted", function(isHighlighted, shape) {
+          const data = shape && shape.part ? shape.part.data : null;
+          if (isHighlighted) return "#FCE6C8";
+          if (data && data.key === 0) return "#3D6FCC";
+          return "#FFFFFF";
+        }).ofObject(),
+        new go.Binding("stroke", "isHighlighted", function(isHighlighted, shape) {
+          if (isHighlighted) return "#E67E22";
+          return "#3498DB";
+        }).ofObject(),
+        new go.Binding("strokeWidth", "isHighlighted", function(isHighlighted) {
+          return isHighlighted ? 4 : 2;
+        }).ofObject()
       ),
       $(go.TextBlock,
         {
+          name: "MINDMAP_NODE_TEXT",
           margin: 8,
-          stroke: "#34495E",
+          stroke: "#000000",
           font: "bold 14px 'Segoe UI', sans-serif"
         },
         new go.Binding("text").makeTwoWay(),
@@ -634,9 +976,57 @@ window.addEventListener('DOMContentLoaded', function() {
           return key === 0 ? NaN : getHypothesisNodeWidth();
         }),
         new go.Binding("stroke", "key", function(key) {
-          return key === 0 ? "#FFFFFF" : "#34495E";
-        })
+          return key === 0 ? "#FFFFFF" : "#000000";
+        }),
+        new go.Binding("stroke", "isHighlighted", function(isHighlighted, textBlock) {
+          const data = textBlock && textBlock.part ? textBlock.part.data : null;
+          return data && data.key === 0 ? "#FFFFFF" : "#000000";
+        }).ofObject()
       ),
+      {
+        click: (e, node) => handleMindmapNodeClick(node),
+        toolTip:
+          $("ToolTip",
+            $(go.Panel, "Auto",
+              $(go.Shape, "RoundedRectangle",
+                {
+                  fill: "#FFF8E8",
+                  stroke: "#E7A94C",
+                  strokeWidth: 1.5,
+                  parameter1: 8
+                }
+              ),
+              $(go.Panel, "Vertical",
+                {
+                  margin: 8,
+                  maxSize: new go.Size(260, NaN),
+                  stretch: go.GraphObject.Horizontal
+                },
+                $(go.TextBlock,
+                  {
+                    margin: new go.Margin(0, 0, 4, 0),
+                    stroke: "#A86E15",
+                    font: "bold 11px 'Segoe UI', sans-serif"
+                  },
+                  new go.Binding("text", "", function() {
+                    return t("labels.keywordTooltipTitle", {}, getCurrentThemeLanguage() === "en" ? "Keywords" : "キーワード");
+                  })
+                ),
+                $(go.TextBlock,
+                  {
+                    stroke: "#5A3C12",
+                    font: "bold 13px 'Segoe UI', sans-serif",
+                    wrap: go.TextBlock.WrapFit
+                  },
+                  new go.Binding("text", "", getMindmapKeywordTooltipText)
+                )
+              )
+            ),
+            new go.Binding("visible", "", function(data) {
+              return getMindmapKeywordLabels(data).length > 0;
+            })
+          )
+      },
       {
         doubleClick: (e, node) => {
           const oldText = node.data.text;
@@ -654,7 +1044,7 @@ window.addEventListener('DOMContentLoaded', function() {
           $("ContextMenu",
             $("ContextMenuButton",
               $(go.TextBlock, t("buttons.addNode", {}, "仮説を立案")),
-              { click: (e, obj) => addChild(obj.part.adornedPart) }
+              { click: (e, obj) => handleAddHypothesisFromMindmap(obj.part.adornedPart) }
             ),
             $("ContextMenuButton",
               $(go.TextBlock, t("buttons.delete", {}, "削除")),
@@ -772,6 +1162,146 @@ window.addEventListener('DOMContentLoaded', function() {
     rootNodes.forEach(function(rootNode) {
       const removedKey = rootNode.data && rootNode.data.key !== undefined ? rootNode.data.key : "";
       const removedText = getMindmapNodeText(rootNode);
+
+      const highlightKey = rootNode.data && rootNode.data.hypothesisHighlightKey !== undefined
+        ? String(rootNode.data.hypothesisHighlightKey)
+        : "";
+      const entryIdForNode = rootNode.data && rootNode.data.hypothesisEntryId !== undefined
+        ? String(rootNode.data.hypothesisEntryId)
+        : "";
+      try {
+        let matched = [];
+        if (highlightKey) {
+          const selector = '.scamper-tag-container[data-hypothesis-highlight-key="' + highlightKey + '"]';
+          matched = Array.prototype.slice.call(document.querySelectorAll(selector) || []);
+        }
+
+        // Fallback: if no highlight-key matches, try matching by hypothesisEntryId on the enclosing hypothesis-box
+        if ((matched.length === 0) && entryIdForNode) {
+          const containers = Array.prototype.slice.call(document.querySelectorAll('.scamper-tag-container') || []);
+          matched = containers.filter(function(container) {
+            try {
+              var box = container.closest && container.closest('.hypothesis-box');
+              return box && box.dataset && String(box.dataset.hypothesisEntryId) === entryIdForNode;
+            } catch (_e) {
+              return false;
+            }
+          });
+        }
+
+        if (matched.length === 0) {
+          // Try alternative selector: scamper-edit-box inside hypothesis-box with matching entryId
+          if (entryIdForNode) {
+            try {
+              var textareas = Array.prototype.slice.call(document.querySelectorAll('textarea.scamper-edit-box') || []);
+              textareas.forEach(function(ta) {
+                try {
+                  var box = ta.closest && ta.closest('.hypothesis-box');
+                  if (box && box.dataset && String(box.dataset.hypothesisEntryId) === entryIdForNode) {
+                    var container = ta.closest && ta.closest('.scamper-tag-container');
+                    if (container) matched.push(container);
+                  }
+                } catch (_e) {
+                  // ignore
+                }
+              });
+            } catch (_e) {
+              // ignore
+            }
+          }
+        }
+
+        if (matched.length > 0) {
+          function normalizeCompareText(s) {
+            try {
+              return String(s || "").trim().replace(/\s+/g, " ").toLowerCase();
+            } catch (_e) { return String(s || "").trim(); }
+          }
+
+          function findMainHypothesisBoxByRemovedText() {
+            var removedNorm = normalizeCompareText(removedText);
+            var entries = Array.prototype.slice.call(document.querySelectorAll('.hypothesis-box') || []);
+            for (var i = 0; i < entries.length; i += 1) {
+              var box = entries[i];
+              var mainTa = box.querySelector && box.querySelector('textarea.hypothesis-text');
+              var mainText = mainTa ? String(mainTa.value || '').trim() : '';
+              var mainNorm = normalizeCompareText(mainText);
+              if (mainNorm && removedNorm && (mainNorm === removedNorm || mainNorm.indexOf(removedNorm) !== -1 || removedNorm.indexOf(mainNorm) !== -1)) {
+                return box;
+              }
+            }
+            return null;
+          }
+
+          var handledWholeBox = false;
+          var mainBox = findMainHypothesisBoxByRemovedText();
+          if (mainBox) {
+            var deleteWhole = confirm(
+              t(
+                'confirms.deleteEntireHypothesisBox',
+                {},
+                'このノードは仮説ボックス内の主仮説に対応しています。仮説ボックスごと削除しますか？\nOK: ボックスごと削除\nキャンセル: SCAMPERタグのみ削除'
+              )
+            );
+            if (deleteWhole) {
+              try {
+                if (mainBox.parentNode) mainBox.parentNode.removeChild(mainBox);
+              } catch (_e) { /* ignore */ }
+              handledWholeBox = true;
+              try {
+                var wrapperElem = document.querySelector('#hypothesisWrapper');
+                if (wrapperElem && typeof window.updateHypothesisNumbers === 'function') {
+                  window.updateHypothesisNumbers(wrapperElem);
+                }
+                if (typeof window.flushHypothesisSave === 'function') {
+                  window.flushHypothesisSave();
+                } else if (typeof window.scheduleHypothesisSave === 'function') {
+                  window.scheduleHypothesisSave();
+                }
+              } catch (_e) { /* ignore */ }
+            }
+          }
+
+          if (!handledWholeBox) {
+            const shouldDelete = confirm(
+              t(
+                "confirms.deleteRelatedScamperTags",
+                {},
+                "対応するSCAMPERタグ（同じ色のSCAMPER入力）を削除しますか？\nOK: 削除\nキャンセル: 残す"
+              ) + "\n\n" + ("削除対象: " + matched.length + " 件")
+            );
+            if (shouldDelete) {
+              var removedAny = false;
+              matched.forEach(function(el) {
+                try {
+                  if (el.parentNode) {
+                    el.parentNode.removeChild(el);
+                    removedAny = true;
+                  }
+                } catch (_e) { /* ignore */ }
+              });
+
+              // If we removed something, try to update hypothesis numbers and trigger save
+              try {
+                var wrapper = document.querySelector('#hypothesisWrapper');
+                if (wrapper && typeof window.updateHypothesisNumbers === 'function') {
+                  window.updateHypothesisNumbers(wrapper);
+                }
+                if (typeof window.flushHypothesisSave === 'function') {
+                  window.flushHypothesisSave();
+                } else if (typeof window.scheduleHypothesisSave === 'function') {
+                  window.scheduleHypothesisSave();
+                }
+              } catch (_e) {
+                // ignore
+              }
+            }
+          }
+        }
+      } catch (_e) {
+        // DOM access may fail in some embed contexts; fall back silently
+      }
+
       diagram.removeParts(rootNode.findTreeParts(), false);
       logMindmapAction(`マインドマップ: ノード削除 source=${source} key=${removedKey} "${removedText}"`);
     });
@@ -850,9 +1380,34 @@ window.addEventListener('DOMContentLoaded', function() {
     });
   };
 
-  window.addMindmapChild = function (parentKey, text) {
+  window.deleteMindmapNodeByEntryId = function (entryId) {
+    if (!diagram.model || !entryId) return false;
+    var nodeDataToRemove = null;
+    var nodeArray = diagram.model.nodeDataArray;
+    for (var i = 0; i < nodeArray.length; i++) {
+      if (String(nodeArray[i].hypothesisEntryId) === String(entryId)) {
+        nodeDataToRemove = nodeArray[i];
+        break;
+      }
+    }
+    if (nodeDataToRemove) {
+      diagram.startTransaction('delete mindmap node by entry id');
+      var node = diagram.findNodeForData(nodeDataToRemove);
+      if (node) {
+        diagram.removeParts(node.findTreeParts(), false);
+      } else {
+        diagram.model.removeNodeData(nodeDataToRemove);
+      }
+      diagram.commitTransaction('delete mindmap node by entry id');
+      return true;
+    }
+    return false;
+  };
+
+  window.addMindmapChild = function (parentKey, text, metadata) {
     if (!diagram.model) return false;
     if (!text || !text.trim()) return false;
+    metadata = metadata || {};
 
     var normalizedKey = parentKey;
     var parentNode = diagram.findNodeForKey(normalizedKey);
@@ -868,6 +1423,15 @@ window.addEventListener('DOMContentLoaded', function() {
 
     diagram.startTransaction("add mindmap child");
     var newNodeData = { text: text.trim(), parent: parentNode.data.key };
+    if (Array.isArray(metadata.basedNodeIds)) {
+      newNodeData.basedNodeIds = metadata.basedNodeIds.slice();
+    }
+    if (Array.isArray(metadata.basedKeywordLabels)) {
+      newNodeData.basedKeywordLabels = metadata.basedKeywordLabels.slice();
+    }
+    if (metadata.hypothesisEntryId) {
+      newNodeData.hypothesisEntryId = String(metadata.hypothesisEntryId);
+    }
     diagram.model.addNodeData(newNodeData);
     diagram.commitTransaction("add mindmap child");
     diagram.select(diagram.findNodeForData(newNodeData));
@@ -875,3 +1439,34 @@ window.addEventListener('DOMContentLoaded', function() {
     return true;
   };
 });
+
+function readMindmapDataArray(value) {
+  if (Array.isArray(value)) return value.slice();
+  if (typeof value === "string" && value.trim()) {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (_error) {
+      return value.split(/[\u3001,]/).map(function(item) {
+        return String(item || "").trim();
+      }).filter(Boolean);
+    }
+  }
+  return [];
+}
+
+// 仮説関係性マップのノードから仮説を追加
+function handleAddHypothesisFromMindmap(node) {
+  const data = node && node.data ? node.data : null;
+  if (!data) return;
+
+  if (typeof window.showHypothesisAndKeywordDialog === "function") {
+    window.showHypothesisAndKeywordDialog({
+      parentMindmapKey: data.key,
+      defaultNodeIds: [],
+      defaultKeywordLabels: [],
+    });
+  } else {
+    alert("仮説追加機能が利用できません。ページを再読み込みしてください。");
+  }
+}

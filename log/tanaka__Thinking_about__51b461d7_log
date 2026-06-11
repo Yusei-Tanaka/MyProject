@@ -456,3 +456,759 @@
       [2026/5/14 15:29:00] 仮説: SCAMPER選択 Combine
       [2026/5/14 15:29:04] 仮説: 生成質問一覧 [How might we combine solar thermal power generation with other renewable energy sources, such as biomass or hydropower, to enhance its viability and efficiency? / What if we integrated solar thermal technology with energy storage systems to address its intermittency and improve its adoption in various climates? / Could we explore partnerships between solar thermal power generation and existing nuclear or electrical energy systems to create a more sustainable energy grid?]
       [2026/5/14 15:29:37] UI: left side view hidden
+      [2026/5/26 22:46:09] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/5/26 22:46:09] Keyword map: centered (no nodes)
+      [2026/5/26 22:46:09] 仮説: 復元しました
+      [2026/5/26 22:46:09] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/5/26 22:46:09] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/5/26 22:46:09] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/5/26 22:46:14] UI: left side view shown
+      [2026/5/26 22:46:16] 生成されたキーワードの組み合わせ: energy, future
+      [2026/5/26 22:46:45] 生成キーワード: ノード追加 label="resource scarcity"
+      [2026/5/26 22:46:50] キーワードマップ: ノード複数削除 count=1 edges=0
+      [2026/5/26 22:46:50] キーワードマップ: ノード削除 id=19 label="resource scarcity"
+      [2026/5/29 15:48:54] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/5/29 15:48:54] Keyword map: centered (no nodes)
+      [2026/5/29 15:48:54] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/5/29 15:48:54] 仮説: 復元しました
+      [2026/5/29 15:48:54] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/5/29 15:48:54] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/5/29 15:48:57] UI: left side view shown
+      [2026/5/29 15:49:20] 生成されたキーワードの組み合わせ: energy, future
+      [2026/6/10 0:23:14] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 0:23:14] Keyword map: centered (no nodes)
+      [2026/6/10 0:23:15] 仮説: 復元しました
+      [2026/6/10 0:23:15] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 0:23:15] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 0:23:15] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 0:23:17] UI: left side view shown
+      [2026/6/10 0:24:33] 生成されたキーワードの組み合わせ: energy, future
+      [2026/6/10 1:01:14] Keyword map: centered
+      [2026/6/10 4:52:31] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 4:52:31] Keyword map: centered (no nodes)
+      [2026/6/10 4:52:32] 仮説: 復元しました
+      [2026/6/10 4:52:32] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 4:52:32] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 4:52:32] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 4:52:40] UI: left side view shown
+      [2026/6/10 4:53:27] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 4:53:27] Keyword map: centered (no nodes)
+      [2026/6/10 4:53:27] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 4:53:27] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 4:53:27] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 4:53:27] 仮説: 復元しました
+      [2026/6/10 4:53:30] UI: left side view shown
+      [2026/6/10 4:53:50] 仮説: マインドマップへノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="It may be that solar thermal power generation cannot be widely adopted．"
+      [2026/6/10 4:53:50] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="It may be that solar thermal power generation cannot be widely adopted．"
+      [2026/6/10 4:54:00] マインドマップ: ノード削除 source=contextmenu key=-11 "It may be that solar thermal power generation cannot be widely adopted．"
+      [2026/6/10 4:58:04] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 4:58:04] Keyword map: centered (no nodes)
+      [2026/6/10 4:58:04] 仮説: 復元しました
+      [2026/6/10 4:58:04] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 4:58:04] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 4:58:04] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 4:58:07] UI: left side view shown
+      [2026/6/10 5:01:14] マインドマップ: 子ノード追加 parent=-2 "It may be that promoting biomass power generation could lead to sustainable energy．" text="aaa"
+      [2026/6/10 5:01:14] 仮説: マップから仮説追加 (3個のキーワードを選択) "aaa"
+      [2026/6/10 5:01:14] 仮説: 追加 (基づくキーワード: energy、potential energy、nuclear energy)
+      [2026/6/10 5:01:25] 仮説: 削除
+      [2026/6/10 5:01:31] マインドマップ: ノード削除 source=contextmenu key=-11 "aaa"
+      [2026/6/10 5:02:01] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 5:02:01] Keyword map: centered (no nodes)
+      [2026/6/10 5:02:01] 仮説: 復元しました
+      [2026/6/10 5:02:01] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 5:02:01] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 5:02:01] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 5:02:15] UI: left side view shown
+      [2026/6/10 5:04:09] 生成されたキーワードの組み合わせ: energy, future
+      [2026/6/10 5:10:06] マインドマップ: ノード編集 key=0 "Thinking about how to generate sustainable energy for the future" → "Thinking about how to generate sustainable energ for the future"
+      [2026/6/10 5:10:13] マインドマップ: ノード編集 key=0 "Thinking about how to generate sustainable energ for the future" → "Thinking about how to generate sustainable energy for the future"
+      [2026/6/10 5:10:27] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 5:10:27] Keyword map: centered (no nodes)
+      [2026/6/10 5:10:27] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 5:10:27] 仮説: 復元しました
+      [2026/6/10 5:10:27] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 5:10:27] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 5:10:30] UI: left side view shown
+      [2026/6/10 5:10:35] 仮説: マップから仮説追加 (1個のキーワードを選択) "a"
+      [2026/6/10 5:10:35] 仮説: 追加 (基づくキーワード: potential energy)
+      [2026/6/10 5:10:35] マインドマップ: 子ノード追加 parent=-2 "It may be that promoting biomass power generation could lead to sustainable energy．" text="a"
+      [2026/6/10 5:10:40] 仮説: 削除
+      [2026/6/10 5:10:44] マインドマップ: ノード削除 source=contextmenu key=-11 "a"
+      [2026/6/10 5:19:16] 仮説: マップから仮説追加 (1個のキーワードを選択) "w"
+      [2026/6/10 5:19:16] マインドマップ: 子ノード追加 parent=-2 "It may be that promoting biomass power generation could lead to sustainable energy．" text="w"
+      [2026/6/10 5:19:16] 仮説: 追加 (基づくキーワード: nuclear energy)
+      [2026/6/10 5:19:20] 仮説: 削除
+      [2026/6/10 5:19:28] マインドマップ: ノード削除 source=contextmenu key=-11 "w"
+      [2026/6/10 5:19:30] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 5:19:30] Keyword map: centered (no nodes)
+      [2026/6/10 5:19:30] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 5:19:30] 仮説: 復元しました
+      [2026/6/10 5:19:30] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 5:19:30] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 5:19:34] マインドマップ: 子ノード追加 parent=-2 "It may be that promoting biomass power generation could lead to sustainable energy．" text="q"
+      [2026/6/10 5:19:34] 仮説: マップから仮説追加 (1個のキーワードを選択) "q"
+      [2026/6/10 5:19:34] 仮説: 追加 (基づくキーワード: sound energy)
+      [2026/6/10 5:19:36] UI: left side view shown
+      [2026/6/10 5:19:53] マインドマップ: ノード削除 source=contextmenu key=-11 "q"
+      [2026/6/10 5:19:55] 丮説: 削除
+      [2026/6/10 5:20:02] 仮説: マップから仮説追加 (1個のキーワードを選択) "p"
+      [2026/6/10 5:20:02] 仮説: 追加 (基づくキーワード: potential energy)
+      [2026/6/10 5:20:02] マインドマップ: 子ノード追加 parent=-2 "It may be that promoting biomass power generation could lead to sustainable energy．" text="p"
+      [2026/6/10 5:20:05] 丮説: 削除
+      [2026/6/10 5:21:13] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 5:21:13] Keyword map: centered (no nodes)
+      [2026/6/10 5:21:13] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 5:21:13] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 5:21:13] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 5:21:13] 仮説: 復元しました
+      [2026/6/10 5:21:18] 仮説: マップから仮説追加 (1個のキーワードを選択) "z"
+      [2026/6/10 5:21:18] マインドマップ: 子ノード追加 parent=-2 "It may be that promoting biomass power generation could lead to sustainable energy．" text="z"
+      [2026/6/10 5:21:18] 仮説: 追加 (基づくキーワード: sound energy)
+      [2026/6/10 5:21:20] UI: left side view shown
+      [2026/6/10 5:21:32] 丮説: 削除
+      [2026/6/10 5:21:36] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 5:21:36] Keyword map: centered (no nodes)
+      [2026/6/10 5:21:36] 仮説: 復元しました
+      [2026/6/10 5:21:36] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 5:21:36] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 5:21:36] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 5:21:43] 仮説: マップから仮説追加 (1個のキーワードを選択) "z"
+      [2026/6/10 5:21:43] マインドマップ: 子ノード追加 parent=-2 "It may be that promoting biomass power generation could lead to sustainable energy．" text="z"
+      [2026/6/10 5:21:43] 仮説: 追加 (基づくキーワード: sound energy)
+      [2026/6/10 5:21:46] UI: left side view shown
+      [2026/6/10 5:23:11] Keyword map: centered (no nodes)
+      [2026/6/10 5:23:11] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 5:23:11] 仮説: 復元しました
+      [2026/6/10 5:23:11] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 5:23:11] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 5:23:11] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 5:23:14] UI: left side view shown
+      [2026/6/10 5:26:39] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 5:26:39] Keyword map: centered (no nodes)
+      [2026/6/10 5:26:39] 仮説: 復元しました
+      [2026/6/10 5:26:39] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 5:26:39] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 5:26:39] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 5:26:41] UI: left side view shown
+      [2026/6/10 5:26:50] 丮説: 削除
+      [2026/6/10 5:32:56] マインドマップ: 子ノード追加 parent=-2 "It may be that promoting biomass power generation could lead to sustainable energy．" text="aaaa"
+      [2026/6/10 5:32:56] 仮説: マップから仮説追加 (1個のキーワードを選択) "aaaa"
+      [2026/6/10 5:32:56] 仮説: 追加 (基づくキーワード: solar energy)
+      [2026/6/10 5:35:40] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 5:35:40] Keyword map: centered (no nodes)
+      [2026/6/10 5:35:40] 仮説: 復元しました
+      [2026/6/10 5:35:40] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 5:35:40] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 5:35:40] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 5:35:42] UI: left side view shown
+      [2026/6/10 5:35:50] マインドマップ: ノード削除 source=contextmenu key=-11 "aaaa"
+      [2026/6/10 5:51:33] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 5:51:33] Keyword map: centered (no nodes)
+      [2026/6/10 5:51:33] 仮説: 復元しました
+      [2026/6/10 5:51:33] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 5:51:33] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 5:51:33] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 5:51:41] 仮説: マップから仮説追加 (2個のキーワードを選択) "aa"
+      [2026/6/10 5:51:41] 仮説: 追加 (基づくキーワード: nuclear energy、sound energy)
+      [2026/6/10 5:51:41] マインドマップ: 子ノード追加 parent=-2 "It may be that promoting biomass power generation could lead to sustainable energy．" text="aa"
+      [2026/6/10 5:51:43] UI: left side view shown
+      [2026/6/10 5:52:01] 仮説: 追加 (基づくキーワード: sound energy)
+      [2026/6/10 5:52:01] マインドマップ: 子ノード追加 parent=-2 "It may be that promoting biomass power generation could lead to sustainable energy．" text="a"
+      [2026/6/10 5:52:01] 仮説: マップから仮説追加 (1個のキーワードを選択) "a"
+      [2026/6/10 5:52:08] マインドマップ: ノード削除 source=contextmenu key=-11 "a"
+      [2026/6/10 5:58:15] 仮説: 追加 (基づくキーワード: sound energy、energy)
+      [2026/6/10 5:58:15] 仮説: マップから仮説追加 (2個のキーワードを選択) "pp"
+      [2026/6/10 5:58:15] マインドマップ: 子ノード追加 parent=-2 "It may be that promoting biomass power generation could lead to sustainable energy．" text="pp"
+      [2026/6/10 6:00:32] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:00:32] Keyword map: centered (no nodes)
+      [2026/6/10 6:00:32] 仮説: 復元しました
+      [2026/6/10 6:00:32] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:00:33] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:00:33] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:00:36] UI: left side view shown
+      [2026/6/10 6:00:42] 仮説: 削除
+      [2026/6/10 6:00:47] マインドマップ: 子ノード追加 parent=-2 "It may be that promoting biomass power generation could lead to sustainable energy．" text="dd"
+      [2026/6/10 6:00:47] 仮説: マップから仮説追加 (2個のキーワードを選択) "dd"
+      [2026/6/10 6:00:47] 仮説: 追加 (基づくキーワード: nuclear energy、solar energy)
+      [2026/6/10 6:00:52] マインドマップ: ノード削除 source=contextmenu key=-11 "dd"
+      [2026/6/10 6:00:55] 仮説: 削除
+      [2026/6/10 6:03:34] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:03:34] Keyword map: centered (no nodes)
+      [2026/6/10 6:03:34] 仮説: 復元しました
+      [2026/6/10 6:03:34] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:03:34] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:03:34] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:03:36] UI: left side view shown
+      [2026/6/10 6:03:39] 仮説: マップから仮説追加 (1個のキーワードを選択) "z"
+      [2026/6/10 6:03:39] マインドマップ: 子ノード追加 parent=-2 "It may be that promoting biomass power generation could lead to sustainable energy．" text="z"
+      [2026/6/10 6:03:39] 仮説: 追加 (基づくキーワード: potential energy)
+      [2026/6/10 6:03:45] マインドマップ: ノード削除 source=contextmenu key=-11 "z"
+      [2026/6/10 6:03:45] 仮説: 削除
+      [2026/6/10 6:09:57] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:09:57] Keyword map: centered (no nodes)
+      [2026/6/10 6:09:57] 仮説: 復元しました
+      [2026/6/10 6:09:57] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:09:57] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:09:57] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:10:00] UI: left side view shown
+      [2026/6/10 6:10:23] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:10:23] Keyword map: centered (no nodes)
+      [2026/6/10 6:10:23] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:10:23] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:10:23] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:10:23] 仮説: 復元しました
+      [2026/6/10 6:10:44] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:10:44] Keyword map: centered (no nodes)
+      [2026/6/10 6:10:44] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:10:44] 仮説: 復元しました
+      [2026/6/10 6:10:44] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:10:44] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:10:52] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:10:52] Keyword map: centered (no nodes)
+      [2026/6/10 6:10:52] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:10:52] 仮説: 復元しました
+      [2026/6/10 6:10:52] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:10:52] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:10:58] UI: left side view shown
+      [2026/6/10 6:12:01] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:12:01] Keyword map: centered (no nodes)
+      [2026/6/10 6:12:01] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:12:01] 仮説: 復元しました
+      [2026/6/10 6:12:01] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:12:01] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:12:59] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:12:59] Keyword map: centered (no nodes)
+      [2026/6/10 6:12:59] 仮説: 復元しました
+      [2026/6/10 6:12:59] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:12:59] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:12:59] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:13:03] UI: left side view shown
+      [2026/6/10 6:13:22] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:13:22] Keyword map: centered (no nodes)
+      [2026/6/10 6:13:22] 仮説: 復元しました
+      [2026/6/10 6:13:22] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:13:22] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:13:22] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:13:25] UI: left side view shown
+      [2026/6/10 6:14:03] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:14:03] Keyword map: centered (no nodes)
+      [2026/6/10 6:14:03] 仮説: 復元しました
+      [2026/6/10 6:14:03] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:14:03] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:14:03] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:14:04] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:14:04] Keyword map: centered (no nodes)
+      [2026/6/10 6:14:05] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:14:05] 仮説: 復元しました
+      [2026/6/10 6:14:05] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:14:05] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:14:15] UI: left side view shown
+      [2026/6/10 6:14:35] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:14:35] Keyword map: centered (no nodes)
+      [2026/6/10 6:14:36] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:14:36] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:14:35] 仮説: 復元しました
+      [2026/6/10 6:14:36] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:14:36] Keyword map: centered (no nodes)
+      [2026/6/10 6:14:36] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:14:36] 仮説: 復元しました
+      [2026/6/10 6:14:36] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:14:36] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:14:36] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:14:41] UI: left side view shown
+      [2026/6/10 6:15:54] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:15:54] Keyword map: centered (no nodes)
+      [2026/6/10 6:15:54] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:15:54] 仮説: 復元しました
+      [2026/6/10 6:15:54] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:15:54] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:16:31] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:16:31] Keyword map: centered (no nodes)
+      [2026/6/10 6:16:31] 仮説: 復元しました
+      [2026/6/10 6:16:31] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:16:31] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:16:31] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:16:34] UI: left side view shown
+      [2026/6/10 6:18:21] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:18:21] Keyword map: centered (no nodes)
+      [2026/6/10 6:18:21] 仮説: 復元しました
+      [2026/6/10 6:18:21] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:18:21] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:18:21] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:18:51] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:18:51] Keyword map: centered (no nodes)
+      [2026/6/10 6:18:51] 仮説: 復元しました
+      [2026/6/10 6:18:51] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:18:51] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:18:51] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:18:54] UI: left side view shown
+      [2026/6/10 6:19:52] マインドマップ: 子ノード追加 parent=-2 "It may be that promoting biomass power generation could lead to sustainable energy．" text="ああ"
+      [2026/6/10 6:19:52] 仮説: 追加 (基づくキーワード: sound energy、energy)
+      [2026/6/10 6:19:52] 仮説: マップから仮説追加 (2個のキーワードを選択) "ああ"
+      [2026/6/10 6:20:01] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:20:01] Keyword map: centered (no nodes)
+      [2026/6/10 6:20:01] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:20:01] 仮説: 復元しました
+      [2026/6/10 6:20:01] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:20:01] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:20:04] UI: left side view shown
+      [2026/6/10 6:20:37] マインドマップ: ノード削除 source=contextmenu key=-11 "ああ"
+      [2026/6/10 6:20:37] 仮説: 削除
+      [2026/6/10 6:20:47] マインドマップ: 子ノード追加 parent=-2 "It may be that promoting biomass power generation could lead to sustainable energy．" text="ｃ"
+      [2026/6/10 6:20:47] 仮説: マップから仮説追加 (2個のキーワードを選択) "ｃ"
+      [2026/6/10 6:20:47] 仮説: 追加 (基づくキーワード: solar energy、nuclear energy)
+      [2026/6/10 6:20:55] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:20:55] Keyword map: centered (no nodes)
+      [2026/6/10 6:20:55] 仮説: 復元しました
+      [2026/6/10 6:20:55] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:20:55] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:20:55] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:20:58] UI: left side view shown
+      [2026/6/10 6:23:52] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:23:52] Keyword map: centered (no nodes)
+      [2026/6/10 6:23:52] 仮説: 復元しました
+      [2026/6/10 6:23:52] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:23:52] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:23:52] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:24:55] UI: left side view shown
+      [2026/6/10 6:27:12] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:27:12] Keyword map: centered (no nodes)
+      [2026/6/10 6:27:12] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:27:12] 仮説: 復元しました
+      [2026/6/10 6:27:12] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:27:12] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:27:16] UI: left side view shown
+      [2026/6/10 6:32:17] 仮説: 削除
+      [2026/6/10 6:32:17] マインドマップ: ノード削除 source=contextmenu key=-11 "ｃ"
+      [2026/6/10 6:39:51] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:39:51] Keyword map: centered (no nodes)
+      [2026/6/10 6:39:51] 仮説: 復元しました
+      [2026/6/10 6:39:51] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:39:51] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:39:51] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:39:53] UI: left side view shown
+      [2026/6/10 6:40:12] 仮説: 追加 (基づくキーワード: sound energy、energy)
+      [2026/6/10 6:40:12] 仮説: マップから仮説追加 (2個のキーワードを選択) "qed"
+      [2026/6/10 6:40:12] マインドマップ: 子ノード追加 parent=-2 "It may be that promoting biomass power generation could lead to sustainable energy．" text="qed"
+      [2026/6/10 6:40:18] 仮説: SCAMPER選択 Combine
+      [2026/6/10 6:40:23] 仮説: 生成質問一覧 [How might we combine sound energy with existing renewable energy sources, like solar or hydropower, to create a more efficient energy generation system? / What if we merged the concepts of sound energy and thermal energy to explore new methods of energy conversion or storage? / Can we integrate sound energy generation techniques with biomass power generation to enhance sustainability and reduce waste?]
+      [2026/6/10 6:40:24] 仮説: 生成質問を選択 "What if we merged the concepts of sound energy and thermal energy to explore new methods of energy conversion or storage?"
+      [2026/6/10 6:40:27] 仮説: SCAMPER入力 (Combine) "dgfgjhyj"
+      [2026/6/10 6:40:33] 仮説: マインドマップへノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="dgfgjhyj"
+      [2026/6/10 6:40:33] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="dgfgjhyj"
+      [2026/6/10 6:40:41] 仮説: 削除
+      [2026/6/10 6:40:41] マインドマップ: ノード削除 source=contextmenu key=-12 "dgfgjhyj"
+      [2026/6/10 6:40:46] マインドマップ: ノード削除 source=contextmenu key=-11 "qed"
+      [2026/6/10 6:40:58] マインドマップ: 子ノード追加 parent=-2 "It may be that promoting biomass power generation could lead to sustainable energy．" text="tg"
+      [2026/6/10 6:40:58] 仮説: 追加 (基づくキーワード: sound energy、energy)
+      [2026/6/10 6:40:58] 仮説: マップから仮説追加 (2個のキーワードを選択) "tg"
+      [2026/6/10 6:41:02] 仮説: SCAMPER選択 Substitute
+      [2026/6/10 6:41:05] 仮説: 生成質問一覧 [What if we substitute sound energy with another form of energy, such as kinetic energy, in our approach to sustainable energy generation? How might this change our methods or outcomes? / Can we consider replacing traditional energy sources like nuclear or thermal energy with innovative alternatives, such as ocean energy or biomass power generation? What implications would this have for sustainability? / If we were to substitute the concept of energy trade with a focus on local energy production, how could this impact our strategies for generating sustainable energy in communities?]
+      [2026/6/10 6:41:06] 仮説: 生成質問を選択 "If we were to substitute the concept of energy trade with a focus on local energy production, how could this impact our strategies for generating sustainable energy in communities?"
+      [2026/6/10 6:41:08] 仮説: SCAMPER入力 (Substitute) "ggg"
+      [2026/6/10 6:41:15] マインドマップ: 子ノード追加 parent=-11 "tg" text="ggg"
+      [2026/6/10 6:41:15] 仮説: マインドマップへノード追加 parent=-11 "tg" text="ggg"
+      [2026/6/10 6:41:27] 仮説: SCAMPER選択 Combine
+      [2026/6/10 6:41:30] 仮説: 生成質問一覧 [How might we combine sound energy with existing renewable energy sources, such as solar or hydropower, to create a more efficient energy generation system? / What if we integrated sound energy technologies with thermal power generation methods to enhance energy output or efficiency? / Can we explore the potential of combining sound energy with biomass power generation to develop a new sustainable energy solution?]
+      [2026/6/10 6:41:31] 仮説: 生成質問を選択 "What if we integrated sound energy technologies with thermal power generation methods to enhance energy output or efficiency?"
+      [2026/6/10 6:41:35] 仮説: SCAMPER入力 (Combine) "gfdste"
+      [2026/6/10 6:41:42] 仮説: SCAMPER選択 Combine
+      [2026/6/10 6:41:44] 仮説: 生成質問一覧 [How might we combine sound energy with solar energy to create a new method of sustainable energy generation? / What if we merged the concepts of biomass power generation and thermal energy to enhance energy efficiency? / Can we integrate ocean energy power generation with hydropower to develop a more robust renewable energy system?]
+      [2026/6/10 6:41:45] 仮説: 生成質問を選択 "Can we integrate ocean energy power generation with hydropower to develop a more robust renewable energy system?"
+      [2026/6/10 6:41:48] 仮説: SCAMPER入力 (Combine) "ewfgdgsh"
+      [2026/6/10 6:41:57] マインドマップ: 子ノード追加 parent=-12 "ggg" text="ewfgdgsh"
+      [2026/6/10 6:41:57] 仮説: マインドマップへノード追加 parent=-12 "ggg" text="ewfgdgsh"
+      [2026/6/10 6:42:04] 仮説: マインドマップへノード追加 parent=-12 "ggg" text="gfdste"
+      [2026/6/10 6:42:04] マインドマップ: 子ノード追加 parent=-12 "ggg" text="gfdste"
+      [2026/6/10 6:44:01] 仮説: SCAMPER選択キャンセルで入力欄を削除
+      [2026/6/10 6:44:13] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:44:13] Keyword map: centered (no nodes)
+      [2026/6/10 6:44:13] 仮説: 復元しました
+      [2026/6/10 6:44:13] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:44:13] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:44:13] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:44:16] UI: left side view shown
+      [2026/6/10 6:45:57] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:45:57] Keyword map: centered (no nodes)
+      [2026/6/10 6:45:57] 仮説: 復元しました
+      [2026/6/10 6:45:57] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:45:57] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:45:57] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:46:02] UI: left side view shown
+      [2026/6/10 6:46:38] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:46:38] Keyword map: centered (no nodes)
+      [2026/6/10 6:46:38] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:46:38] 仮説: 復元しました
+      [2026/6/10 6:46:38] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:46:38] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:46:41] UI: left side view shown
+      [2026/6/10 6:48:04] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:48:04] Keyword map: centered (no nodes)
+      [2026/6/10 6:48:05] 仮説: 復元しました
+      [2026/6/10 6:48:05] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:48:05] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:48:05] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:48:07] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:48:07] Keyword map: centered (no nodes)
+      [2026/6/10 6:48:07] 仮説: 復元しました
+      [2026/6/10 6:48:07] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:48:07] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:48:07] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:48:15] UI: left side view shown
+      [2026/6/10 6:48:50] 仮説: SCAMPER選択キャンセルで入力欄を削除
+      [2026/6/10 6:49:02] 仮説: SCAMPER選択キャンセルで入力欄を削除
+      [2026/6/10 6:50:08] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:50:08] Keyword map: centered (no nodes)
+      [2026/6/10 6:50:08] 仮説: 復元しました
+      [2026/6/10 6:50:08] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:50:08] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:50:08] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:50:10] UI: left side view shown
+      [2026/6/10 6:53:29] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:53:29] Keyword map: centered (no nodes)
+      [2026/6/10 6:53:29] 仮説: 復元しました
+      [2026/6/10 6:53:29] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:53:29] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:53:29] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:53:31] UI: left side view shown
+      [2026/6/10 6:53:43] マインドマップ: ノード削除 source=contextmenu key=-13 "ewfgdgsh"
+      [2026/6/10 6:53:46] マインドマップ: ノード削除 source=contextmenu key=-14 "gfdste"
+      [2026/6/10 6:53:50] マインドマップ: ノード削除 source=contextmenu key=-12 "ggg"
+      [2026/6/10 6:53:54] 仮説: SCAMPER選択キャンセルで入力欄を削除
+      [2026/6/10 6:54:04] 仮説: SCAMPER選択 Substitute
+      [2026/6/10 6:54:08] 仮説: 生成質問一覧 [What if we substituted sound energy with another form of energy, such as kinetic energy, to explore its potential for sustainable energy generation? / How might we replace traditional energy sources in our concept map with innovative technologies like ocean energy power generation to enhance sustainability? / Could we consider using alternative materials or methods in sound energy conversion that might improve efficiency and sustainability?]
+      [2026/6/10 6:54:08] 仮説: 生成質問を選択 "How might we replace traditional energy sources in our concept map with innovative technologies like ocean energy power generation to enhance sustainability?"
+      [2026/6/10 6:54:12] 仮説: SCAMPER入力 (Substitute) "asafafsa"
+      [2026/6/10 6:54:17] 仮説: マインドマップへノード追加 parent=-11 "tg" text="asafafsa"
+      [2026/6/10 6:54:17] マインドマップ: 子ノード追加 parent=-11 "tg" text="asafafsa"
+      [2026/6/10 6:54:22] 仮説: SCAMPER選択キャンセルで入力欄を削除
+      [2026/6/10 6:54:27] マインドマップ: ノード削除 source=contextmenu key=-12 "asafafsa"
+      [2026/6/10 6:54:30] 仮説: SCAMPER選択 Combine
+      [2026/6/10 6:54:32] 仮説: 生成質問一覧 [How might we combine sound energy with solar energy to create a new method of sustainable power generation? / What if we integrated sound energy with hydropower systems to enhance energy efficiency and output? / Can we explore the potential of using sound energy in conjunction with biomass power generation to develop a more sustainable energy solution?]
+      [2026/6/10 6:54:33] 仮説: 生成質問を選択 "What if we integrated sound energy with hydropower systems to enhance energy efficiency and output?"
+      [2026/6/10 6:54:37] 仮説: SCAMPER入力 (Combine) "k"
+      [2026/6/10 6:54:43] マインドマップ: 子ノード追加 parent=-11 "tg" text="k"
+      [2026/6/10 6:54:43] 仮説: マインドマップへノード追加 parent=-11 "tg" text="k"
+      [2026/6/10 6:54:59] 仮説: 削除
+      [2026/6/10 6:54:59] マインドマップ: ノード削除 source=contextmenu key=-12 "k"
+      [2026/6/10 6:55:11] マインドマップ: ノード削除 source=contextmenu key=-11 "tg"
+      [2026/6/10 6:59:17] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:59:17] Keyword map: centered (no nodes)
+      [2026/6/10 6:59:17] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:59:17] 仮説: 復元しました
+      [2026/6/10 6:59:17] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:59:17] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:59:19] Keyword map: centered (no nodes)
+      [2026/6/10 6:59:19] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:59:19] 仮説: 復元しました
+      [2026/6/10 6:59:19] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:59:19] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 6:59:19] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 6:59:22] UI: left side view shown
+      [2026/6/10 6:59:30] 仮説: 追加 (基づくキーワード: solar energy)
+      [2026/6/10 6:59:30] 仮説: マップから仮説追加 (1個のキーワードを選択) "dsa"
+      [2026/6/10 6:59:30] マインドマップ: 子ノード追加 parent=-2 "It may be that promoting biomass power generation could lead to sustainable energy．" text="dsa"
+      [2026/6/10 6:59:34] 仮説: SCAMPER選択 Substitute
+      [2026/6/10 6:59:37] 仮説: 生成質問一覧 [What if we substitute solar energy with other renewable energy sources, such as wind or hydropower, in our approach to sustainable energy generation? / How might the use of different materials or technologies in solar thermal power generation change its efficiency and sustainability? / Can we consider substituting traditional energy storage methods with innovative solutions like biomass or ocean energy systems to enhance energy sustainability?]
+      [2026/6/10 6:59:38] 仮説: 生成質問を選択 "Can we consider substituting traditional energy storage methods with innovative solutions like biomass or ocean energy systems to enhance energy sustainability?"
+      [2026/6/10 6:59:41] 仮説: SCAMPER入力 (Substitute) "fgd"
+      [2026/6/10 6:59:45] マインドマップ: 子ノード追加 parent=-11 "dsa" text="fgd"
+      [2026/6/10 6:59:45] 仮説: マインドマップへノード追加 parent=-11 "dsa" text="fgd"
+      [2026/6/10 6:59:56] マインドマップ: ノード削除 source=contextmenu key=-12 "fgd"
+      [2026/6/10 7:00:04] マインドマップ: 子ノード追加 parent=-11 "dsa" text="fgd"
+      [2026/6/10 7:00:04] 仮説: マインドマップへノード追加 parent=-11 "dsa" text="fgd"
+      [2026/6/10 7:00:10] マインドマップ: ノード削除 source=contextmenu key=-11 "dsa"
+      [2026/6/10 7:00:16] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="dsa"
+      [2026/6/10 7:00:16] 仮説: マインドマップへノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="dsa"
+      [2026/6/10 7:00:21] マインドマップ: 子ノード追加 parent=-11 "dsa" text="fgd"
+      [2026/6/10 7:00:21] 仮説: マインドマップへノード追加 parent=-11 "dsa" text="fgd"
+      [2026/6/10 7:00:28] マインドマップ: ノード削除 source=contextmenu key=-12 "fgd"
+      [2026/6/10 7:00:55] マインドマップ: 子ノード追加 parent=-11 "dsa" text="fgd"
+      [2026/6/10 7:00:55] 仮説: マインドマップへノード追加 parent=-11 "dsa" text="fgd"
+      [2026/6/10 7:02:02] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:02:02] Keyword map: centered (no nodes)
+      [2026/6/10 7:02:02] 仮説: 復元しました
+      [2026/6/10 7:02:02] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:02:02] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:02:02] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:02:05] UI: left side view shown
+      [2026/6/10 7:02:14] マインドマップ: ノード削除 source=contextmenu key=-12 "fgd"
+      [2026/6/10 7:02:20] 仮説: マインドマップへノード追加 parent=-11 "dsa" text="fgd"
+      [2026/6/10 7:02:20] マインドマップ: 子ノード追加 parent=-11 "dsa" text="fgd"
+      [2026/6/10 7:02:24] マインドマップ: ノード削除 source=contextmenu key=-12 "fgd"
+      [2026/6/10 7:02:31] 仮説: マインドマップへノード追加 parent=-11 "dsa" text="fgd"
+      [2026/6/10 7:02:31] マインドマップ: 子ノード追加 parent=-11 "dsa" text="fgd"
+      [2026/6/10 7:02:41] マインドマップ: ノード削除 source=contextmenu key=-12 "fgd"
+      [2026/6/10 7:02:44] マインドマップ: ノード削除 source=contextmenu key=-11 "dsa"
+      [2026/6/10 7:02:50] 仮説: 削除
+      [2026/6/10 7:02:58] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="aa"
+      [2026/6/10 7:02:58] 仮説: マップから仮説追加 (3個のキーワードを選択) "aa"
+      [2026/6/10 7:02:58] 仮説: 追加 (基づくキーワード: potential energy、sound energy、nuclear energy)
+      [2026/6/10 7:03:03] 仮説: SCAMPER選択 Substitute
+      [2026/6/10 7:03:08] 仮説: 生成質問一覧 [What if we substitute nuclear energy with another renewable energy source, such as solar or wind energy, in our energy generation model? How might this impact sustainability? / Could we replace traditional methods of thermal power generation with innovative technologies that utilize sound energy or ocean energy? What would be the potential benefits or challenges? / If we were to substitute potential energy sources with kinetic energy sources in our energy generation strategies, how would that change our approach to sustainable energy solutions?]
+      [2026/6/10 7:03:09] 仮説: 生成質問を選択 "If we were to substitute potential energy sources with kinetic energy sources in our energy generation strategies, how would that change our approach to sustainable energy solutions?"
+      [2026/6/10 7:03:12] 仮説: SCAMPER入力 (Substitute) "asfgsdgs"
+      [2026/6/10 7:03:16] 仮説: マインドマップへノード追加 parent=-11 "aa" text="asfgsdgs"
+      [2026/6/10 7:03:16] マインドマップ: 子ノード追加 parent=-11 "aa" text="asfgsdgs"
+      [2026/6/10 7:03:24] マインドマップ: ノード削除 source=contextmenu key=-12 "asfgsdgs"
+      [2026/6/10 7:03:28] マインドマップ: ノード削除 source=contextmenu key=-11 "aa"
+      [2026/6/10 7:03:30] 仮説: 削除
+      [2026/6/10 7:05:46] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:05:46] Keyword map: centered (no nodes)
+      [2026/6/10 7:05:46] 仮説: 復元しました
+      [2026/6/10 7:05:46] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:05:46] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:05:46] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:05:49] UI: left side view shown
+      [2026/6/10 7:05:56] 仮説: マップから仮説追加 (2個のキーワードを選択) "as"
+      [2026/6/10 7:05:56] 仮説: 追加 (基づくキーワード: potential energy、sound energy)
+      [2026/6/10 7:05:56] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="as"
+      [2026/6/10 7:06:03] マインドマップ: ノード削除 source=contextmenu key=-11 "as"
+      [2026/6/10 7:06:14] 仮説: 削除
+      [2026/6/10 7:07:17] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:07:17] Keyword map: centered (no nodes)
+      [2026/6/10 7:07:17] 仮説: 復元しました
+      [2026/6/10 7:07:17] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:07:17] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:07:17] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:07:20] UI: left side view shown
+      [2026/6/10 7:07:26] 仮説: 追加 (基づくキーワード: sound energy、nuclear energy)
+      [2026/6/10 7:07:26] 仮説: マップから仮説追加 (2個のキーワードを選択) "saf"
+      [2026/6/10 7:07:26] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="saf"
+      [2026/6/10 7:07:30] マインドマップ: ノード削除 source=contextmenu key=-11 "saf"
+      [2026/6/10 7:07:38] 仮説: 削除
+      [2026/6/10 7:07:45] 仮説: 追加 (基づくキーワード: nuclear energy、solar energy)
+      [2026/6/10 7:07:45] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="asfa"
+      [2026/6/10 7:07:45] 仮説: マップから仮説追加 (2個のキーワードを選択) "asfa"
+      [2026/6/10 7:07:55] マインドマップ: ノード削除 source=contextmenu key=-11 "asfa"
+      [2026/6/10 7:08:01] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="asfa"
+      [2026/6/10 7:08:01] 仮説: マインドマップへノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="asfa"
+      [2026/6/10 7:08:20] 仮説: SCAMPER選択 Substitute
+      [2026/6/10 7:08:23] 仮説: 生成質問一覧 [What if we substitute nuclear energy with other renewable sources, such as wind or geothermal energy, in our energy generation strategy? / How might the integration of solar energy with energy storage technologies change our approach to sustainable energy generation? / Could we consider substituting traditional thermal power generation methods with innovative techniques like solar thermal power generation or biomass power generation?]
+      [2026/6/10 7:08:23] 仮説: 生成質問を選択 "How might the integration of solar energy with energy storage technologies change our approach to sustainable energy generation?"
+      [2026/6/10 7:08:27] 仮説: SCAMPER入力 (Substitute) "asgfasdga"
+      [2026/6/10 7:08:31] 仮説: マインドマップへノード追加 parent=-11 "asfa" text="asgfasdga"
+      [2026/6/10 7:08:31] マインドマップ: 子ノード追加 parent=-11 "asfa" text="asgfasdga"
+      [2026/6/10 7:08:46] マインドマップ: ノード削除 source=contextmenu key=-12 "asgfasdga"
+      [2026/6/10 7:09:42] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="asfa"
+      [2026/6/10 7:09:42] 仮説: マインドマップへノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="asfa"
+      [2026/6/10 7:09:44] 仮説: SCAMPER選択 Substitute
+      [2026/6/10 7:09:47] 仮説: 生成質問一覧 [What if we substitute nuclear energy with other forms of energy, such as wind or geothermal energy, in our approach to sustainable energy generation? / How might the use of solar energy be enhanced by substituting traditional solar panels with newer technologies like solar paint or solar windows? / Could we consider substituting the current methods of thermal power generation with more innovative techniques, such as using waste heat recovery systems?]
+      [2026/6/10 7:09:49] 仮説: 生成質問を選択 "Could we consider substituting the current methods of thermal power generation with more innovative techniques, such as using waste heat recovery systems?"
+      [2026/6/10 7:09:51] 仮説: SCAMPER入力 (Substitute) "hhgoui"
+      [2026/6/10 7:09:57] 仮説: マインドマップへノード追加 parent=-12 "asfa" text="hhgoui"
+      [2026/6/10 7:09:57] マインドマップ: 子ノード追加 parent=-12 "asfa" text="hhgoui"
+      [2026/6/10 7:10:09] マインドマップ: ノード削除 source=contextmenu key=-11 "asfa"
+      [2026/6/10 7:10:15] マインドマップ: ノード削除 source=contextmenu key=-12 "asfa"
+      [2026/6/10 7:10:19] 仮説: マインドマップへノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="asfa"
+      [2026/6/10 7:10:19] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="asfa"
+      [2026/6/10 7:10:24] マインドマップ: ノード削除 source=contextmenu key=-11 "asfa"
+      [2026/6/10 7:10:27] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="asfa"
+      [2026/6/10 7:10:27] 仮説: マインドマップへノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="asfa"
+      [2026/6/10 7:10:34] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:10:34] Keyword map: centered (no nodes)
+      [2026/6/10 7:10:34] 仮説: 復元しました
+      [2026/6/10 7:10:34] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:10:34] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:10:34] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:10:37] UI: left side view shown
+      [2026/6/10 7:10:43] マインドマップ: ノード削除 source=contextmenu key=-11 "asfa"
+      [2026/6/10 7:10:57] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:10:57] Keyword map: centered (no nodes)
+      [2026/6/10 7:10:57] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:10:57] 仮説: 復元しました
+      [2026/6/10 7:10:57] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:10:57] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:11:00] UI: left side view shown
+      [2026/6/10 7:11:03] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="asfa"
+      [2026/6/10 7:11:03] 仮説: マインドマップへノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="asfa"
+      [2026/6/10 7:11:15] マインドマップ: ノード削除 source=contextmenu key=-11 "asfa"
+      [2026/6/10 7:11:20] 仮説: 削除
+      [2026/6/10 7:11:25] 仮説: 追加 (基づくキーワード: sound energy、solar energy)
+      [2026/6/10 7:11:25] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="wetg"
+      [2026/6/10 7:11:25] 仮説: マップから仮説追加 (2個のキーワードを選択) "wetg"
+      [2026/6/10 7:11:34] 仮説: SCAMPER選択 Substitute
+      [2026/6/10 7:11:37] 仮説: 生成質問一覧 [What if we substituted sound energy with another form of renewable energy, such as wind energy, in our approach to sustainable energy generation? / How might the integration of solar energy with other energy sources, like hydropower or biomass, change our understanding of sustainable practices? / Could we explore the potential of using thermal energy in place of nuclear energy for power generation, and what implications would that have for sustainability?]
+      [2026/6/10 7:11:37] 仮説: 生成質問を選択 "How might the integration of solar energy with other energy sources, like hydropower or biomass, change our understanding of sustainable practices?"
+      [2026/6/10 7:11:39] 仮説: SCAMPER入力 (Substitute) "fgweryw"
+      [2026/6/10 7:11:45] 仮説: マインドマップへノード追加 parent=-11 "wetg" text="fgweryw"
+      [2026/6/10 7:11:45] マインドマップ: 子ノード追加 parent=-11 "wetg" text="fgweryw"
+      [2026/6/10 7:11:52] マインドマップ: ノード削除 source=contextmenu key=-12 "fgweryw"
+      [2026/6/10 7:11:58] マインドマップ: ノード削除 source=contextmenu key=-11 "wetg"
+      [2026/6/10 7:12:44] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="wetg"
+      [2026/6/10 7:12:44] 仮説: マインドマップへノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="wetg"
+      [2026/6/10 7:12:47] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:12:47] Keyword map: centered (no nodes)
+      [2026/6/10 7:12:47] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:12:47] 仮説: 復元しました
+      [2026/6/10 7:12:47] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:12:47] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:12:49] UI: left side view shown
+      [2026/6/10 7:12:54] マインドマップ: ノード削除 source=contextmenu key=-11 "wetg"
+      [2026/6/10 7:13:00] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="wetg"
+      [2026/6/10 7:13:00] 仮説: マインドマップへノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="wetg"
+      [2026/6/10 7:13:33] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:13:33] Keyword map: centered (no nodes)
+      [2026/6/10 7:13:33] 仮説: 復元しました
+      [2026/6/10 7:13:33] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:13:33] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:13:33] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:13:38] マインドマップ: ノード削除 source=contextmenu key=-11 "wetg"
+      [2026/6/10 7:13:40] UI: left side view shown
+      [2026/6/10 7:13:43] 仮説: マインドマップへノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="wetg"
+      [2026/6/10 7:13:43] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="wetg"
+      [2026/6/10 7:15:34] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:15:34] Keyword map: centered (no nodes)
+      [2026/6/10 7:15:34] 仮説: 復元しました
+      [2026/6/10 7:15:34] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:15:34] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:15:34] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:15:37] UI: left side view shown
+      [2026/6/10 7:15:41] マインドマップ: ノード削除 source=contextmenu key=-11 "wetg"
+      [2026/6/10 7:15:44] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="wetg"
+      [2026/6/10 7:15:44] 仮説: マインドマップへノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="wetg"
+      [2026/6/10 7:15:47] マインドマップ: ノード削除 source=contextmenu key=-11 "wetg"
+      [2026/6/10 7:15:57] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="wetg"
+      [2026/6/10 7:15:57] 仮説: マインドマップへノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="wetg"
+      [2026/6/10 7:16:03] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:16:03] Keyword map: centered (no nodes)
+      [2026/6/10 7:16:03] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:16:03] 仮説: 復元しました
+      [2026/6/10 7:16:03] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:16:03] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:16:04] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:16:04] Keyword map: centered (no nodes)
+      [2026/6/10 7:16:04] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:16:04] 仮説: 復元しました
+      [2026/6/10 7:16:04] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:16:04] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:16:04] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:16:04] Keyword map: centered (no nodes)
+      [2026/6/10 7:16:04] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:16:04] 仮説: 復元しました
+      [2026/6/10 7:16:04] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:16:04] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:16:05] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:16:05] Keyword map: centered (no nodes)
+      [2026/6/10 7:16:05] 仮説: 復元しました
+      [2026/6/10 7:16:05] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:16:05] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:16:05] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:16:07] UI: left side view shown
+      [2026/6/10 7:16:12] 仮説: SCAMPER選択 Combine
+      [2026/6/10 7:16:15] 仮説: 生成質問一覧 [How might we combine sound energy with solar energy to create a new method of sustainable energy generation? / What if we integrated solar thermal power generation with hydropower to enhance energy efficiency and sustainability? / Can we explore the potential of combining biomass power generation with thermal energy to develop a more effective renewable energy solution?]
+      [2026/6/10 7:16:16] 仮説: 生成質問を選択 "Can we explore the potential of combining biomass power generation with thermal energy to develop a more effective renewable energy solution?"
+      [2026/6/10 7:16:19] 仮説: SCAMPER入力 (Combine) "dgasdhasdhs"
+      [2026/6/10 7:16:23] マインドマップ: 子ノード追加 parent=-11 "wetg" text="dgasdhasdhs"
+      [2026/6/10 7:16:23] 仮説: マインドマップへノード追加 parent=-11 "wetg" text="dgasdhasdhs"
+      [2026/6/10 7:16:32] マインドマップ: ノード削除 source=contextmenu key=-12 "dgasdhasdhs"
+      [2026/6/10 7:16:44] マインドマップ: ノード削除 source=contextmenu key=-11 "wetg"
+      [2026/6/10 7:16:49] 仮説: 追加 (基づくキーワード: nuclear energy、sound energy)
+      [2026/6/10 7:16:49] 仮説: マップから仮説追加 (2個のキーワードを選択) "asga"
+      [2026/6/10 7:16:49] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="asga"
+      [2026/6/10 7:16:56] 仮説: SCAMPER選択 Combine
+      [2026/6/10 7:16:59] 仮説: 生成質問一覧 [How might we combine sound energy with solar energy to create a new method of sustainable power generation? / What if we integrated nuclear energy with biomass power generation to enhance efficiency and reduce waste? / Can we merge thermal energy with ocean energy power generation to develop a more reliable energy source?]
+      [2026/6/10 7:17:00] 仮説: 生成質問を選択 "What if we integrated nuclear energy with biomass power generation to enhance efficiency and reduce waste?"
+      [2026/6/10 7:17:02] 仮説: SCAMPER入力 (Combine) "asdyhgsryh"
+      [2026/6/10 7:17:06] マインドマップ: 子ノード追加 parent=-11 "asga" text="asdyhgsryh"
+      [2026/6/10 7:17:06] 仮説: マインドマップへノード追加 parent=-11 "asga" text="asdyhgsryh"
+      [2026/6/10 7:17:16] マインドマップ: ノード削除 source=contextmenu key=-12 "asdyhgsryh"
+      [2026/6/10 7:18:38] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:18:38] Keyword map: centered (no nodes)
+      [2026/6/10 7:18:38] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:18:38] 仮説: 復元しました
+      [2026/6/10 7:18:38] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:18:38] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:18:42] UI: left side view shown
+      [2026/6/10 7:18:47] マインドマップ: ノード削除 source=contextmenu key=-11 "asga"
+      [2026/6/10 7:18:51] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="asga"
+      [2026/6/10 7:18:51] 仮説: マインドマップへノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="asga"
+      [2026/6/10 7:18:53] 仮説: SCAMPER選択 Combine
+      [2026/6/10 7:18:58] 仮説: 生成質問一覧 [How might we combine nuclear energy with sound energy to create a new method of energy generation that is both efficient and sustainable? / What if we integrated solar energy with nuclear power generation to enhance energy output while minimizing environmental impact? / Could we explore the combination of thermal energy and sound energy to develop innovative technologies for energy conversion and storage?]
+      [2026/6/10 7:18:59] 仮説: 生成質問を選択 "What if we integrated solar energy with nuclear power generation to enhance energy output while minimizing environmental impact?"
+      [2026/6/10 7:19:02] 仮説: SCAMPER入力 (Combine) "sghaehsyq"
+      [2026/6/10 7:19:04] マインドマップ: 子ノード追加 parent=-11 "asga" text="sghaehsyq"
+      [2026/6/10 7:19:04] 仮説: マインドマップへノード追加 parent=-11 "asga" text="sghaehsyq"
+      [2026/6/10 7:19:16] マインドマップ: ノード削除 source=contextmenu key=-12 "sghaehsyq"
+      [2026/6/10 7:19:18] 仮説: SCAMPER選択 Adapt
+      [2026/6/10 7:19:21] 仮説: 生成質問一覧 [How might we adapt existing nuclear energy technologies to make them safer and more efficient for sustainable energy generation? / In what ways could sound energy be harnessed or modified to complement other renewable energy sources like solar or hydropower? / What if we combined thermal energy generation methods with sound energy to create a new hybrid power generation system? How would that work?]
+      [2026/6/10 7:19:23] 仮説: 生成質問を選択 "What if we combined thermal energy generation methods with sound energy to create a new hybrid power generation system? How would that work?"
+      [2026/6/10 7:19:25] 仮説: SCAMPER入力 (Adapt) "dfjdkj"
+      [2026/6/10 7:19:28] マインドマップ: 子ノード追加 parent=-11 "asga" text="dfjdkj"
+      [2026/6/10 7:19:28] 仮説: マインドマップへノード追加 parent=-11 "asga" text="dfjdkj"
+      [2026/6/10 7:19:35] マインドマップ: ノード削除 source=contextmenu key=-12 "dfjdkj"
+      [2026/6/10 7:19:46] マインドマップ: ノード削除 source=contextmenu key=-11 "asga"
+      [2026/6/10 7:19:51] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="asga"
+      [2026/6/10 7:19:51] 仮説: マインドマップへノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="asga"
+      [2026/6/10 7:19:56] マインドマップ: ノード削除 source=contextmenu key=-11 "asga"
+      [2026/6/10 7:20:43] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="gu"
+      [2026/6/10 7:20:43] 仮説: 追加 (基づくキーワード: solar energy、nuclear energy、sound energy)
+      [2026/6/10 7:20:43] 仮説: マップから仮説追加 (3個のキーワードを選択) "gu"
+      [2026/6/10 7:20:47] マインドマップ: ノード削除 source=contextmenu key=-11 "gu"
+      [2026/6/10 7:20:54] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="gu"
+      [2026/6/10 7:20:54] 仮説: マインドマップへノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="gu"
+      [2026/6/10 7:20:58] マインドマップ: ノード削除 source=contextmenu key=-11 "gu"
+      [2026/6/10 7:21:00] 仮説: マインドマップへノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="gu"
+      [2026/6/10 7:21:00] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="gu"
+      [2026/6/10 7:21:02] 仮説: SCAMPER選択 Combine
+      [2026/6/10 7:21:05] 仮説: 生成質問一覧 [How might we combine solar energy with sound energy technologies to create a new method of energy generation? / What if we integrated nuclear energy with renewable sources like hydropower or biomass to enhance sustainability? / Can we merge thermal energy generation methods with ocean energy power generation to improve efficiency and reduce environmental impact?]
+      [2026/6/10 7:21:06] 仮説: 生成質問を選択 "What if we integrated nuclear energy with renewable sources like hydropower or biomass to enhance sustainability?"
+      [2026/6/10 7:21:08] 仮説: SCAMPER入力 (Combine) "90[9y"
+      [2026/6/10 7:21:14] 仮説: マインドマップへノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="90[9y"
+      [2026/6/10 7:21:14] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="90[9y"
+      [2026/6/10 7:21:23] マインドマップ: ノード削除 source=contextmenu key=-12 "90[9y"
+      [2026/6/10 7:21:31] マインドマップ: 子ノード追加 parent=-11 "gu" text="90[9y"
+      [2026/6/10 7:21:31] 仮説: マインドマップへノード追加 parent=-11 "gu" text="90[9y"
+      [2026/6/10 7:21:35] マインドマップ: ノード削除 source=contextmenu key=-12 "90[9y"
+      [2026/6/10 7:21:39] マインドマップ: ノード削除 source=contextmenu key=-11 "gu"
+      [2026/6/10 7:21:43] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="gu"
+      [2026/6/10 7:21:43] 仮説: マインドマップへノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="gu"
+      [2026/6/10 7:21:44] 仮説: SCAMPER選択 Adapt
+      [2026/6/10 7:21:48] 仮説: 生成質問一覧 [How might we adapt existing solar energy technologies to increase their efficiency and accessibility in different environments? / What modifications could be made to nuclear energy systems to enhance their safety and sustainability while reducing waste? / In what ways can sound energy be harnessed or transformed to complement other renewable energy sources like solar or hydropower?]
+      [2026/6/10 7:21:50] 仮説: 生成質問を選択 "What modifications could be made to nuclear energy systems to enhance their safety and sustainability while reducing waste?"
+      [2026/6/10 7:21:52] 仮説: SCAMPER入力 (Adapt) "shuweay"
+      [2026/6/10 7:21:56] 仮説: マインドマップへノード追加 parent=-11 "gu" text="shuweay"
+      [2026/6/10 7:21:56] マインドマップ: 子ノード追加 parent=-11 "gu" text="shuweay"
+      [2026/6/10 7:22:02] マインドマップ: ノード削除 source=contextmenu key=-11 "gu"
+      [2026/6/10 7:25:35] System start: opened main.html (user: tanaka, title: Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:25:35] Keyword map: centered (no nodes)
+      [2026/6/10 7:25:35] キーワードマップ: DBから復元しました (theme=Thinking about how to generate sustainable energy for the future)
+      [2026/6/10 7:25:35] Mindmap: restored (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:25:35] 仮説: 復元しました
+      [2026/6/10 7:25:35] マインドマップ: 復元しました (tanaka__Thinking_about__51b461d7.mindmap.json)
+      [2026/6/10 7:25:37] UI: left side view shown
+      [2026/6/10 7:25:44] 仮説: マップから仮説追加 (2個のキーワードを選択) "asfa"
+      [2026/6/10 7:25:44] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="asfa"
+      [2026/6/10 7:25:44] 仮説: 追加 (基づくキーワード: nuclear energy、sound energy)
+      [2026/6/10 7:25:49] マインドマップ: ノード削除 source=contextmenu key=-11 "asfa"
+      [2026/6/10 7:25:53] 仮説: マインドマップへノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="asfa"
+      [2026/6/10 7:25:53] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="asfa"
+      [2026/6/10 7:25:56] マインドマップ: ノード削除 source=contextmenu key=-11 "asfa"
+      [2026/6/10 7:25:59] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="asfa"
+      [2026/6/10 7:25:59] 仮説: マインドマップへノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="asfa"
+      [2026/6/10 7:26:02] 仮説: SCAMPER選択 Combine
+      [2026/6/10 7:26:04] 仮説: 生成質問一覧 [How might we combine nuclear energy with sound energy to create a new method of power generation that is both efficient and sustainable? / What if we integrated solar energy with nuclear power generation to enhance energy output while minimizing environmental impact? / Could we explore the combination of thermal energy and sound energy to develop innovative technologies for energy conversion and storage?]
+      [2026/6/10 7:26:05] 仮説: 生成質問を選択 "Could we explore the combination of thermal energy and sound energy to develop innovative technologies for energy conversion and storage?"
+      [2026/6/10 7:26:07] 仮説: SCAMPER入力 (Combine) "weywy"
+      [2026/6/10 7:26:11] 仮説: マインドマップへノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="weywy"
+      [2026/6/10 7:26:11] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="weywy"
+      [2026/6/10 7:26:21] マインドマップ: ノード削除 source=contextmenu key=-11 "asfa"
+      [2026/6/10 7:26:27] マインドマップ: ノード削除 source=contextmenu key=-12 "weywy"
+      [2026/6/10 7:26:36] 仮説: 削除
+      [2026/6/10 7:27:16] 生成されたキーワードの組み合わせ: energy, future
+      [2026/6/10 7:27:42] マインドマップ: 子ノード追加 parent=0 "Thinking about how to generate sustainable energy for the future" text="asfag"
+      [2026/6/10 7:27:42] 仮説: 追加 (基づくキーワード: nuclear energy、solar energy)
+      [2026/6/10 7:27:42] 仮説: マップから仮説追加 (2個のキーワードを選択) "asfag"
+      [2026/6/10 7:27:45] 仮説: SCAMPER選択 Combine
+      [2026/6/10 7:27:47] 仮説: 生成質問一覧 [How might we combine solar energy with nuclear energy to create a more efficient and sustainable power generation system? / What if we integrated biomass power generation techniques with solar thermal power generation to enhance energy output? / Could we explore the potential of combining hydropower with ocean energy power generation to create a more resilient energy network?]
+      [2026/6/10 7:27:48] 仮説: 生成質問を選択 "Could we explore the potential of combining hydropower with ocean energy power generation to create a more resilient energy network?"
+      [2026/6/10 7:27:50] 仮説: SCAMPER入力 (Combine) "shsfhsfa"
+      [2026/6/10 7:27:53] 仮説: マインドマップへノード追加 parent=-11 "asfag" text="shsfhsfa"
+      [2026/6/10 7:27:53] マインドマップ: 子ノード追加 parent=-11 "asfag" text="shsfhsfa"
+      [2026/6/10 7:28:00] 仮説: SCAMPER選択 Adapt
+      [2026/6/10 7:28:02] 仮説: 生成質問一覧 [How might we adapt existing nuclear energy technologies to enhance their safety and sustainability in combination with solar energy systems? / What modifications can we make to current solar thermal power generation methods to increase their efficiency and integration with nuclear energy? / In what ways can we combine the principles of biomass power generation with solar energy to create a more sustainable energy solution?]
+      [2026/6/10 7:28:03] 仮説: 生成質問を選択 "In what ways can we combine the principles of biomass power generation with solar energy to create a more sustainable energy solution?"
+      [2026/6/10 7:28:07] 仮説: SCAMPER入力 (Adapt) "jfdgkjeyw"
+      [2026/6/10 7:28:10] 仮説: マインドマップへノード追加 parent=-12 "shsfhsfa" text="jfdgkjeyw"
+      [2026/6/10 7:28:10] マインドマップ: 子ノード追加 parent=-12 "shsfhsfa" text="jfdgkjeyw"
