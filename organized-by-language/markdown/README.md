@@ -26,7 +26,7 @@ APP_HOST=auto
 PHPMYADMIN_PATH=/phpmyadmin
 ```
 
-IPアドレスを固定で使いたい場合は `APP_HOST` に設定してください（例: `APP_HOST=10.158.102.203`）。
+IPアドレスを固定で使いたい場合は `APP_HOST` に設定してください（例: `APP_HOST=10.158.102.176`）。
 PC変更などでIPが変わる場合は `.env` の `APP_HOST` だけを変更すれば、ログイン画面/管理画面/各API呼び出し先へ一括反映されます。
 `APP_HOST=auto` の場合はブラウザのアクセス先ホスト名を自動利用します。
 

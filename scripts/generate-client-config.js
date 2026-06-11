@@ -4,7 +4,10 @@ const dotenv = require("dotenv");
 
 const rootDir = path.resolve(__dirname, "..");
 const envPath = path.join(rootDir, ".env");
-const outPath = path.join(rootDir, "JS", "runtime-config.js");
+const outPaths = [
+  path.join(rootDir, "JS", "runtime-config.js"),
+  path.join(rootDir, "organized-by-language", "javascript", "JS", "runtime-config.js"),
+];
 
 dotenv.config({ path: envPath, override: true });
 
@@ -54,5 +57,16 @@ const output = `(() => {
 })();
 `;
 
-fs.writeFileSync(outPath, output, "utf8");
-console.log(`Generated ${path.relative(rootDir, outPath)} from ${path.relative(rootDir, envPath)}`);
+const generated = [];
+for (const outPath of outPaths) {
+  const outDir = path.dirname(outPath);
+  if (!fs.existsSync(outDir)) continue;
+  fs.writeFileSync(outPath, output, "utf8");
+  generated.push(path.relative(rootDir, outPath));
+}
+
+if (generated.length === 0) {
+  throw new Error("No runtime-config.js output path exists.");
+}
+
+console.log(`Generated ${generated.join(", ")} from ${path.relative(rootDir, envPath)}`);
