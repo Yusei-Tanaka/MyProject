@@ -102,4 +102,16 @@ CREATE TABLE IF NOT EXISTS theme_version_payloads (
   CONSTRAINT fk_theme_version_payloads_version FOREIGN KEY (theme_version_id) REFERENCES theme_versions(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS user_action_logs (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  user_id VARCHAR(64) NOT NULL,
+  theme_name VARCHAR(255) NULL,
+  event_type VARCHAR(64) NOT NULL DEFAULT 'system',
+  log_text TEXT NOT NULL,
+  payload_json JSON NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_user_action_logs_user_time (user_id, created_at),
+  INDEX idx_user_action_logs_theme_time (user_id, theme_name, created_at)
+);
+
 COMMIT;

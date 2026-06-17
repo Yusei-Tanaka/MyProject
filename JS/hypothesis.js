@@ -45,25 +45,16 @@ function logHypothesisAction(message) {
 
 const hypothesisConfig = window.APP_CONFIG || {};
 const hypothesisHost = hypothesisConfig.host || window.location.hostname || "127.0.0.1";
-const hypothesisSaveBaseUrl =
-  hypothesisConfig.saveXmlBaseUrl ||
-  `http://${hypothesisHost}:${Number(hypothesisConfig.saveXmlPort || 3005)}`;
 const hypothesisDbApiBaseUrl =
   hypothesisConfig.apiBaseUrl ||
   `http://${hypothesisHost}:${Number(hypothesisConfig.apiPort || 3000)}`;
-const HYPOTHESIS_SNAPSHOT_DIR = "XML";
-const HYPOTHESIS_LEGACY_SNAPSHOT_DIR = "JS/XML";
-const ENABLE_LEGACY_HYPOTHESIS_LOOKUP = hypothesisConfig.enableLegacyHypothesisLookup === true;
-const HYPOTHESIS_SNAPSHOT_DIRS = ENABLE_LEGACY_HYPOTHESIS_LOOKUP
-  ? [HYPOTHESIS_SNAPSHOT_DIR, HYPOTHESIS_LEGACY_SNAPSHOT_DIR]
-  : [HYPOTHESIS_SNAPSHOT_DIR];
 let hypothesisSaveTimer = null;
 let hypothesisSaveInFlight = false;
 let hypothesisSaveQueued = false;
 let lastSavedHypothesisFingerprint = "";
 const HYPOTHESIS_MAX_FILE_PART_LENGTH = 24;
 let hasShownHypothesisUserMissingWarning = false;
-let hasShownXmlFetchWarning = false;
+let hasShownScreenStateFetchWarning = false;
 
 var t = (key, vars = {}, fallback = "") => {
   if (window.APP_I18N && typeof window.APP_I18N.t === "function") {
@@ -335,37 +326,6 @@ async function saveHypothesisStateToDb(serializedHtml, hypothesisNodes) {
   }
 }
 
-function getLegacyHypothesisStateFilename() {
-  const parts = getUserThemeParts(false);
-  return `${parts.user}__${parts.theme}.hypothesis.json`;
-}
-
-function buildHypothesisSnapshotPath(dir, fileName) {
-  const normalizedDir = String(dir || "").replace(/^\/+|\/+$/g, "");
-  return `/${normalizedDir}/${encodeURIComponent(fileName)}`;
-}
-
-async function checkHypothesisSnapshotExistsInPrimaryDir(fileName) {
-  try {
-    const response = await fetch(
-      `${hypothesisSaveBaseUrl}/xml-exists?filename=${encodeURIComponent(fileName)}`,
-      { cache: "no-store" }
-    );
-    if (!response.ok) return null;
-    const payload = await response.json();
-    return Boolean(payload && payload.exists);
-  } catch (_error) {
-    return null;
-  }
-}
-
-async function fetchHypothesisSnapshotResponse(snapshotPath) {
-  const response = await fetch(snapshotPath, { cache: "no-store" });
-  if (response.ok) return response;
-  if (response.status === 404) return null;
-  throw new Error(`HTTP ${response.status}`);
-}
-
 function scheduleHypothesisSave() {
   if (hypothesisSaveTimer) clearTimeout(hypothesisSaveTimer);
   hypothesisSaveTimer = setTimeout(function () {
@@ -390,25 +350,7 @@ async function saveHypothesisState() {
     const serializedHtml = serializeHypothesisWrapper(wrapper);
     const hypothesisNodes = collectHypothesisNodesFromWrapper(wrapper);
 
-    const payload = {
-      filename: getHypothesisStateFilename(),
-      content: JSON.stringify({ html: serializedHtml }),
-    };
-
-    const fileSavePromise = fetch(`${hypothesisSaveBaseUrl}/save-xml`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const [fileSaveResult] = await Promise.all([
-      fileSavePromise,
-      saveHypothesisStateToDb(serializedHtml, hypothesisNodes),
-    ]);
-
-    if (!fileSaveResult.ok) {
-      throw new Error(`HTTP ${fileSaveResult.status}`);
-    }
+    await saveHypothesisStateToDb(serializedHtml, hypothesisNodes);
   } catch (error) {
     console.error("仮説発散エリアの保存に失敗しました:", error);
   }
@@ -454,26 +396,7 @@ async function flushHypothesisSave() {
 
   hypothesisSaveInFlight = true;
   try {
-    const payload = {
-      filename: getHypothesisStateFilename(),
-      content: JSON.stringify({ html: snapshot.serializedHtml }),
-    };
-
-    const fileSavePromise = fetch(`${hypothesisSaveBaseUrl}/save-xml`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const [fileSaveResult] = await Promise.all([
-      fileSavePromise,
-      saveHypothesisStateToDb(snapshot.serializedHtml, snapshot.hypothesisNodes),
-    ]);
-
-    if (!fileSaveResult.ok) {
-      throw new Error(`HTTP ${fileSaveResult.status}`);
-    }
-
+    await saveHypothesisStateToDb(snapshot.serializedHtml, snapshot.hypothesisNodes);
     lastSavedHypothesisFingerprint = snapshot.fingerprint;
   } catch (error) {
     console.error("仮説発散エリアの保存に失敗しました:", error);
@@ -628,52 +551,7 @@ async function restoreHypothesisState() {
       }
     }
 
-    const candidateFileNames = [];
-    const preferredFileName = getHypothesisStateFilename();
-    const legacyFileName = getLegacyHypothesisStateFilename();
-    candidateFileNames.push(preferredFileName);
-    if (legacyFileName !== preferredFileName) {
-      candidateFileNames.push(legacyFileName);
-    }
-
-    let res = null;
-    for (let i = 0; i < candidateFileNames.length; i += 1) {
-      const fileName = candidateFileNames[i];
-      const existsInPrimaryDir = await checkHypothesisSnapshotExistsInPrimaryDir(fileName);
-      if (existsInPrimaryDir === false && !ENABLE_LEGACY_HYPOTHESIS_LOOKUP) {
-        continue;
-      }
-
-      for (let j = 0; j < HYPOTHESIS_SNAPSHOT_DIRS.length; j += 1) {
-        const dir = HYPOTHESIS_SNAPSHOT_DIRS[j];
-        if (dir === HYPOTHESIS_SNAPSHOT_DIR && existsInPrimaryDir === false) {
-          continue;
-        }
-        const snapshotPath = buildHypothesisSnapshotPath(dir, fileName);
-        res = await fetchHypothesisSnapshotResponse(snapshotPath);
-        if (res) break;
-      }
-
-      if (res) break;
-    }
-
-    if (!res) return;
-
-    const raw = await res.text();
-    if (!raw || !raw.trim()) return;
-
-    let parsed = null;
-    try {
-      parsed = JSON.parse(raw);
-    } catch (_e) {
-      parsed = { html: "" };
-    }
-
-    if (!parsed.html || typeof parsed.html !== "string") return;
-
-    wrapper.innerHTML = parsed.html;
-    rebindRestoredHypothesis(wrapper);
-    resetHypothesisSaveFingerprintFromCurrent();
+    return;
   } catch (error) {
     console.error("仮説発散エリアの復元に失敗しました:", error);
   }
@@ -1623,7 +1501,7 @@ var SCAMPER_OPTIONS = [
 ];
 
 // SCAMPER関連の共有状態
-let xmlData = "";
+let screenStateData = "";
 let hypothesisData = "";
 let selectedKeywords = "";
 let selectedScamper = "";
@@ -2072,12 +1950,6 @@ document.querySelectorAll('.keyword').forEach(function(elem) {
   });
 });
 
-function getUserXmlRelativePath() {
-  const parts = getUserThemeParts(true);
-  const filename = `${parts.user}__${parts.theme}.xml`;
-  return buildHypothesisSnapshotPath(HYPOTHESIS_SNAPSHOT_DIR, filename);
-}
-
 // HTMLの入力フィールドからタイトルを取得してコンソールに出力する
 document.addEventListener("DOMContentLoaded", () => {
   const titleInput = document.querySelector("#myTitle"); // タイトル入力用のinput要素を取得
@@ -2167,7 +2039,7 @@ function triggerScamperQuestion(targetTag, scamperLabel) {
     hypothesisText: hypothesisData,
     keywords: selectedKeywords,
     scamperLabel: selectedScamper,
-    xmlSnapshot: xmlData,
+    xmlSnapshot: screenStateData,
     useEnglishPrompt: isHypothesisEnglishUi(),
   });
 
@@ -2286,7 +2158,7 @@ function triggerScamperQuestion(targetTag, scamperLabel) {
 // 取得したデータをまとめてコンソールに出力し、印刷
 document.addEventListener("DOMContentLoaded", () => {
   window.theme = ""; // テーマをグローバル化
-  xmlData = ""; // XMLデータ
+  screenStateData = ""; // 画面状態データ
   hypothesisData = ""; // 仮説内容
   selectedKeywords = ""; // 選んだキーワード
   selectedScamper = ""; // 選んだSCAMPER
@@ -2302,38 +2174,41 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // XMLデータの取得
-  let xmlFetchInFlight = false;
-  const fetchXML = () => {
-    if (xmlFetchInFlight) return;
+  let screenStateFetchInFlight = false;
+  const fetchScreenState = () => {
+    if (screenStateFetchInFlight) return;
     const { userId, themeName } = getCurrentUserThemeRaw();
     if (!userId || !themeName) return;
 
-    xmlFetchInFlight = true;
-    const xmlFilePath = getUserXmlRelativePath();
-    fetch(xmlFilePath)
+    screenStateFetchInFlight = true;
+    const language = getCurrentThemeLanguage();
+    fetch(`${hypothesisDbApiBaseUrl}/users/${encodeURIComponent(userId)}/themes/${encodeURIComponent(themeName)}?language=${encodeURIComponent(language)}`)
       .then(response => {
         if (response.status === 404) {
-          return "";
+          return null;
         }
         if (!response.ok) {
           throw new Error(`HTTPエラー: ${response.status}`);
         }
-        return response.text();
+        return response.json();
       })
-      .then(xmlText => {
-        xmlData = xmlText;
+      .then(record => {
+        const content = record && record.content && typeof record.content === "object"
+          ? record.content
+          : null;
+        screenStateData = content ? JSON.stringify(content) : "";
       })
       .catch(error => {
-        if (!hasShownXmlFetchWarning) {
-          hasShownXmlFetchWarning = true;
-          console.warn("XMLファイルの取得中にエラーが発生しました:", error.message);
+        if (!hasShownScreenStateFetchWarning) {
+          hasShownScreenStateFetchWarning = true;
+          console.warn("DBから画面状態を取得中にエラーが発生しました:", error.message);
         }
       })
       .finally(() => {
-        xmlFetchInFlight = false;
+        screenStateFetchInFlight = false;
       });
   };
-  setInterval(fetchXML, 5000); // 5秒ごとに更新
+  setInterval(fetchScreenState, 5000); // 5秒ごとに更新
 
   // 仮説の情報を取得
   document.body.addEventListener("contextmenu", (event) => {

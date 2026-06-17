@@ -111,16 +111,12 @@ const apiBaseUrl =
 const themeApiBaseUrl =
   appConfig.apiBaseUrl ||
   `http://${host}:${Number(appConfig.apiPort || 3000)}`;
-const saveXmlBaseUrl =
-  appConfig.saveXmlBaseUrl ||
-  `http://${host}:${Number(appConfig.saveXmlPort || 3005)}`;
 
 let isRestoringConceptMap = false;
 let conceptMapSaveTimer = null;
 let conceptMapSaveInFlight = false;
 let conceptMapSaveQueued = false;
 let lastSavedConceptMapFingerprint = "";
-const MAX_FILE_PART_LENGTH = 24;
 
 // 最後に選択された2つのノードを保存
 var selectedNodes = []; // 選択されたノードIDを保存
@@ -725,40 +721,6 @@ function getCurrentThemeName() {
   return getCurrentTitleText().trim();
 }
 
-function sanitizeFilePart(value) {
-  return String(value || "")
-    .trim()
-    .replace(/[\\/:*?"<>|]/g, "_")
-    .replace(/\s+/g, "_")
-    .replace(/_+/g, "_")
-    .replace(/^_+|_+$/g, "");
-}
-
-function hashString8(value) {
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < value.length; i += 1) {
-    hash ^= value.charCodeAt(i);
-    hash = Math.imul(hash, 0x01000193) >>> 0;
-  }
-  return hash.toString(16).padStart(8, "0");
-}
-
-function toShortFilePart(value, fallback) {
-  const normalized = sanitizeFilePart(value) || fallback;
-  if (normalized.length <= MAX_FILE_PART_LENGTH) {
-    return normalized;
-  }
-  const headLength = MAX_FILE_PART_LENGTH - 9;
-  const head = normalized.slice(0, headLength);
-  return `${head}_${hashString8(normalized)}`;
-}
-
-function getThemeScopedXmlFilename() {
-  const userId = toShortFilePart(getCurrentUserId(), "user");
-  const themeName = toShortFilePart(getCurrentThemeName(), "theme");
-  return `${userId}__${themeName}.xml`;
-}
-
 // ネットワークのクリックイベント
 network.on("click", function (event) {
   if (event.nodes.length === 0 && event.edges.length === 0) {
@@ -893,37 +855,6 @@ function buildConceptMapFingerprint(payload) {
   return JSON.stringify(payload || buildConceptMapPayload());
 }
 
-function escapeXml(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
-
-function convertConceptMapPayloadToXml(payload) {
-  const title = payload?.title || "";
-  const nodesArray = Array.isArray(payload?.nodes) ? payload.nodes : [];
-  const edgesArray = Array.isArray(payload?.edges) ? payload.edges : [];
-
-  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
-  xml += `<?meta title="${escapeXml(title)}"?>\n`;
-  xml += "<ConceptMap>\n";
-  xml += "  <Nodes>\n";
-  nodesArray.forEach((node) => {
-    xml += `    <Node id="${escapeXml(node.id)}" label="${escapeXml(node.label || "")}" x="${escapeXml(node.x ?? "")}" y="${escapeXml(node.y ?? "")}" />\n`;
-  });
-  xml += "  </Nodes>\n";
-  xml += "  <Edges>\n";
-  edgesArray.forEach((edge) => {
-    xml += `    <Edge id="${escapeXml(edge.id ?? "")}" from="${escapeXml(edge.from)}" to="${escapeXml(edge.to)}" label="${escapeXml(edge.label || "")}" arrows="${escapeXml(edge.arrows || "")}" />\n`;
-  });
-  xml += "  </Edges>\n";
-  xml += "</ConceptMap>";
-  return xml;
-}
-
 function applyConceptMapPayload(payload) {
   const currentLanguage = getCurrentThemeLanguage();
   const loadedNodes = [];
@@ -1045,16 +976,6 @@ async function sendConceptMapToServer(content) {
     body: JSON.stringify(payload),
   });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  const xmlPayload = {
-    filename: getThemeScopedXmlFilename(),
-    content: convertConceptMapPayloadToXml(content),
-  };
-  const xmlResponse = await fetch(`${saveXmlBaseUrl}/save-xml`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(xmlPayload),
-  });
-  if (!xmlResponse.ok) throw new Error(`HTTP ${xmlResponse.status}`);
 
   return response.json();
 }

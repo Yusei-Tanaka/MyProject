@@ -49,6 +49,11 @@ const JAPANESE_CHAR_PATTERN = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uff01-\u
 const normalizeUserId = (value) => String(value || "").trim();
 const normalizePassword = (value) => String(value || "").trim();
 const normalizeThemeName = (value) => String(value || "").trim();
+const normalizeLogText = (value) => String(value || "");
+const normalizeEventType = (value) => {
+  const normalized = String(value || "system").trim().toLowerCase();
+  return normalized.replace(/[^a-z0-9_-]/g, "_").replace(/_+/g, "_").slice(0, 64) || "system";
+};
 const normalizeThemeLanguage = (value) => {
   const lang = String(value || "").trim().toLowerCase();
   if (lang.startsWith("en")) return "en";
@@ -98,6 +103,7 @@ const V2_TABLES = {
   hypothesisNodes: "hypothesis_nodes",
   themeVersionPayloads: "theme_version_payloads",
 };
+const USER_ACTION_LOGS_TABLE = "user_action_logs";
 
 const ENABLE_V2_READ = String(process.env.ENABLE_V2_READ || "false").toLowerCase() === "true";
 let v2SchemaReady = false;
@@ -971,7 +977,19 @@ const ensureSchema = async () => {
     if (!(err && err.code === "ER_DUP_FIELDNAME")) throw err;
   }
 
-  await pool.execute("DROP TABLE IF EXISTS logs");
+  await pool.execute(
+    `CREATE TABLE IF NOT EXISTS ${USER_ACTION_LOGS_TABLE} (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      user_id VARCHAR(64) NOT NULL,
+      theme_name VARCHAR(255) NULL,
+      event_type VARCHAR(64) NOT NULL DEFAULT 'system',
+      log_text TEXT NOT NULL,
+      payload_json JSON NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_user_action_logs_user_time (user_id, created_at),
+      INDEX idx_user_action_logs_theme_time (user_id, theme_name, created_at)
+    )`
+  );
 };
 
 app.post("/users", async (req, res) => {
@@ -1390,6 +1408,88 @@ app.post("/auth/login", async (req, res) => {
   } catch (err) {
     console.error("login failed", err);
     res.status(500).json({ error: "db error" });
+  }
+});
+
+app.post("/logs", async (req, res) => {
+  const userId = normalizeUserId(req.body.userId || req.body.userName);
+  const themeName = normalizeThemeName(req.body.themeName || "");
+  const eventType = normalizeEventType(req.body.eventType);
+  const logText = normalizeLogText(req.body.logText || req.body.message);
+  const payload =
+    req.body.payload && typeof req.body.payload === "object" && !Array.isArray(req.body.payload)
+      ? req.body.payload
+      : null;
+
+  if (!userId || !logText) {
+    return res.status(400).json({ error: "userId and logText are required" });
+  }
+  if (!isValidUserId(userId)) {
+    return res.status(400).json({ error: "invalid userId" });
+  }
+  if (themeName && !isValidThemeName(themeName)) {
+    return res.status(400).json({ error: "invalid themeName" });
+  }
+
+  try {
+    const [result] = await pool.execute(
+      `INSERT INTO ${USER_ACTION_LOGS_TABLE} (user_id, theme_name, event_type, log_text, payload_json) VALUES (?, ?, ?, ?, ?)`,
+      [userId, themeName || null, eventType, logText, payload ? JSON.stringify(payload) : null]
+    );
+    res.status(201).json({ id: result.insertId, saved: true });
+  } catch (err) {
+    console.error("save log failed", err);
+    res.status(500).json({ error: "failed to save log" });
+  }
+});
+
+app.get("/logs", async (req, res) => {
+  const userId = req.query.userId ? normalizeUserId(req.query.userId) : "";
+  const themeName = req.query.themeName ? normalizeThemeName(req.query.themeName) : "";
+  const limit = safeLimit(req.query.limit, 50, 200);
+
+  if (userId && !isValidUserId(userId)) {
+    return res.status(400).json({ error: "invalid userId" });
+  }
+  if (themeName && !isValidThemeName(themeName)) {
+    return res.status(400).json({ error: "invalid themeName" });
+  }
+
+  const whereClause = [];
+  const params = [];
+  if (userId) {
+    whereClause.push("user_id = ?");
+    params.push(userId);
+  }
+  if (themeName) {
+    whereClause.push("theme_name = ?");
+    params.push(themeName);
+  }
+  params.push(limit);
+
+  try {
+    const [rows] = await pool.query(
+      `SELECT id, user_id, theme_name, event_type, log_text, payload_json, created_at
+         FROM ${USER_ACTION_LOGS_TABLE}
+        ${whereClause.length ? `WHERE ${whereClause.join(" AND ")}` : ""}
+        ORDER BY created_at DESC, id DESC
+        LIMIT ?`,
+      params
+    );
+    res.json(
+      rows.map((row) => ({
+        id: row.id,
+        userId: row.user_id,
+        themeName: row.theme_name,
+        eventType: row.event_type,
+        logText: row.log_text,
+        payload: parseJsonField(row.payload_json),
+        createdAt: row.created_at,
+      }))
+    );
+  } catch (err) {
+    console.error("fetch logs failed", err);
+    res.status(500).json({ error: "failed to fetch logs" });
   }
 });
 

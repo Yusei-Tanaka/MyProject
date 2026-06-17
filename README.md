@@ -19,7 +19,6 @@ DB_PASSWORD=app_pass
 DB_NAME=myapp
 PORT=3000
 DB_CONN_LIMIT=10
-SAVE_XML_PORT=3005
 FLASK_API_PORT=8000
 APP_PROTOCOL=http
 APP_HOST=auto
@@ -56,8 +55,7 @@ powershell -ExecutionPolicy Bypass -File .\start.ps1
 起動対象:
 - `python -m http.server 8008`
 - `api.py`
-- `JS/saveXML.js`（3005）
-- `JS/server.js`（ユーザ管理API）
+- `JS/server.js` (API / MariaDB)
 
 ### 一括停止
 
@@ -138,9 +136,8 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:3000/auth/login" -ContentT
 - キーワードノードは `user_themes.content_json.keywordNodes` に保存
 - キーワードマップ構成エリアのノード/エッジは `keyword_nodes` / `keyword_edges`（DB V2）を正とします
 - 仮説関係性マップ内の仮説ノードは `user_themes.content_json.hypothesis.nodes` に保存され、`node_hypothesis` テーブルにも同期保存
-- `XML` のスナップショットXMLファイルは `短縮ユーザ__短縮テーマ.xml` 形式で保存
-- `log` のログファイルは `短縮ユーザ__短縮テーマ_log` 形式で保存
-- DBの `logs` テーブルは現在使用しません（起動時に削除されます）
+- Local `XML` / `log` snapshot files are legacy only. Normal saves use MariaDB.
+- User action logs are stored in `user_action_logs`.
 - ファイル名パーツ（ユーザ/テーマ）は記号除去・空白を `_` へ正規化し、24文字超過時は `先頭15文字 + _ + 8桁ハッシュ` に短縮
 
 ### 既存XMLをDBへ一括移行

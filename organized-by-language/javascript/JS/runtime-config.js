@@ -3,7 +3,6 @@
   "protocol": "http",
   "host": "10.158.102.176",
   "apiPort": 3000,
-  "saveXmlPort": 3005,
   "flaskApiPort": 8000,
   "phpMyAdminPath": "/phpmyadmin"
 };
@@ -19,7 +18,6 @@
     ...rawConfig,
     host: resolvedHost,
     apiBaseUrl: withPort(rawConfig.apiPort),
-    saveXmlBaseUrl: withPort(rawConfig.saveXmlPort),
     flaskApiBaseUrl: withPort(rawConfig.flaskApiPort),
     phpMyAdminUrl: `${rawConfig.protocol}://${resolvedHost}${rawConfig.phpMyAdminPath}`,
   };

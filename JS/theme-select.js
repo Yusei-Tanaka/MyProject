@@ -15,7 +15,6 @@ var t = (key, vars = {}, fallback = "") => {
 const appConfig = window.APP_CONFIG || {};
 const fallbackHost = window.location.hostname || "127.0.0.1";
 const authApiPort = Number(appConfig.apiPort || 3000);
-const saveXmlPort = Number(appConfig.saveXmlPort || 3005);
 
 const currentUser = (localStorage.getItem("userName") || "").trim();
 if (!currentUser) {
@@ -70,67 +69,9 @@ const filterThemesByCurrentLanguage = (themes) => {
 };
 
 const themeApiBase = appConfig.apiBaseUrl || `http://${fallbackHost}:${authApiPort}`;
-const saveXmlBase = appConfig.saveXmlBaseUrl || `http://${fallbackHost}:${saveXmlPort}`;
 let allThemes = [];
 let cachedThemes = [];
 let selectedThemeName = "";
-const MAX_FILE_PART_LENGTH = 24;
-
-const hashString8 = (value) => {
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < value.length; i += 1) {
-    hash ^= value.charCodeAt(i);
-    hash = Math.imul(hash, 0x01000193) >>> 0;
-  }
-  return hash.toString(16).padStart(8, "0");
-};
-
-const sanitizeFilePart = (value) =>
-  String(value || "")
-    .trim()
-    .replace(/[\\/:*?"<>|]/g, "_")
-    .replace(/\s+/g, "_")
-    .replace(/_+/g, "_")
-    .replace(/^_+|_+$/g, "");
-
-const toShortFilePart = (value, fallback) => {
-  const normalized = sanitizeFilePart(value) || fallback;
-  if (normalized.length <= MAX_FILE_PART_LENGTH) {
-    return normalized;
-  }
-  const headLength = MAX_FILE_PART_LENGTH - 9;
-  const head = normalized.slice(0, headLength);
-  return `${head}_${hashString8(normalized)}`;
-};
-
-const getThemeScopedXmlFilename = (userName, themeName) => {
-  const safeUser = toShortFilePart(userName, "user");
-  const safeTheme = toShortFilePart(themeName, "theme");
-  return `${safeUser}__${safeTheme}.xml`;
-};
-
-const ensureThemeXmlExists = async (userName, themeName) => {
-  const filename = getThemeScopedXmlFilename(userName, themeName);
-  const existsRes = await fetch(
-    `${saveXmlBase}/xml-exists?filename=${encodeURIComponent(filename)}`
-  );
-  if (!existsRes.ok) {
-    throw new Error(t("errors.xmlExistsCheckFailed", {}, "XML存在確認に失敗しました"));
-  }
-
-  const existsBody = await existsRes.json();
-  if (existsBody.exists) return;
-
-  const initialXml = `<?xml version="1.0" encoding="UTF-8"?>\n<?meta title="${themeName}"?>\n<ConceptMap><Nodes></Nodes><Edges></Edges></ConceptMap>`;
-  const createRes = await fetch(`${saveXmlBase}/save-xml`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ filename, content: initialXml }),
-  });
-  if (!createRes.ok) {
-    throw new Error(t("errors.initialXmlCreateFailed", {}, "初期XMLの作成に失敗しました"));
-  }
-};
 
 const fetchThemeHistory = async (userName) => {
   const language = resolveCurrentLanguage();
@@ -278,7 +219,6 @@ const startSearch = async () => {
 
   try {
     await saveTheme(currentUser, title);
-    await ensureThemeXmlExists(currentUser, title);
     allThemes = await fetchThemeHistory(currentUser);
     refreshVisibleThemeHistory();
   } catch (error) {
