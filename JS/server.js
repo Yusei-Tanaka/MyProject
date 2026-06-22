@@ -104,6 +104,7 @@ const V2_TABLES = {
   themeVersionPayloads: "theme_version_payloads",
 };
 const USER_ACTION_LOGS_TABLE = "user_action_logs";
+const LEGACY_FILE_IMPORTS_TABLE = "legacy_file_imports";
 
 const ENABLE_V2_READ = String(process.env.ENABLE_V2_READ || "false").toLowerCase() === "true";
 let v2SchemaReady = false;
@@ -985,9 +986,45 @@ const ensureSchema = async () => {
       event_type VARCHAR(64) NOT NULL DEFAULT 'system',
       log_text TEXT NOT NULL,
       payload_json JSON NULL,
+      import_key CHAR(64) NULL,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY uk_user_action_logs_import_key (import_key),
       INDEX idx_user_action_logs_user_time (user_id, created_at),
       INDEX idx_user_action_logs_theme_time (user_id, theme_name, created_at)
+    )`
+  );
+
+  try {
+    await pool.execute(`ALTER TABLE ${USER_ACTION_LOGS_TABLE} ADD COLUMN import_key CHAR(64) NULL`);
+  } catch (err) {
+    if (!(err && err.code === "ER_DUP_FIELDNAME")) throw err;
+  }
+
+  try {
+    await pool.execute(
+      `ALTER TABLE ${USER_ACTION_LOGS_TABLE} ADD UNIQUE INDEX uk_user_action_logs_import_key (import_key)`
+    );
+  } catch (err) {
+    if (!(err && err.code === "ER_DUP_KEYNAME")) throw err;
+  }
+
+  await pool.execute(
+    `CREATE TABLE IF NOT EXISTS ${LEGACY_FILE_IMPORTS_TABLE} (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      import_key CHAR(64) NOT NULL,
+      source_path VARCHAR(1024) NOT NULL,
+      file_type VARCHAR(32) NOT NULL,
+      user_id VARCHAR(64) NULL,
+      theme_name VARCHAR(255) NULL,
+      content_blob LONGBLOB NOT NULL,
+      content_sha256 CHAR(64) NOT NULL,
+      file_size BIGINT NOT NULL,
+      file_modified_at DATETIME(3) NULL,
+      metadata_json JSON NULL,
+      imported_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY uk_legacy_file_imports_key (import_key),
+      INDEX idx_legacy_file_imports_type (file_type),
+      INDEX idx_legacy_file_imports_user_theme (user_id, theme_name)
     )`
   );
 };

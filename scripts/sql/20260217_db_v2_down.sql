@@ -4,6 +4,7 @@
 
 START TRANSACTION;
 
+DROP TABLE IF EXISTS legacy_file_imports;
 DROP TABLE IF EXISTS user_action_logs;
 DROP TABLE IF EXISTS theme_version_payloads;
 DROP TABLE IF EXISTS hypothesis_nodes;

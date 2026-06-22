@@ -109,9 +109,29 @@ CREATE TABLE IF NOT EXISTS user_action_logs (
   event_type VARCHAR(64) NOT NULL DEFAULT 'system',
   log_text TEXT NOT NULL,
   payload_json JSON NULL,
+  import_key CHAR(64) NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_user_action_logs_import_key (import_key),
   INDEX idx_user_action_logs_user_time (user_id, created_at),
   INDEX idx_user_action_logs_theme_time (user_id, theme_name, created_at)
+);
+
+CREATE TABLE IF NOT EXISTS legacy_file_imports (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  import_key CHAR(64) NOT NULL,
+  source_path VARCHAR(1024) NOT NULL,
+  file_type VARCHAR(32) NOT NULL,
+  user_id VARCHAR(64) NULL,
+  theme_name VARCHAR(255) NULL,
+  content_blob LONGBLOB NOT NULL,
+  content_sha256 CHAR(64) NOT NULL,
+  file_size BIGINT NOT NULL,
+  file_modified_at DATETIME(3) NULL,
+  metadata_json JSON NULL,
+  imported_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_legacy_file_imports_key (import_key),
+  INDEX idx_legacy_file_imports_type (file_type),
+  INDEX idx_legacy_file_imports_user_theme (user_id, theme_name)
 );
 
 COMMIT;
