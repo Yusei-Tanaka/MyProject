@@ -228,7 +228,7 @@ const startSearch = async () => {
   }
 
   localStorage.setItem("searchTitle", title);
-  window.location.href = "main.html";
+  window.location.href = "main.html?v=20260622-1";
 };
 
 const deleteSelectedTheme = async () => {

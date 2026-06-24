@@ -84,12 +84,12 @@ function isHypothesisEnglishUi() {
   return String(getHypothesisUiLanguage()).toLowerCase().startsWith("en");
 }
 
-function buildScamperPrompt({
+function buildScamperPromptLegacy({
   theme,
   hypothesisText,
   keywords,
   scamperLabel,
-  xmlSnapshot,
+  screenStateSnapshot,
   useEnglishPrompt,
 }) {
   if (useEnglishPrompt) {
@@ -101,7 +101,7 @@ function buildScamperPrompt({
         - The learner is exploring: [${theme}]
         - The learner proposed this hypothesis: [${hypothesisText}]
         - The hypothesis is based on these keywords: [${keywords}]
-        - The learner's concept-map state is shown in this XML: [${xmlSnapshot}]
+        - The learner's concept-map state is shown in this JSON snapshot: [${screenStateSnapshot}]
 
         ## Input
         - Expand the hypothesis from a SCAMPER perspective.
@@ -129,7 +129,7 @@ function buildScamperPrompt({
         ##背景・文脈
         ・学習者は[${theme}]を目標に探究活動を行っている
         ・今，学習者は[${hypothesisText}]という仮説を[${keywords}]のキーワードを基に立案した
-        ・また学習者が作成した概念マップによって読み取ることの出来，その学習者の理解状態は次のXMLファイルの通りである　[${xmlSnapshot}]
+        ・学習者が作成した概念マップから読み取れる理解状態は，次のJSONスナップショットの通りである　[${screenStateSnapshot}]
         ##入力
         ・この仮説に対して，SCAMPER法に基づく観点から仮説を発散させる
         ・あなたはSCAMPER法の[${scamperLabel}]に基づき，仮説を発散させることを促す質問を与えよ．
@@ -145,6 +145,13 @@ function buildScamperPrompt({
         ・各項目は<li></li>タグで囲め
         ・リストのみでよい．その他の記述や説明は一切いらない
       `;
+}
+
+function buildScamperPrompt(options) {
+  if (window.APP_PROMPT_CONTEXT && typeof window.APP_PROMPT_CONTEXT.buildScamperPrompt === "function") {
+    return window.APP_PROMPT_CONTEXT.buildScamperPrompt(options);
+  }
+  return buildScamperPromptLegacy(options);
 }
 
 function sanitizeFilePart(value) {
@@ -1502,10 +1509,111 @@ var SCAMPER_OPTIONS = [
 
 // SCAMPER関連の共有状態
 let screenStateData = "";
+let screenStateFetchPromise = null;
+let screenStateScopeKey = "";
 let hypothesisData = "";
 let selectedKeywords = "";
 let selectedScamper = "";
 window.theme = "";
+
+function buildConceptMapPromptSnapshot(content, themeName) {
+  if (
+    window.APP_PROMPT_CONTEXT &&
+    typeof window.APP_PROMPT_CONTEXT.buildConceptMapPromptSnapshot === "function"
+  ) {
+    return window.APP_PROMPT_CONTEXT.buildConceptMapPromptSnapshot({
+      content,
+      themeName,
+      liveNodes: window.nodes && typeof window.nodes.get === "function" ? window.nodes.get() : null,
+      liveEdges: window.edges && typeof window.edges.get === "function" ? window.edges.get() : null,
+    });
+  }
+  const storedContent = content && typeof content === "object" && !Array.isArray(content) ? content : {};
+  const hasLiveNodes = window.nodes && typeof window.nodes.get === "function";
+  const hasLiveEdges = window.edges && typeof window.edges.get === "function";
+  const rawNodes = hasLiveNodes
+    ? window.nodes.get()
+    : Array.isArray(storedContent.keywordNodes)
+      ? storedContent.keywordNodes
+      : Array.isArray(storedContent.nodes)
+        ? storedContent.nodes
+        : [];
+  const rawEdges = hasLiveEdges
+    ? window.edges.get()
+    : Array.isArray(storedContent.edges)
+      ? storedContent.edges
+      : [];
+
+  return JSON.stringify({
+    schemaVersion: 1,
+    format: "concept-map-json",
+    title: String(themeName || storedContent.title || "").trim(),
+    nodes: rawNodes.map((node) => ({
+      id: node && node.id !== undefined ? node.id : "",
+      label: String(node?.label || node?.text || "").trim(),
+      nodeType: String(node?.nodeType || "keyword"),
+    })),
+    edges: rawEdges.map((edge) => ({
+      from: edge && edge.from !== undefined ? edge.from : "",
+      to: edge && edge.to !== undefined ? edge.to : "",
+      label: String(edge?.label || edge?.relation || "").trim(),
+    })),
+  });
+}
+
+async function fetchLatestScreenState() {
+  const { userId, themeName } = getCurrentUserThemeRaw();
+  if (!userId || !themeName) {
+    screenStateData = buildConceptMapPromptSnapshot({}, themeName);
+    screenStateScopeKey = "";
+    return screenStateData;
+  }
+
+  const language = getCurrentThemeLanguage();
+  const scopeKey = `${userId}\u0000${themeName}\u0000${language}`;
+  if (screenStateFetchPromise && screenStateScopeKey === scopeKey) {
+    return screenStateFetchPromise;
+  }
+  if (screenStateScopeKey !== scopeKey) {
+    screenStateData = "";
+    screenStateScopeKey = scopeKey;
+  }
+
+  const request = (async () => {
+    try {
+      const response = await fetch(
+        `${hypothesisDbApiBaseUrl}/users/${encodeURIComponent(userId)}/themes/${encodeURIComponent(themeName)}?language=${encodeURIComponent(language)}`,
+        { cache: "no-store" }
+      );
+      if (response.status === 404) {
+        return buildConceptMapPromptSnapshot({}, themeName);
+      }
+      if (!response.ok) {
+        throw new Error(`HTTPエラー: ${response.status}`);
+      }
+      const record = await response.json();
+      const content = record && record.content && typeof record.content === "object"
+        ? record.content
+        : {};
+      return buildConceptMapPromptSnapshot(content, themeName);
+    } catch (error) {
+      if (!hasShownScreenStateFetchWarning) {
+        hasShownScreenStateFetchWarning = true;
+        console.warn("DBから画面状態を取得中にエラーが発生しました:", error.message);
+      }
+      return buildConceptMapPromptSnapshot({}, themeName);
+    }
+  })();
+
+  screenStateFetchPromise = request;
+  try {
+    const snapshot = await request;
+    if (screenStateScopeKey === scopeKey) screenStateData = snapshot;
+    return snapshot;
+  } finally {
+    if (screenStateFetchPromise === request) screenStateFetchPromise = null;
+  }
+}
 
 function updateHypothesisContextFromEntry(entry, customText, customKeywordLabel) {
   if (!entry) return;
@@ -1968,7 +2076,7 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("タイトル入力フィールドが見つかりませんでした。");
   }
 
-  // XML監視は下側の集約ロジックで実施する（重複ポーリング防止）
+  // 画面状態の監視は下側の集約ロジックで実施する（重複ポーリング防止）
 });
 
 // 仮説のテキストボックスが右クリックされたときに基づいているキーワードと内容を取得してコンソールに表示
@@ -2032,26 +2140,36 @@ function triggerScamperQuestion(targetTag, scamperLabel) {
   showScamperLoading();
 
   // SCAMPER選択時に毎回最新のタイトル値を取得
-  window.theme = document.querySelector("#myTitle")?.value || "";
+  const promptThemeInputs = {
+    inputTitle: document.querySelector("#myTitle")?.value,
+    storedTitle: localStorage.getItem("searchTitle"),
+    windowTheme: window.theme,
+    fallback: "",
+  };
+  window.theme = window.APP_PROMPT_CONTEXT
+    ? window.APP_PROMPT_CONTEXT.resolvePromptTheme(promptThemeInputs)
+    : String(promptThemeInputs.inputTitle || promptThemeInputs.storedTitle || promptThemeInputs.windowTheme || "").trim();
 
-  const prompt = buildScamperPrompt({
-    theme: window.theme,
-    hypothesisText: hypothesisData,
-    keywords: selectedKeywords,
-    scamperLabel: selectedScamper,
-    xmlSnapshot: screenStateData,
-    useEnglishPrompt: isHypothesisEnglishUi(),
-  });
+  fetchLatestScreenState()
+    .then((latestScreenState) => {
+      const prompt = buildScamperPrompt({
+        theme: window.theme,
+        hypothesisText: hypothesisData,
+        keywords: selectedKeywords,
+        scamperLabel: selectedScamper,
+        screenStateSnapshot: latestScreenState,
+        useEnglishPrompt: isHypothesisEnglishUi(),
+      });
 
-  console.log("生成されたプロンプト:", prompt);
-
-  fetch(`${hypothesisApiBaseUrl}/api`, {
+      console.log("生成されたプロンプト:", prompt);
+      return fetch(`${hypothesisApiBaseUrl}/api`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ prompt }),
-  })
+      });
+    })
     .then((response) => {
       if (!response.ok) {
         throw new Error(`HTTPエラー: ${response.status}`);
@@ -2173,42 +2291,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // XMLデータの取得
-  let screenStateFetchInFlight = false;
-  const fetchScreenState = () => {
-    if (screenStateFetchInFlight) return;
-    const { userId, themeName } = getCurrentUserThemeRaw();
-    if (!userId || !themeName) return;
-
-    screenStateFetchInFlight = true;
-    const language = getCurrentThemeLanguage();
-    fetch(`${hypothesisDbApiBaseUrl}/users/${encodeURIComponent(userId)}/themes/${encodeURIComponent(themeName)}?language=${encodeURIComponent(language)}`)
-      .then(response => {
-        if (response.status === 404) {
-          return null;
-        }
-        if (!response.ok) {
-          throw new Error(`HTTPエラー: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(record => {
-        const content = record && record.content && typeof record.content === "object"
-          ? record.content
-          : null;
-        screenStateData = content ? JSON.stringify(content) : "";
-      })
-      .catch(error => {
-        if (!hasShownScreenStateFetchWarning) {
-          hasShownScreenStateFetchWarning = true;
-          console.warn("DBから画面状態を取得中にエラーが発生しました:", error.message);
-        }
-      })
-      .finally(() => {
-        screenStateFetchInFlight = false;
-      });
-  };
-  setInterval(fetchScreenState, 5000); // 5秒ごとに更新
+  fetchLatestScreenState();
+  setInterval(fetchLatestScreenState, 5000); // 5秒ごとに更新
 
   // 仮説の情報を取得
   document.body.addEventListener("contextmenu", (event) => {

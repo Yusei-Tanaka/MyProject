@@ -77,6 +77,7 @@
     "migrate:logs": "node scripts/migrate-logs-to-db.js",
     "migrate:local-files": "node scripts/migrate-local-files-to-db.js",
     "migrate:local-files:dry-run": "node scripts/migrate-local-files-to-db.js --dry-run",
+    "test:prompt-context": "node scripts/verify-prompt-context.js",
     "backfill:hypothesis": "node scripts/backfill-user-themes-to-hypotheses.js",
     "migrate:v2": "node scripts/backfill-legacy-to-v2.js",
     "migrate:v2:hypothesis-normalize": "node scripts/migrate-hypothesis-schema-to-normalized.js",
