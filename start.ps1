@@ -97,6 +97,7 @@ $clientConfigScript = Join-Path (Join-Path $root "scripts") "generate-client-con
 
 function Start-BackgroundProcess {
     param(
+        [string]$Name,
         [string]$FilePath,
         [string[]]$ArgumentList,
         [string]$WorkingDirectory
@@ -106,17 +107,54 @@ function Start-BackgroundProcess {
         return Start-Process -FilePath $FilePath -ArgumentList $ArgumentList -WorkingDirectory $WorkingDirectory -PassThru -WindowStyle Minimized
     }
 
-    return Start-Process -FilePath $FilePath -ArgumentList $ArgumentList -WorkingDirectory $WorkingDirectory -PassThru
+    $logDir = Join-Path ([System.IO.Path]::GetTempPath()) "myproject-start-logs"
+    if (-not (Test-Path $logDir)) {
+        New-Item -ItemType Directory -Path $logDir | Out-Null
+    }
+    $argJson = ConvertTo-Json -InputObject ([string[]]$ArgumentList) -Compress
+    $starter = @'
+import json
+import os
+import subprocess
+import sys
+
+name, file_path, cwd, arg_json, log_dir = sys.argv[1:6]
+args = json.loads(arg_json)
+if isinstance(args, str):
+    args = [args]
+os.makedirs(log_dir, exist_ok=True)
+log_path = os.path.join(log_dir, f"{name}.log")
+log = open(log_path, "ab", buffering=0)
+try:
+    proc = subprocess.Popen(
+        [file_path] + args,
+        cwd=cwd,
+        stdin=subprocess.DEVNULL,
+        stdout=log,
+        stderr=subprocess.STDOUT,
+        start_new_session=True,
+    )
+    print(proc.pid)
+finally:
+    log.close()
+'@
+
+    $pidText = & $python -c $starter $Name $FilePath $WorkingDirectory $argJson $logDir
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to spawn $Name."
+    }
+
+    return [pscustomobject]@{ Id = [int]($pidText | Select-Object -Last 1) }
 }
 
 $apiScript = Join-Path $root "api.py"
 $saveXmlScript = Join-Path $jsDir "saveXML.js"
 $backendScript = Join-Path (Join-Path $root "JS") "server.js"
 
-$http = Start-BackgroundProcess -FilePath $python -ArgumentList @("-m", "http.server", "$staticPort", "--bind", "0.0.0.0") -WorkingDirectory $root
-$api  = Start-BackgroundProcess -FilePath $python -ArgumentList @($apiScript) -WorkingDirectory $root
-$nodeProc = Start-BackgroundProcess -FilePath $node -ArgumentList @($saveXmlScript) -WorkingDirectory $jsDir
-$backendProc = Start-BackgroundProcess -FilePath $node -ArgumentList @($backendScript) -WorkingDirectory $root
+$http = Start-BackgroundProcess -Name "http" -FilePath $python -ArgumentList @("-m", "http.server", "$staticPort", "--bind", "0.0.0.0") -WorkingDirectory $root
+$api  = Start-BackgroundProcess -Name "api" -FilePath $python -ArgumentList @($apiScript) -WorkingDirectory $root
+$nodeProc = Start-BackgroundProcess -Name "saveXML" -FilePath $node -ArgumentList @($saveXmlScript) -WorkingDirectory $jsDir
+$backendProc = Start-BackgroundProcess -Name "backend" -FilePath $node -ArgumentList @($backendScript) -WorkingDirectory $root
 
 Start-Sleep -Seconds 2
 
