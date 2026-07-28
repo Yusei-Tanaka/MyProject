@@ -45,25 +45,16 @@ function logHypothesisAction(message) {
 
 const hypothesisConfig = window.APP_CONFIG || {};
 const hypothesisHost = hypothesisConfig.host || window.location.hostname || "127.0.0.1";
-const hypothesisSaveBaseUrl =
-  hypothesisConfig.saveXmlBaseUrl ||
-  `http://${hypothesisHost}:${Number(hypothesisConfig.saveXmlPort || 3005)}`;
 const hypothesisDbApiBaseUrl =
   hypothesisConfig.apiBaseUrl ||
   `http://${hypothesisHost}:${Number(hypothesisConfig.apiPort || 3000)}`;
-const HYPOTHESIS_SNAPSHOT_DIR = "XML";
-const HYPOTHESIS_LEGACY_SNAPSHOT_DIR = "JS/XML";
-const ENABLE_LEGACY_HYPOTHESIS_LOOKUP = hypothesisConfig.enableLegacyHypothesisLookup === true;
-const HYPOTHESIS_SNAPSHOT_DIRS = ENABLE_LEGACY_HYPOTHESIS_LOOKUP
-  ? [HYPOTHESIS_SNAPSHOT_DIR, HYPOTHESIS_LEGACY_SNAPSHOT_DIR]
-  : [HYPOTHESIS_SNAPSHOT_DIR];
 let hypothesisSaveTimer = null;
 let hypothesisSaveInFlight = false;
 let hypothesisSaveQueued = false;
 let lastSavedHypothesisFingerprint = "";
 const HYPOTHESIS_MAX_FILE_PART_LENGTH = 24;
 let hasShownHypothesisUserMissingWarning = false;
-let hasShownXmlFetchWarning = false;
+let hasShownScreenStateFetchWarning = false;
 
 var t = (key, vars = {}, fallback = "") => {
   if (window.APP_I18N && typeof window.APP_I18N.t === "function") {
@@ -93,12 +84,12 @@ function isHypothesisEnglishUi() {
   return String(getHypothesisUiLanguage()).toLowerCase().startsWith("en");
 }
 
-function buildScamperPrompt({
+function buildScamperPromptLegacy({
   theme,
   hypothesisText,
   keywords,
   scamperLabel,
-  xmlSnapshot,
+  screenStateSnapshot,
   useEnglishPrompt,
 }) {
   if (useEnglishPrompt) {
@@ -110,7 +101,7 @@ function buildScamperPrompt({
         - The learner is exploring: [${theme}]
         - The learner proposed this hypothesis: [${hypothesisText}]
         - The hypothesis is based on these keywords: [${keywords}]
-        - The learner's concept-map state is shown in this XML: [${xmlSnapshot}]
+        - The learner's concept-map state is shown in this JSON snapshot: [${screenStateSnapshot}]
 
         ## Input
         - Expand the hypothesis from a SCAMPER perspective.
@@ -138,7 +129,7 @@ function buildScamperPrompt({
         ##背景・文脈
         ・学習者は[${theme}]を目標に探究活動を行っている
         ・今，学習者は[${hypothesisText}]という仮説を[${keywords}]のキーワードを基に立案した
-        ・また学習者が作成した概念マップによって読み取ることの出来，その学習者の理解状態は次のXMLファイルの通りである　[${xmlSnapshot}]
+        ・学習者が作成した概念マップから読み取れる理解状態は，次のJSONスナップショットの通りである　[${screenStateSnapshot}]
         ##入力
         ・この仮説に対して，SCAMPER法に基づく観点から仮説を発散させる
         ・あなたはSCAMPER法の[${scamperLabel}]に基づき，仮説を発散させることを促す質問を与えよ．
@@ -154,6 +145,13 @@ function buildScamperPrompt({
         ・各項目は<li></li>タグで囲め
         ・リストのみでよい．その他の記述や説明は一切いらない
       `;
+}
+
+function buildScamperPrompt(options) {
+  if (window.APP_PROMPT_CONTEXT && typeof window.APP_PROMPT_CONTEXT.buildScamperPrompt === "function") {
+    return window.APP_PROMPT_CONTEXT.buildScamperPrompt(options);
+  }
+  return buildScamperPromptLegacy(options);
 }
 
 function sanitizeFilePart(value) {
@@ -335,37 +333,6 @@ async function saveHypothesisStateToDb(serializedHtml, hypothesisNodes) {
   }
 }
 
-function getLegacyHypothesisStateFilename() {
-  const parts = getUserThemeParts(false);
-  return `${parts.user}__${parts.theme}.hypothesis.json`;
-}
-
-function buildHypothesisSnapshotPath(dir, fileName) {
-  const normalizedDir = String(dir || "").replace(/^\/+|\/+$/g, "");
-  return `/${normalizedDir}/${encodeURIComponent(fileName)}`;
-}
-
-async function checkHypothesisSnapshotExistsInPrimaryDir(fileName) {
-  try {
-    const response = await fetch(
-      `${hypothesisSaveBaseUrl}/xml-exists?filename=${encodeURIComponent(fileName)}`,
-      { cache: "no-store" }
-    );
-    if (!response.ok) return null;
-    const payload = await response.json();
-    return Boolean(payload && payload.exists);
-  } catch (_error) {
-    return null;
-  }
-}
-
-async function fetchHypothesisSnapshotResponse(snapshotPath) {
-  const response = await fetch(snapshotPath, { cache: "no-store" });
-  if (response.ok) return response;
-  if (response.status === 404) return null;
-  throw new Error(`HTTP ${response.status}`);
-}
-
 function scheduleHypothesisSave() {
   if (hypothesisSaveTimer) clearTimeout(hypothesisSaveTimer);
   hypothesisSaveTimer = setTimeout(function () {
@@ -390,25 +357,7 @@ async function saveHypothesisState() {
     const serializedHtml = serializeHypothesisWrapper(wrapper);
     const hypothesisNodes = collectHypothesisNodesFromWrapper(wrapper);
 
-    const payload = {
-      filename: getHypothesisStateFilename(),
-      content: JSON.stringify({ html: serializedHtml }),
-    };
-
-    const fileSavePromise = fetch(`${hypothesisSaveBaseUrl}/save-xml`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const [fileSaveResult] = await Promise.all([
-      fileSavePromise,
-      saveHypothesisStateToDb(serializedHtml, hypothesisNodes),
-    ]);
-
-    if (!fileSaveResult.ok) {
-      throw new Error(`HTTP ${fileSaveResult.status}`);
-    }
+    await saveHypothesisStateToDb(serializedHtml, hypothesisNodes);
   } catch (error) {
     console.error("仮説発散エリアの保存に失敗しました:", error);
   }
@@ -454,26 +403,7 @@ async function flushHypothesisSave() {
 
   hypothesisSaveInFlight = true;
   try {
-    const payload = {
-      filename: getHypothesisStateFilename(),
-      content: JSON.stringify({ html: snapshot.serializedHtml }),
-    };
-
-    const fileSavePromise = fetch(`${hypothesisSaveBaseUrl}/save-xml`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const [fileSaveResult] = await Promise.all([
-      fileSavePromise,
-      saveHypothesisStateToDb(snapshot.serializedHtml, snapshot.hypothesisNodes),
-    ]);
-
-    if (!fileSaveResult.ok) {
-      throw new Error(`HTTP ${fileSaveResult.status}`);
-    }
-
+    await saveHypothesisStateToDb(snapshot.serializedHtml, snapshot.hypothesisNodes);
     lastSavedHypothesisFingerprint = snapshot.fingerprint;
   } catch (error) {
     console.error("仮説発散エリアの保存に失敗しました:", error);
@@ -628,52 +558,7 @@ async function restoreHypothesisState() {
       }
     }
 
-    const candidateFileNames = [];
-    const preferredFileName = getHypothesisStateFilename();
-    const legacyFileName = getLegacyHypothesisStateFilename();
-    candidateFileNames.push(preferredFileName);
-    if (legacyFileName !== preferredFileName) {
-      candidateFileNames.push(legacyFileName);
-    }
-
-    let res = null;
-    for (let i = 0; i < candidateFileNames.length; i += 1) {
-      const fileName = candidateFileNames[i];
-      const existsInPrimaryDir = await checkHypothesisSnapshotExistsInPrimaryDir(fileName);
-      if (existsInPrimaryDir === false && !ENABLE_LEGACY_HYPOTHESIS_LOOKUP) {
-        continue;
-      }
-
-      for (let j = 0; j < HYPOTHESIS_SNAPSHOT_DIRS.length; j += 1) {
-        const dir = HYPOTHESIS_SNAPSHOT_DIRS[j];
-        if (dir === HYPOTHESIS_SNAPSHOT_DIR && existsInPrimaryDir === false) {
-          continue;
-        }
-        const snapshotPath = buildHypothesisSnapshotPath(dir, fileName);
-        res = await fetchHypothesisSnapshotResponse(snapshotPath);
-        if (res) break;
-      }
-
-      if (res) break;
-    }
-
-    if (!res) return;
-
-    const raw = await res.text();
-    if (!raw || !raw.trim()) return;
-
-    let parsed = null;
-    try {
-      parsed = JSON.parse(raw);
-    } catch (_e) {
-      parsed = { html: "" };
-    }
-
-    if (!parsed.html || typeof parsed.html !== "string") return;
-
-    wrapper.innerHTML = parsed.html;
-    rebindRestoredHypothesis(wrapper);
-    resetHypothesisSaveFingerprintFromCurrent();
+    return;
   } catch (error) {
     console.error("仮説発散エリアの復元に失敗しました:", error);
   }
@@ -1623,11 +1508,112 @@ var SCAMPER_OPTIONS = [
 ];
 
 // SCAMPER関連の共有状態
-let xmlData = "";
+let screenStateData = "";
+let screenStateFetchPromise = null;
+let screenStateScopeKey = "";
 let hypothesisData = "";
 let selectedKeywords = "";
 let selectedScamper = "";
 window.theme = "";
+
+function buildConceptMapPromptSnapshot(content, themeName) {
+  if (
+    window.APP_PROMPT_CONTEXT &&
+    typeof window.APP_PROMPT_CONTEXT.buildConceptMapPromptSnapshot === "function"
+  ) {
+    return window.APP_PROMPT_CONTEXT.buildConceptMapPromptSnapshot({
+      content,
+      themeName,
+      liveNodes: window.nodes && typeof window.nodes.get === "function" ? window.nodes.get() : null,
+      liveEdges: window.edges && typeof window.edges.get === "function" ? window.edges.get() : null,
+    });
+  }
+  const storedContent = content && typeof content === "object" && !Array.isArray(content) ? content : {};
+  const hasLiveNodes = window.nodes && typeof window.nodes.get === "function";
+  const hasLiveEdges = window.edges && typeof window.edges.get === "function";
+  const rawNodes = hasLiveNodes
+    ? window.nodes.get()
+    : Array.isArray(storedContent.keywordNodes)
+      ? storedContent.keywordNodes
+      : Array.isArray(storedContent.nodes)
+        ? storedContent.nodes
+        : [];
+  const rawEdges = hasLiveEdges
+    ? window.edges.get()
+    : Array.isArray(storedContent.edges)
+      ? storedContent.edges
+      : [];
+
+  return JSON.stringify({
+    schemaVersion: 1,
+    format: "concept-map-json",
+    title: String(themeName || storedContent.title || "").trim(),
+    nodes: rawNodes.map((node) => ({
+      id: node && node.id !== undefined ? node.id : "",
+      label: String(node?.label || node?.text || "").trim(),
+      nodeType: String(node?.nodeType || "keyword"),
+    })),
+    edges: rawEdges.map((edge) => ({
+      from: edge && edge.from !== undefined ? edge.from : "",
+      to: edge && edge.to !== undefined ? edge.to : "",
+      label: String(edge?.label || edge?.relation || "").trim(),
+    })),
+  });
+}
+
+async function fetchLatestScreenState() {
+  const { userId, themeName } = getCurrentUserThemeRaw();
+  if (!userId || !themeName) {
+    screenStateData = buildConceptMapPromptSnapshot({}, themeName);
+    screenStateScopeKey = "";
+    return screenStateData;
+  }
+
+  const language = getCurrentThemeLanguage();
+  const scopeKey = `${userId}\u0000${themeName}\u0000${language}`;
+  if (screenStateFetchPromise && screenStateScopeKey === scopeKey) {
+    return screenStateFetchPromise;
+  }
+  if (screenStateScopeKey !== scopeKey) {
+    screenStateData = "";
+    screenStateScopeKey = scopeKey;
+  }
+
+  const request = (async () => {
+    try {
+      const response = await fetch(
+        `${hypothesisDbApiBaseUrl}/users/${encodeURIComponent(userId)}/themes/${encodeURIComponent(themeName)}?language=${encodeURIComponent(language)}`,
+        { cache: "no-store" }
+      );
+      if (response.status === 404) {
+        return buildConceptMapPromptSnapshot({}, themeName);
+      }
+      if (!response.ok) {
+        throw new Error(`HTTPエラー: ${response.status}`);
+      }
+      const record = await response.json();
+      const content = record && record.content && typeof record.content === "object"
+        ? record.content
+        : {};
+      return buildConceptMapPromptSnapshot(content, themeName);
+    } catch (error) {
+      if (!hasShownScreenStateFetchWarning) {
+        hasShownScreenStateFetchWarning = true;
+        console.warn("DBから画面状態を取得中にエラーが発生しました:", error.message);
+      }
+      return buildConceptMapPromptSnapshot({}, themeName);
+    }
+  })();
+
+  screenStateFetchPromise = request;
+  try {
+    const snapshot = await request;
+    if (screenStateScopeKey === scopeKey) screenStateData = snapshot;
+    return snapshot;
+  } finally {
+    if (screenStateFetchPromise === request) screenStateFetchPromise = null;
+  }
+}
 
 function updateHypothesisContextFromEntry(entry, customText, customKeywordLabel) {
   if (!entry) return;
@@ -2072,12 +2058,6 @@ document.querySelectorAll('.keyword').forEach(function(elem) {
   });
 });
 
-function getUserXmlRelativePath() {
-  const parts = getUserThemeParts(true);
-  const filename = `${parts.user}__${parts.theme}.xml`;
-  return buildHypothesisSnapshotPath(HYPOTHESIS_SNAPSHOT_DIR, filename);
-}
-
 // HTMLの入力フィールドからタイトルを取得してコンソールに出力する
 document.addEventListener("DOMContentLoaded", () => {
   const titleInput = document.querySelector("#myTitle"); // タイトル入力用のinput要素を取得
@@ -2096,7 +2076,7 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("タイトル入力フィールドが見つかりませんでした。");
   }
 
-  // XML監視は下側の集約ロジックで実施する（重複ポーリング防止）
+  // 画面状態の監視は下側の集約ロジックで実施する（重複ポーリング防止）
 });
 
 // 仮説のテキストボックスが右クリックされたときに基づいているキーワードと内容を取得してコンソールに表示
@@ -2160,26 +2140,36 @@ function triggerScamperQuestion(targetTag, scamperLabel) {
   showScamperLoading();
 
   // SCAMPER選択時に毎回最新のタイトル値を取得
-  window.theme = document.querySelector("#myTitle")?.value || "";
+  const promptThemeInputs = {
+    inputTitle: document.querySelector("#myTitle")?.value,
+    storedTitle: localStorage.getItem("searchTitle"),
+    windowTheme: window.theme,
+    fallback: "",
+  };
+  window.theme = window.APP_PROMPT_CONTEXT
+    ? window.APP_PROMPT_CONTEXT.resolvePromptTheme(promptThemeInputs)
+    : String(promptThemeInputs.inputTitle || promptThemeInputs.storedTitle || promptThemeInputs.windowTheme || "").trim();
 
-  const prompt = buildScamperPrompt({
-    theme: window.theme,
-    hypothesisText: hypothesisData,
-    keywords: selectedKeywords,
-    scamperLabel: selectedScamper,
-    xmlSnapshot: xmlData,
-    useEnglishPrompt: isHypothesisEnglishUi(),
-  });
+  fetchLatestScreenState()
+    .then((latestScreenState) => {
+      const prompt = buildScamperPrompt({
+        theme: window.theme,
+        hypothesisText: hypothesisData,
+        keywords: selectedKeywords,
+        scamperLabel: selectedScamper,
+        screenStateSnapshot: latestScreenState,
+        useEnglishPrompt: isHypothesisEnglishUi(),
+      });
 
-  console.log("生成されたプロンプト:", prompt);
-
-  fetch(`${hypothesisApiBaseUrl}/api`, {
+      console.log("生成されたプロンプト:", prompt);
+      return fetch(`${hypothesisApiBaseUrl}/api`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ prompt }),
-  })
+      });
+    })
     .then((response) => {
       if (!response.ok) {
         throw new Error(`HTTPエラー: ${response.status}`);
@@ -2286,7 +2276,7 @@ function triggerScamperQuestion(targetTag, scamperLabel) {
 // 取得したデータをまとめてコンソールに出力し、印刷
 document.addEventListener("DOMContentLoaded", () => {
   window.theme = ""; // テーマをグローバル化
-  xmlData = ""; // XMLデータ
+  screenStateData = ""; // 画面状態データ
   hypothesisData = ""; // 仮説内容
   selectedKeywords = ""; // 選んだキーワード
   selectedScamper = ""; // 選んだSCAMPER
@@ -2301,39 +2291,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // XMLデータの取得
-  let xmlFetchInFlight = false;
-  const fetchXML = () => {
-    if (xmlFetchInFlight) return;
-    const { userId, themeName } = getCurrentUserThemeRaw();
-    if (!userId || !themeName) return;
-
-    xmlFetchInFlight = true;
-    const xmlFilePath = getUserXmlRelativePath();
-    fetch(xmlFilePath)
-      .then(response => {
-        if (response.status === 404) {
-          return "";
-        }
-        if (!response.ok) {
-          throw new Error(`HTTPエラー: ${response.status}`);
-        }
-        return response.text();
-      })
-      .then(xmlText => {
-        xmlData = xmlText;
-      })
-      .catch(error => {
-        if (!hasShownXmlFetchWarning) {
-          hasShownXmlFetchWarning = true;
-          console.warn("XMLファイルの取得中にエラーが発生しました:", error.message);
-        }
-      })
-      .finally(() => {
-        xmlFetchInFlight = false;
-      });
-  };
-  setInterval(fetchXML, 5000); // 5秒ごとに更新
+  fetchLatestScreenState();
+  setInterval(fetchLatestScreenState, 5000); // 5秒ごとに更新
 
   // 仮説の情報を取得
   document.body.addEventListener("contextmenu", (event) => {

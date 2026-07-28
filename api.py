@@ -4,14 +4,27 @@ from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import openai
-from openai import OpenAI
+try:
+    from openai import OpenAI
+except ImportError:
+    OpenAI = None
 
 # .envファイルの内容を読み込む
 load_dotenv()
-# .envファイルからAPIキーを取得
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
 MODEL_NAME = "gpt-4o-mini"
 MAX_OUTPUT_TOKENS = 4000
+
+# openai-python v1系とv0系の両方に対応
+OPENAI_BACKEND = "disabled"
+client = None
+if API_KEY:
+    if OpenAI is not None:
+        client = OpenAI(api_key=API_KEY)
+        OPENAI_BACKEND = "responses_v1"
+    else:
+        openai.api_key = API_KEY
+        OPENAI_BACKEND = "chat_legacy"
 
 app = Flask(__name__)
 CORS(app)  # CORS を有効化
@@ -33,22 +46,52 @@ def extract_response_text(response):
     return "\n".join(parts)
 
 
+def extract_legacy_chat_text(response):
+    if isinstance(response, dict):
+        choices = response.get("choices") or []
+        if choices:
+            message = choices[0].get("message") or {}
+            text = message.get("content")
+            if isinstance(text, str):
+                return text
+    return ""
+
+
 def getgptdata(mess):
     try:
         print("送信するプロンプト:", mess)  # デバッグ用ログ
-        response = client.responses.create(
-            model=MODEL_NAME,
-            input=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": mess}
-            ],
-            temperature=0.2,
-            max_output_tokens=MAX_OUTPUT_TOKENS
-        )
-        data = extract_response_text(response)
-        print("受信したデータ:", data)  # デバッグ用ログ
-        print("トークン使用量:", response.usage)  # プロンプト最適化用ログ
-        return data
+        if OPENAI_BACKEND == "responses_v1":
+            response = client.responses.create(
+                model=MODEL_NAME,
+                input=[
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": mess}
+                ],
+                temperature=0.2,
+                max_output_tokens=MAX_OUTPUT_TOKENS
+            )
+            data = extract_response_text(response)
+            print("受信したデータ:", data)  # デバッグ用ログ
+            print("トークン使用量:", response.usage)  # プロンプト最適化用ログ
+            return data
+
+        if OPENAI_BACKEND == "chat_legacy":
+            response = openai.ChatCompletion.create(
+                model=MODEL_NAME,
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": mess}
+                ],
+                temperature=0.2,
+                max_tokens=MAX_OUTPUT_TOKENS
+            )
+            data = extract_legacy_chat_text(response)
+            print("受信したデータ:", data)  # デバッグ用ログ
+            usage = response.get("usage") if isinstance(response, dict) else None
+            print("トークン使用量:", usage)  # プロンプト最適化用ログ
+            return data
+
+        raise RuntimeError("OPENAI_API_KEY is not set")
     except Exception as e:
         print("OpenAI APIエラー:", str(e))  # エラー内容をログに出力
         raise
@@ -58,6 +101,9 @@ def handle_prompt():
     data = request.get_json()
     prompt = data.get('prompt', '')
     print("受信したプロンプト:", prompt)  # デバッグ用ログ
+    if not API_KEY:
+        return jsonify({"error": "OPENAI_API_KEY is not set"}), 503
+
     try:
         # OpenAI APIを呼び出して結果を取得
         result = getgptdata(prompt)
@@ -68,4 +114,5 @@ def handle_prompt():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
+    print(f"OpenAI backend mode: {OPENAI_BACKEND}")
     app.run(host="0.0.0.0", port=8000)

@@ -20,6 +20,7 @@
     <Node id="16" label="nuclear power generation" x="-14" y="296" />
     <Node id="17" label="sustainable practices" x="-110" y="-68" />
     <Node id="18" label="energy trade" x="-204" y="252" />
+    <Node id="19" label="policy advocacy" x="-183" y="385" />
   </Nodes>
   <Edges>
     <Edge id="e1" from="11" to="10" label="types" arrows="" />

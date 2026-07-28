@@ -2,18 +2,9 @@ window.addEventListener('DOMContentLoaded', function() {
   const $ = go.GraphObject.make;
   const appConfig = window.APP_CONFIG || {};
   const host = appConfig.host || window.location.hostname || "127.0.0.1";
-  const saveApiBaseUrl =
-    appConfig.saveXmlBaseUrl ||
-    `http://${host}:${Number(appConfig.saveXmlPort || 3005)}`;
   const themeApiBaseUrl =
     appConfig.apiBaseUrl ||
     `http://${host}:${Number(appConfig.apiPort || 3000)}`;
-  const MINDMAP_SNAPSHOT_DIR = "XML";
-  const MINDMAP_LEGACY_SNAPSHOT_DIR = "JS/XML";
-  const ENABLE_LEGACY_MINDMAP_LOOKUP = appConfig.enableLegacyMindmapLookup === true;
-  const MINDMAP_SNAPSHOT_DIRS = ENABLE_LEGACY_MINDMAP_LOOKUP
-    ? [MINDMAP_SNAPSHOT_DIR, MINDMAP_LEGACY_SNAPSHOT_DIR]
-    : [MINDMAP_SNAPSHOT_DIR];
   let isRestoringMindmap = false;
   let isMindmapReady = false;
   let mindmapSaveTimer = null;
@@ -244,11 +235,6 @@ window.addEventListener('DOMContentLoaded', function() {
     };
   }
 
-  function getMindmapFileName(useShort = true) {
-    const parts = getUserThemeParts(useShort);
-    return `${parts.user}__${parts.theme}.mindmap.json`;
-  }
-
   function getMindmapRestoreCandidates() {
     const candidates = [];
     const { user: shortUser, theme: shortTheme } = getUserThemeParts(true);
@@ -277,17 +263,7 @@ window.addEventListener('DOMContentLoaded', function() {
   }
 
   async function checkSnapshotExistsInPrimaryDir(fileName) {
-    try {
-      const response = await fetch(
-        `${saveApiBaseUrl}/xml-exists?filename=${encodeURIComponent(fileName)}`,
-        { cache: "no-store" }
-      );
-      if (!response.ok) return null;
-      const payload = await response.json();
-      return Boolean(payload && payload.exists);
-    } catch (_error) {
-      return null;
-    }
+    return null;
   }
 
   async function fetchSnapshotResponse(snapshotPath) {
@@ -583,27 +559,6 @@ window.addEventListener('DOMContentLoaded', function() {
   }
 
   async function fetchMindmapSnapshot() {
-    const fileNames = getMindmapRestoreCandidates();
-
-    for (let i = 0; i < fileNames.length; i += 1) {
-      const fileName = fileNames[i];
-      const existsInPrimaryDir = await checkSnapshotExistsInPrimaryDir(fileName);
-      if (existsInPrimaryDir === false && !ENABLE_LEGACY_MINDMAP_LOOKUP) {
-        continue;
-      }
-
-      for (let j = 0; j < MINDMAP_SNAPSHOT_DIRS.length; j += 1) {
-        const dir = MINDMAP_SNAPSHOT_DIRS[j];
-        if (dir === MINDMAP_SNAPSHOT_DIR && existsInPrimaryDir === false) {
-          continue;
-        }
-        const response = await fetchSnapshotResponse(buildSnapshotPath(dir, fileName));
-        if (response) {
-          return { response, fileName };
-        }
-      }
-    }
-
     return null;
   }
 
@@ -622,21 +577,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
     mindmapSaveInFlight = true;
     try {
-      const fileSavePromise = fetch(`${saveApiBaseUrl}/save-xml`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          filename: getMindmapFileName(),
-          content: snapshot.modelJson,
-        }),
-      });
-      const [response] = await Promise.all([
-        fileSavePromise,
-        saveMindmapStateToDb(snapshot.modelJson),
-      ]);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
+      await saveMindmapStateToDb(snapshot.modelJson);
       lastSavedMindmapFingerprint = snapshot.fingerprint;
     } catch (error) {
       console.error("Mindmap save failed:", error);

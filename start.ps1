@@ -1,12 +1,11 @@
-# Starts HTTP server, Flask API, Node saveXML, and Node backend API; saves PIDs for easy stop.
+# Starts HTTP server, Flask API, and Node backend API; saves PIDs for easy stop.
 $ErrorActionPreference = 'Stop'
 
 
 $root = if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Location).Path }
-$jsDir = Join-Path $root "JS"
 $pidFile = Join-Path $root ".start-all.pids"
 $stopScript = Join-Path $root "stop.ps1"
-$requiredServices = @("http", "api", "node", "backend")
+$requiredServices = @("http", "api", "backend")
 $staticPort = 8008
 
 # Determine OS early for use in messages and process checks
@@ -148,20 +147,24 @@ finally:
 }
 
 $apiScript = Join-Path $root "api.py"
-$saveXmlScript = Join-Path $jsDir "saveXML.js"
 $backendScript = Join-Path (Join-Path $root "JS") "server.js"
 
+<<<<<<< HEAD
 $http = Start-BackgroundProcess -Name "http" -FilePath $python -ArgumentList @("-m", "http.server", "$staticPort", "--bind", "0.0.0.0") -WorkingDirectory $root
 $api  = Start-BackgroundProcess -Name "api" -FilePath $python -ArgumentList @($apiScript) -WorkingDirectory $root
 $nodeProc = Start-BackgroundProcess -Name "saveXML" -FilePath $node -ArgumentList @($saveXmlScript) -WorkingDirectory $jsDir
 $backendProc = Start-BackgroundProcess -Name "backend" -FilePath $node -ArgumentList @($backendScript) -WorkingDirectory $root
+=======
+$http = Start-BackgroundProcess -FilePath $python -ArgumentList @("-m", "http.server", "$staticPort", "--bind", "0.0.0.0") -WorkingDirectory $root
+$api  = Start-BackgroundProcess -FilePath $python -ArgumentList @($apiScript) -WorkingDirectory $root
+$backendProc = Start-BackgroundProcess -FilePath $node -ArgumentList @($backendScript) -WorkingDirectory $root
+>>>>>>> c319aea2e42d5f6512abd34c436286e8d24e7a6b
 
 Start-Sleep -Seconds 2
 
 $startedProcs = @(
     [pscustomobject]@{ Name = "http"; Proc = $http },
     [pscustomobject]@{ Name = "api"; Proc = $api },
-    [pscustomobject]@{ Name = "node"; Proc = $nodeProc },
     [pscustomobject]@{ Name = "backend"; Proc = $backendProc }
 )
 
@@ -190,12 +193,11 @@ if ($failedStarts.Count -gt 0) {
 $pidJson = [pscustomobject]@{
     http = $http.Id
     api  = $api.Id
-    node = $nodeProc.Id
     backend = $backendProc.Id
 } | ConvertTo-Json
 
 Set-Content -Path $pidFile -Value $pidJson -Encoding ascii -Force
 
-Write-Host "Started: http.server($staticPort) PID $($http.Id), api.py PID $($api.Id), saveXML.js PID $($nodeProc.Id), JS/server.js PID $($backendProc.Id)."
+Write-Host "Started: http.server($staticPort) PID $($http.Id), api.py PID $($api.Id), JS/server.js PID $($backendProc.Id)."
 $stopHint = if ($onWindows) { '.\stop.ps1' } else { 'pwsh ./stop.ps1' }
 Write-Host ("Use {0} to stop them safely." -f $stopHint)

@@ -209,7 +209,15 @@ async function requestKeywordsFromOutput(keywords) {
         return;
     }
 
-    const themeValue = (window.theme || document.querySelector("#myTitle")?.value || t("defaults.unsetTheme", {}, "未設定のテーマ")).trim();
+    const promptThemeInputs = {
+        inputTitle: document.querySelector("#myTitle")?.value,
+        storedTitle: localStorage.getItem("searchTitle"),
+        windowTheme: window.theme,
+        fallback: t("defaults.unsetTheme", {}, "未設定のテーマ")
+    };
+    const themeValue = window.APP_PROMPT_CONTEXT
+        ? window.APP_PROMPT_CONTEXT.resolvePromptTheme(promptThemeInputs)
+        : String(promptThemeInputs.inputTitle || promptThemeInputs.storedTitle || promptThemeInputs.windowTheme || promptThemeInputs.fallback).trim();
     const relationPerspectives = useEnglishPrompt
         ? [
             { id: "P01", label: "Background" },
