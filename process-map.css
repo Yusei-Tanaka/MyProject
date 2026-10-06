@@ -104,6 +104,12 @@
   color: var(--color-main-button-text);
 }
 
+.process-map-purpose {
+  margin: 2px 0 0;
+  color: var(--color-main-button-text);
+  font-size: 12px;
+}
+
 .process-map-workspace {
   flex: 1 1 auto;
   display: grid;
@@ -177,6 +183,34 @@
 
 .process-map-toolbar__spacer {
   flex: 1 1 auto;
+}
+
+.process-map-stage-guide {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 0 0 6px;
+  color: var(--color-main-button-text);
+  font-size: 11px;
+}
+
+.process-map-stage-guide span {
+  padding: 3px 7px;
+  border: 1px solid var(--color-main-border);
+  border-left-width: 4px;
+  border-radius: 999px;
+  background: var(--color-main-button-bg);
+}
+
+.process-map-stage-guide [data-process-stage="problem"] { border-left-color: #4f7fa8; }
+.process-map-stage-guide [data-process-stage="suggestion"] { border-left-color: #7964a8; }
+.process-map-stage-guide [data-process-stage="idea"] { border-left-color: #9b638e; }
+.process-map-stage-guide [data-process-stage="explanatory_hypothesis"] { border-left-color: #a9782e; }
+.process-map-stage-guide [data-process-stage="operational_hypothesis"] { border-left-color: #6e8436; }
+
+.process-map-stage-guide b {
+  font-weight: 500;
 }
 
 .process-map-secondary-button {
@@ -321,9 +355,16 @@
   margin-top: 4px;
 }
 
+.process-map-wide-button {
+  width: 100%;
+  margin-top: 3px;
+}
+
 .process-map-related,
 .process-map-child-grain,
-.process-map-guidance {
+.process-map-guidance,
+.process-map-formed,
+.process-map-structure-candidate {
   margin-top: 8px;
   padding: 10px;
   border: 1px solid var(--color-main-border);
@@ -332,16 +373,40 @@
 }
 
 .process-map-related ul,
-.process-map-guidance ul {
+.process-map-guidance ul,
+.process-map-formed ul {
   margin: 7px 0 0;
   padding-left: 18px;
 }
 
 .process-map-related li,
-.process-map-guidance li {
+.process-map-guidance li,
+.process-map-formed li {
   margin-bottom: 5px;
   color: var(--color-heading-text);
   cursor: default;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.process-map-formed button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--color-heading-text);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+}
+
+.process-map-formed button:hover {
+  background: var(--color-heading-bg);
+}
+
+.process-map-structure-candidate p,
+.process-map-field-hint {
+  margin: 3px 0 5px;
+  color: var(--color-main-button-text);
   font-size: 12px;
   line-height: 1.45;
 }

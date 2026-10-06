@@ -112,13 +112,20 @@ const PROCESS_TABLES = {
   hierarchy: "process_hierarchy",
 };
 
+const PROCESS_NODE_TYPE_ALIASES = new Map([
+  ["problem_question", "problem"],
+  ["idea_working_hypothesis", "idea"],
+  ["working_hypothesis", "operational_hypothesis"],
+]);
+
 const PROCESS_NODE_TYPES = new Set([
-  "problem_question",
+  "problem",
   "suggestion",
-  "idea_working_hypothesis",
+  "idea",
   "explanatory_hypothesis",
+  "operational_hypothesis",
+  // 旧版で保存済みのデータを失わず再保存できるよう、非表示種別はAPI互換だけ残す。
   "reasoning",
-  "working_hypothesis",
   "information_work",
   "result",
   "revision_update",
@@ -136,6 +143,11 @@ const PROCESS_EDGE_TYPES = new Set([
   "rejection",
   "revision",
 ]);
+
+const normalizeProcessNodeType = (value) => {
+  const normalized = String(value || "").trim();
+  return PROCESS_NODE_TYPE_ALIASES.get(normalized) || normalized;
+};
 
 const ENABLE_V2_READ = String(process.env.ENABLE_V2_READ || "false").toLowerCase() === "true";
 let v2SchemaReady = false;
@@ -1109,7 +1121,10 @@ const ensureProcessMapSchema = async () => {
       source_node_id VARCHAR(64) NOT NULL,
       target_node_id VARCHAR(64) NOT NULL,
       edge_type VARCHAR(64) NOT NULL DEFAULT 'directed',
+      reasoning_text TEXT NULL,
+      memo TEXT NULL,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       CONSTRAINT fk_process_edges_map FOREIGN KEY (map_id) REFERENCES ${PROCESS_TABLES.maps}(map_id) ON DELETE CASCADE,
       CONSTRAINT fk_process_edges_source FOREIGN KEY (source_node_id) REFERENCES ${PROCESS_TABLES.nodes}(node_id) ON DELETE CASCADE,
       CONSTRAINT fk_process_edges_target FOREIGN KEY (target_node_id) REFERENCES ${PROCESS_TABLES.nodes}(node_id) ON DELETE CASCADE,
@@ -1118,6 +1133,19 @@ const ensureProcessMapSchema = async () => {
       INDEX idx_process_edges_target (target_node_id)
     )`
   );
+
+  if (!(await tableColumnExists(PROCESS_TABLES.edges, "reasoning_text"))) {
+    await pool.execute(`ALTER TABLE ${PROCESS_TABLES.edges} ADD COLUMN reasoning_text TEXT NULL AFTER edge_type`);
+  }
+  if (!(await tableColumnExists(PROCESS_TABLES.edges, "memo"))) {
+    await pool.execute(`ALTER TABLE ${PROCESS_TABLES.edges} ADD COLUMN memo TEXT NULL AFTER reasoning_text`);
+  }
+  if (!(await tableColumnExists(PROCESS_TABLES.edges, "updated_at"))) {
+    await pool.execute(
+      `ALTER TABLE ${PROCESS_TABLES.edges}
+       ADD COLUMN updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at`
+    );
+  }
 
   await pool.execute(
     `CREATE TABLE IF NOT EXISTS ${PROCESS_TABLES.hierarchy} (
@@ -1169,15 +1197,19 @@ const processMapRowToJson = (row) => ({
   title: row.title,
   grainSize: row.grain_size,
   isRoot: Boolean(row.is_root),
+  parentMapId: row.parent_map_id === null || row.parent_map_id === undefined ? null : Number(row.parent_map_id),
+  parentNodeId: row.parent_node_id || null,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
 });
 
 const fetchProcessMapBundle = async (executor, mapId, userId) => {
   const [mapRows] = await executor.execute(
-    `SELECT map_id, user_id, theme_id, title, grain_size, is_root, created_at, updated_at
-       FROM ${PROCESS_TABLES.maps}
-      WHERE map_id = ? AND user_id = ?
+    `SELECT m.map_id, m.user_id, m.theme_id, m.title, m.grain_size, m.is_root,
+            m.created_at, m.updated_at, h.parent_map_id, h.parent_node_id
+       FROM ${PROCESS_TABLES.maps} m
+       LEFT JOIN ${PROCESS_TABLES.hierarchy} h ON h.child_map_id = m.map_id
+      WHERE m.map_id = ? AND m.user_id = ?
       LIMIT 1`,
     [mapId, userId]
   );
@@ -1193,7 +1225,8 @@ const fetchProcessMapBundle = async (executor, mapId, userId) => {
     [mapId]
   );
   const [edgeRows] = await executor.execute(
-    `SELECT edge_id, map_id, source_node_id, target_node_id, edge_type, created_at
+    `SELECT edge_id, map_id, source_node_id, target_node_id, edge_type,
+            reasoning_text, memo, created_at, updated_at
        FROM ${PROCESS_TABLES.edges}
       WHERE map_id = ?
       ORDER BY created_at, edge_id`,
@@ -1236,7 +1269,7 @@ const fetchProcessMapBundle = async (executor, mapId, userId) => {
     nodes: nodeRows.map((row) => ({
       nodeId: row.node_id,
       mapId: Number(row.map_id),
-      nodeType: row.node_type,
+      nodeType: normalizeProcessNodeType(row.node_type),
       content: row.content,
       memo: row.memo || "",
       relatedKeywords: parseJsonField(row.related_keywords_json) || [],
@@ -1255,7 +1288,10 @@ const fetchProcessMapBundle = async (executor, mapId, userId) => {
       sourceNodeId: row.source_node_id,
       targetNodeId: row.target_node_id,
       edgeType: row.edge_type,
+      reasoningText: row.reasoning_text || "",
+      memo: row.memo || "",
       createdAt: row.created_at,
+      updatedAt: row.updated_at,
     })),
     childMaps: childRows.map((row) => ({
       parentNodeId: row.parent_node_id,
@@ -1278,7 +1314,7 @@ const validateProcessSnapshot = (body) => {
   const normalizedNodes = [];
   for (const node of nodes) {
     const nodeId = String(node.nodeId || "").trim();
-    const nodeType = String(node.nodeType || "").trim();
+    const nodeType = normalizeProcessNodeType(node.nodeType);
     const content = String(node.content || "").trim();
     if (!PROCESS_CLIENT_ID_PATTERN.test(nodeId)) return { error: "invalid nodeId" };
     if (nodeIds.has(nodeId)) return { error: "duplicate nodeId" };
@@ -1316,7 +1352,14 @@ const validateProcessSnapshot = (body) => {
     if (sourceNodeId === targetNodeId) return { error: "self links are not supported" };
     if (!PROCESS_EDGE_TYPES.has(edgeType)) return { error: "invalid edgeType" };
     edgeIds.add(edgeId);
-    normalizedEdges.push({ edgeId, sourceNodeId, targetNodeId, edgeType });
+    normalizedEdges.push({
+      edgeId,
+      sourceNodeId,
+      targetNodeId,
+      edgeType,
+      reasoningText: String(edge.reasoningText || "").slice(0, 50000),
+      memo: String(edge.memo || "").slice(0, 50000),
+    });
   }
 
   return { nodes: normalizedNodes, edges: normalizedEdges };
@@ -1950,9 +1993,17 @@ app.put("/process-maps/:mapId/snapshot", async (req, res) => {
     for (const edge of snapshot.edges) {
       await connection.execute(
         `INSERT INTO ${PROCESS_TABLES.edges}
-          (edge_id, map_id, source_node_id, target_node_id, edge_type)
-         VALUES (?, ?, ?, ?, ?)`,
-        [edge.edgeId, mapId, edge.sourceNodeId, edge.targetNodeId, edge.edgeType]
+          (edge_id, map_id, source_node_id, target_node_id, edge_type, reasoning_text, memo)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          edge.edgeId,
+          mapId,
+          edge.sourceNodeId,
+          edge.targetNodeId,
+          edge.edgeType,
+          edge.reasoningText || null,
+          edge.memo || null,
+        ]
       );
     }
 

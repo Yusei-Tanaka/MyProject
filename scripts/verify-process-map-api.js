@@ -3,7 +3,7 @@ const crypto = require("crypto");
 
 const baseUrl = process.env.PROCESS_MAP_API_BASE_URL || "http://127.0.0.1:3000";
 const userId = `pm_test_${Date.now().toString(36)}`.slice(0, 32);
-const themeName = "探究プロセスマップAPI確認";
+const themeName = "仮説形成API確認";
 
 async function request(path, options = {}) {
   const response = await fetch(`${baseUrl}${path}`, {
@@ -19,18 +19,6 @@ async function request(path, options = {}) {
   }
   return payload;
 }
-
-const nodeTypes = [
-  "problem_question",
-  "suggestion",
-  "idea_working_hypothesis",
-  "explanatory_hypothesis",
-  "reasoning",
-  "working_hypothesis",
-  "information_work",
-  "result",
-  "revision_update",
-];
 
 async function run() {
   let createdUser = false;
@@ -56,24 +44,58 @@ async function run() {
     assert(root.map.mapId > 0);
     assert.strictEqual(root.map.grainSize, "研究全体");
 
-    const nodes = nodeTypes.map((nodeType, index) => ({
+    const makeNode = (nodeType, content, x, y) => ({
       nodeId: crypto.randomUUID(),
       nodeType,
-      content: `${index + 1}: ${nodeType}`,
-      memo: `memo-${index + 1}`,
-      relatedKeywords: [`keyword-${index + 1}`],
-      relatedReference: "test reference",
-      existingReferenceType: index === 0 ? "hypothesis" : "",
-      existingReferenceId: index === 0 ? "test-hypothesis" : "",
-      x: index * 120,
-      y: index % 2 === 0 ? 0 : 100,
-    }));
-    const edges = nodes.slice(0, -1).map((node, index) => ({
+      content,
+      memo: "",
+      relatedKeywords: [],
+      relatedReference: "",
+      existingReferenceType: "",
+      existingReferenceId: "",
+      x,
+      y,
+    });
+    const problem = makeNode("problem", "見通し仮説に相当する既存概念はあるか", 0, 0);
+    const suggestions = [
+      makeNode("suggestion", "working hypothesisかもしれない", 240, -120),
+      makeNode("suggestion", "Deweyのideaかもしれない", 240, 0),
+      makeNode("suggestion", "conjectureかもしれない", 240, 120),
+    ];
+    const idea = makeNode("idea", "Deweyのideaが見通し仮説に近いのではないか", 480, 0);
+    const explanation = makeNode(
+      "explanatory_hypothesis",
+      "見通し仮説は独立した仮説種ではなく、ideaが探索を方向づける状態として説明できるのではないか",
+      720,
+      0
+    );
+    const operational = makeNode(
+      "operational_hypothesis",
+      "Deweyの文献を確認すれば、ideaをworking hypothesisとして探索に用いる記述が確認できるはず",
+      960,
+      0
+    );
+    const nodes = [problem, ...suggestions, idea, explanation, operational];
+    const makeEdge = (source, target, edgeType, reasoningText = "", memo = "") => ({
       edgeId: crypto.randomUUID(),
-      sourceNodeId: node.nodeId,
-      targetNodeId: nodes[index + 1].nodeId,
-      edgeType: "directed",
-    }));
+      sourceNodeId: source.nodeId,
+      targetNodeId: target.nodeId,
+      edgeType,
+      reasoningText,
+      memo,
+    });
+    const edges = [
+      ...suggestions.map((suggestion) => makeEdge(problem, suggestion, "suggestion_generation")),
+      makeEdge(suggestions[1], idea, "selection_retention", "Deweyの探究論と比較する価値があるため"),
+      makeEdge(idea, explanation, "explanation"),
+      makeEdge(
+        explanation,
+        operational,
+        "operationalization",
+        "この説明が正しいなら、Deweyの文献中にideaが探索を方向づける記述が存在するはず",
+        "reasoningはリンク属性として保存"
+      ),
+    ];
 
     await request(`/process-maps/${root.map.mapId}/snapshot`, {
       method: "PUT",
@@ -89,24 +111,29 @@ async function run() {
     const reloaded = await request(
       `/process-maps/root?${new URLSearchParams({ userId, themeName, language: "ja" })}`
     );
-    assert.strictEqual(reloaded.nodes.length, 9);
-    assert.strictEqual(reloaded.edges.length, 8);
+    assert.strictEqual(reloaded.nodes.length, 7);
+    assert.strictEqual(reloaded.edges.length, 6);
+    assert.strictEqual(reloaded.nodes.filter((node) => node.nodeType === "suggestion").length, 3);
+    const reasoningEdge = reloaded.edges.find((edge) => edge.edgeType === "operationalization");
     assert.strictEqual(
-      reloaded.nodes.find((node) => node.nodeId === nodes[0].nodeId)?.existingReferenceType,
-      "hypothesis"
+      reasoningEdge.reasoningText,
+      "この説明が正しいなら、Deweyの文献中にideaが探索を方向づける記述が存在するはず"
     );
+    assert.strictEqual(reasoningEdge.memo, "reasoningはリンク属性として保存");
 
     const child = await request(`/process-maps/${root.map.mapId}/children`, {
       method: "POST",
       body: JSON.stringify({
         userId,
-        parentNodeId: nodes[0].nodeId,
-        title: "下位グレインAPI確認",
+        parentNodeId: idea.nodeId,
+        title: "ideaとworking hypothesisはどのような関係にあるのか",
         grainSize: "中間テーマ",
       }),
     });
     assert.strictEqual(child.breadcrumbs.length, 2);
     assert.strictEqual(child.breadcrumbs[0].mapId, root.map.mapId);
+    assert.strictEqual(child.map.parentMapId, root.map.mapId);
+    assert.strictEqual(child.map.parentNodeId, idea.nodeId);
 
     const parentReloaded = await request(`/process-maps/${root.map.mapId}?userId=${encodeURIComponent(userId)}`);
     assert.strictEqual(parentReloaded.childMaps.length, 1);
@@ -120,8 +147,8 @@ async function run() {
           userId,
           title: themeName,
           grainSize: "研究全体",
-          nodes: nodes.slice(1),
-          edges: edges.slice(1),
+          nodes: nodes.filter((node) => node.nodeId !== idea.nodeId),
+          edges: edges.filter((edge) => edge.sourceNodeId !== idea.nodeId && edge.targetNodeId !== idea.nodeId),
         }),
       });
     } catch (error) {

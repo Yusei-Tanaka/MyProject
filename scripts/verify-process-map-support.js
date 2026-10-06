@@ -2,35 +2,57 @@ const assert = require("assert");
 const { generateGuidance } = require("../JS/process-map-support.js");
 
 const node = (id, nodeType) => ({ id, nodeType });
-const edge = (id, from, to, edgeType = "directed") => ({ id, from, to, edgeType });
+const edge = (id, from, to, edgeType = "directed", reasoningText = "") => ({
+  id,
+  from,
+  to,
+  edgeType,
+  reasoningText,
+});
+
+const branching = generateGuidance(
+  [node("p", "problem"), node("s1", "suggestion"), node("s2", "suggestion")],
+  [edge("1", "p", "s1", "suggestion_generation"), edge("2", "p", "s2", "suggestion_generation")]
+);
+assert(branching.some((item) => item.code === "multiple_suggestions_to_consider"));
+
+const ideaWithoutReason = generateGuidance(
+  [node("s", "suggestion"), node("i", "idea")],
+  [edge("1", "s", "i", "selection_retention")]
+);
+assert(ideaWithoutReason.some((item) => item.code === "idea_without_selection_reason"));
+assert(ideaWithoutReason.some((item) => item.code === "idea_without_explanation"));
 
 const explanationOnly = generateGuidance([node("e", "explanatory_hypothesis")], []);
-assert(explanationOnly.some((item) => item.code === "missing_working_hypothesis"));
+assert(explanationOnly.some((item) => item.code === "missing_operational_hypothesis"));
 
-const unlinkedWork = generateGuidance([node("w", "information_work")], []);
-assert(unlinkedWork.some((item) => item.code === "work_without_hypothesis"));
-
-const resultWithoutUpdate = generateGuidance([node("r", "result")], []);
-assert(resultWithoutUpdate.some((item) => item.code === "result_without_update"));
-
-const ideaWithoutExplanation = generateGuidance([node("i", "idea_working_hypothesis")], []);
-assert(ideaWithoutExplanation.some((item) => item.code === "idea_without_explanation"));
+const missingReasoning = generateGuidance(
+  [node("e", "explanatory_hypothesis"), node("o", "operational_hypothesis")],
+  [edge("1", "e", "o", "operationalization")]
+);
+assert(missingReasoning.some((item) => item.code === "missing_reasoning"));
 
 const connected = generateGuidance(
   [
+    node("p", "problem"),
+    node("s", "suggestion"),
+    node("i", "idea"),
     node("e", "explanatory_hypothesis"),
-    node("h", "working_hypothesis"),
-    node("w", "information_work"),
-    node("r", "result"),
-    node("u", "revision_update"),
-    node("i", "idea_working_hypothesis"),
+    node("o", "operational_hypothesis"),
   ],
   [
-    edge("1", "e", "w", "verification"),
-    edge("2", "r", "u", "revision"),
+    edge("1", "p", "s", "suggestion_generation"),
+    edge("2", "s", "i", "selection_retention", "検討する価値があるため"),
     edge("3", "i", "e", "explanation"),
+    edge("4", "e", "o", "operationalization", "文献中の記述として確認できるため"),
   ]
 );
 assert.strictEqual(connected.length, 0);
+
+const legacy = generateGuidance(
+  [node("e", "explanatory_hypothesis"), node("o", "working_hypothesis")],
+  [edge("1", "e", "o", "operationalization")]
+);
+assert(legacy.some((item) => item.code === "missing_reasoning"));
 
 console.log("process-map-support: all checks passed");

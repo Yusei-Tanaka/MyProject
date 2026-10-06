@@ -2,12 +2,15 @@
   "use strict";
 
   const NODE_TYPES = [
-    { value: "problem_question", label: "問題・疑問", color: "#e8f1fb", border: "#4f7fa8" },
+    { value: "problem", label: "問題・疑問", color: "#e8f1fb", border: "#4f7fa8" },
     { value: "suggestion", label: "suggestion", color: "#f0eafa", border: "#7964a8" },
-    { value: "idea_working_hypothesis", label: "idea / working hypothesis", color: "#f7edf5", border: "#9b638e" },
+    { value: "idea", label: "idea", color: "#f7edf5", border: "#9b638e" },
     { value: "explanatory_hypothesis", label: "説明仮説", color: "#fff2dc", border: "#a9782e" },
-    { value: "reasoning", label: "reasoning", color: "#eef0f2", border: "#68737d" },
-    { value: "working_hypothesis", label: "作業仮説", color: "#fff6d9", border: "#9a8129" },
+    { value: "operational_hypothesis", label: "作業仮説", color: "#f2f5df", border: "#6e8436" },
+  ];
+
+  const LEGACY_NODE_TYPES = [
+    { value: "reasoning", label: "reasoning（旧データ）", color: "#eef0f2", border: "#68737d" },
     { value: "information_work", label: "情報収集・作業", color: "#e7f4ef", border: "#4f8873" },
     { value: "result", label: "結果", color: "#e7f3e5", border: "#56874f" },
     { value: "revision_update", label: "修正・更新", color: "#f9e9e7", border: "#a76259" },
@@ -18,16 +21,42 @@
     { value: "suggestion_generation", label: "suggestion生成" },
     { value: "selection_retention", label: "選択・保持" },
     { value: "explanation", label: "説明化" },
-    { value: "reasoning", label: "reasoning" },
     { value: "operationalization", label: "操作化" },
+  ];
+
+  const LEGACY_EDGE_TYPES = [
+    { value: "reasoning", label: "reasoning（旧データ）" },
     { value: "verification", label: "検証" },
     { value: "support", label: "支持" },
     { value: "rejection", label: "棄却" },
     { value: "revision", label: "修正" },
   ];
 
-  const nodeTypeByValue = new Map(NODE_TYPES.map((type) => [type.value, type]));
-  const edgeTypeByValue = new Map(EDGE_TYPES.map((type) => [type.value, type]));
+  const NODE_TYPE_ALIASES = new Map([
+    ["problem_question", "problem"],
+    ["idea_working_hypothesis", "idea"],
+    ["working_hypothesis", "operational_hypothesis"],
+  ]);
+  const NEXT_STAGE = {
+    problem: { nodeType: "suggestion", edgeType: "suggestion_generation", label: "suggestionを追加" },
+    suggestion: { nodeType: "idea", edgeType: "selection_retention", label: "ideaとして保持" },
+    idea: { nodeType: "explanatory_hypothesis", edgeType: "explanation", label: "説明仮説へ精緻化" },
+    explanatory_hypothesis: {
+      nodeType: "operational_hypothesis",
+      edgeType: "operationalization",
+      label: "作業仮説を追加",
+    },
+  };
+  const INFERRED_EDGE_TYPES = new Map([
+    ["problem:suggestion", "suggestion_generation"],
+    ["suggestion:idea", "selection_retention"],
+    ["idea:explanatory_hypothesis", "explanation"],
+    ["explanatory_hypothesis:operational_hypothesis", "operationalization"],
+  ]);
+
+  const canonicalNodeType = (value) => NODE_TYPE_ALIASES.get(String(value || "")) || String(value || "");
+  const nodeTypeByValue = new Map([...NODE_TYPES, ...LEGACY_NODE_TYPES].map((type) => [type.value, type]));
+  const edgeTypeByValue = new Map([...EDGE_TYPES, ...LEGACY_EDGE_TYPES].map((type) => [type.value, type]));
   const state = {
     initialized: false,
     loading: false,
@@ -154,8 +183,19 @@
     };
   }
 
+  function formatEdgeLabel(edgeType, reasoningText) {
+    const relationLabel = edgeType === "directed" ? "" : edgeTypeByValue.get(edgeType)?.label || edgeType;
+    const normalizedReasoning = String(reasoningText || "").trim().replace(/\s+/g, " ");
+    const reasoningLabel = normalizedReasoning.length > 36
+      ? `${normalizedReasoning.slice(0, 36)}…`
+      : normalizedReasoning;
+    if (reasoningLabel) return relationLabel ? `${relationLabel}\n${reasoningLabel}` : reasoningLabel;
+    if (edgeType === "operationalization") return "操作化\nreasoning未記入";
+    return relationLabel;
+  }
+
   function toVisNode(node) {
-    const nodeType = node.nodeType || "problem_question";
+    const nodeType = canonicalNodeType(node.nodeType || "problem");
     const type = nodeTypeByValue.get(nodeType) || NODE_TYPES[0];
     const content = String(node.content || type.label);
     return {
@@ -180,19 +220,21 @@
 
   function toVisEdge(edge) {
     const edgeType = edge.edgeType || "directed";
-    const type = edgeTypeByValue.get(edgeType) || EDGE_TYPES[0];
     return {
       id: String(edge.edgeId || edge.id),
       from: String(edge.sourceNodeId || edge.from),
       to: String(edge.targetNodeId || edge.to),
       edgeType,
-      label: edgeType === "directed" ? "" : type.label,
+      reasoningText: String(edge.reasoningText || ""),
+      memo: String(edge.memo || ""),
+      label: formatEdgeLabel(edgeType, edge.reasoningText),
       arrows: "to",
       color: { color: "#95a5a6", highlight: "#e67e22", hover: "#3498db" },
       font: { color: "#68737d", size: 11, align: "middle", background: "#ffffff" },
       width: 2,
       smooth: false,
       createdAt: edge.createdAt || new Date().toISOString(),
+      updatedAt: edge.updatedAt || new Date().toISOString(),
     };
   }
 
@@ -277,31 +319,43 @@
     elements.addEdgeBtn.textContent = "リンク作成";
   }
 
-  function createEdge(sourceId, targetId, edgeType) {
+  function inferEdgeType(sourceId, targetId, requestedEdgeType) {
+    if (requestedEdgeType && requestedEdgeType !== "directed") return requestedEdgeType;
+    const sourceType = canonicalNodeType(state.nodes.get(sourceId)?.nodeType);
+    const targetType = canonicalNodeType(state.nodes.get(targetId)?.nodeType);
+    return INFERRED_EDGE_TYPES.get(`${sourceType}:${targetType}`) || requestedEdgeType || "directed";
+  }
+
+  function createEdge(sourceId, targetId, requestedEdgeType) {
+    const edgeType = inferEdgeType(sourceId, targetId, requestedEdgeType);
     const duplicate = state.edges.get().some(
-      (edge) => String(edge.from) === sourceId && String(edge.to) === targetId && edge.edgeType === edgeType
+      (edge) => String(edge.from) === sourceId && String(edge.to) === targetId
     );
     if (duplicate) {
-      setStatus("同じ関係のリンクが既にあります。", "error");
-      return;
+      setStatus("このノード間には既にリンクがあります。", "error");
+      return null;
     }
     const edge = toVisEdge({
       edgeId: createId(),
       sourceNodeId: sourceId,
       targetNodeId: targetId,
       edgeType,
+      reasoningText: "",
+      memo: "",
     });
     state.edges.add(edge);
     state.network.selectEdges([edge.id]);
     showEdgeInspector(edge.id);
     markDirty();
-    logProcessAction("process_link_add", "探究プロセスマップ: リンク追加", {
+    logProcessAction("process_link_add", "仮説形成: リンク追加", {
       edgeId: edge.id,
       sourceNodeId: sourceId,
       targetNodeId: targetId,
       edgeType,
     });
     setStatus("リンクを追加しました。", "success");
+    renderFormedHypotheses();
+    return edge;
   }
 
   function serializeSnapshot() {
@@ -327,6 +381,8 @@
         sourceNodeId: String(edge.from),
         targetNodeId: String(edge.to),
         edgeType: edge.edgeType || "directed",
+        reasoningText: String(edge.reasoningText || ""),
+        memo: String(edge.memo || ""),
       })),
     };
   }
@@ -400,7 +456,7 @@
     }
     state.loading = true;
     setEditorEnabled(false);
-    setStatus("探究プロセスマップを読み込んでいます…");
+    setStatus("仮説形成マップを読み込んでいます…");
     try {
       const bundle = await ensureRootMap();
       applyBundle(bundle);
@@ -437,7 +493,7 @@
   async function openMap(mapId, eventType, message) {
     if (state.dirty && !(await saveNow(false))) return;
     if (await loadMap(mapId)) {
-      logProcessAction(eventType, `探究プロセスマップ: ${message}`, { destinationMapId: mapId });
+      logProcessAction(eventType, `仮説形成: ${message}`, { destinationMapId: mapId });
     }
   }
 
@@ -462,6 +518,7 @@
     updateContext();
     showEmptyInspector();
     updateGuidance();
+    renderFormedHypotheses();
     requestAnimationFrame(() => {
       state.network.redraw();
       if (nodes.length) state.network.fit({ animation: false });
@@ -470,7 +527,7 @@
   }
 
   function updateContext() {
-    elements.title.textContent = state.map?.title || currentThemeName() || "探究プロセスマップ";
+    elements.title.textContent = state.map?.title || currentThemeName() || "仮説形成";
     elements.grainSize.textContent = state.map?.grainSize || "研究全体";
     elements.backBtn.disabled = state.breadcrumbs.length <= 1;
     elements.breadcrumbs.replaceChildren();
@@ -511,8 +568,15 @@
     elements.emptyInspector.hidden = true;
     elements.nodeForm.hidden = false;
     elements.edgeForm.hidden = true;
-    elements.selectionKind.textContent = nodeTypeByValue.get(node.nodeType)?.label || "ノード";
-    elements.detailNodeType.value = node.nodeType;
+    const nodeType = canonicalNodeType(node.nodeType);
+    elements.selectionKind.textContent = nodeTypeByValue.get(nodeType)?.label || "ノード";
+    if (![...elements.detailNodeType.options].some((option) => option.value === nodeType)) {
+      const legacyOption = document.createElement("option");
+      legacyOption.value = nodeType;
+      legacyOption.textContent = nodeTypeByValue.get(nodeType)?.label || `${nodeType}（旧データ）`;
+      elements.detailNodeType.appendChild(legacyOption);
+    }
+    elements.detailNodeType.value = nodeType;
     elements.nodeContent.value = node.content || "";
     elements.nodeMemo.value = node.memo || "";
     elements.relatedKeywords.value = (node.relatedKeywords || []).join(", ");
@@ -522,7 +586,17 @@
     renderRelatedNodes(nodeId);
     const child = state.childrenByNode.get(nodeId);
     elements.childGrainState.textContent = child ? `「${child.title}」があります。` : "まだ作成されていません。";
-    elements.childGrainBtn.textContent = child ? "下位グレインを開く" : "下位グレインを作成";
+    elements.childGrainBtn.textContent = child ? "下位マップを開く" : "下位マップを作成";
+    const nextStage = NEXT_STAGE[nodeType];
+    elements.advanceBtn.hidden = !nextStage;
+    if (nextStage) elements.advanceBtn.textContent = nextStage.label;
+    const canAddToStructure = ["explanatory_hypothesis", "operational_hypothesis"].includes(nodeType);
+    elements.structureCandidate.hidden = !canAddToStructure;
+    const alreadyCandidate = node.existingReferenceType === "hypothesis_structure_candidate";
+    elements.addStructureCandidateBtn.disabled = false;
+    elements.addStructureCandidateBtn.textContent = alreadyCandidate
+      ? "仮説構造候補を確認・同期"
+      : "仮説構造ビューの候補に追加";
     updateGuidance(nodeId);
   }
 
@@ -537,8 +611,28 @@
     const source = state.nodes.get(edge.from);
     const target = state.nodes.get(edge.to);
     elements.edgeSummary.textContent = `${source?.content || edge.from} → ${target?.content || edge.to}`;
+    if (![...elements.detailEdgeType.options].some((option) => option.value === edge.edgeType)) {
+      const legacyOption = document.createElement("option");
+      legacyOption.value = edge.edgeType;
+      legacyOption.textContent = edgeTypeByValue.get(edge.edgeType)?.label || `${edge.edgeType}（旧データ）`;
+      elements.detailEdgeType.appendChild(legacyOption);
+    }
     elements.detailEdgeType.value = edge.edgeType || "directed";
-    updateGuidance();
+    elements.reasoningText.value = edge.reasoningText || "";
+    elements.edgeMemo.value = edge.memo || "";
+    const sourceType = canonicalNodeType(source?.nodeType);
+    const targetType = canonicalNodeType(target?.nodeType);
+    if (sourceType === "explanatory_hypothesis" && targetType === "operational_hypothesis") {
+      elements.reasoningLabel.textContent = "reasoning（説明仮説から作業仮説を導く根拠）";
+      elements.reasoningHint.textContent = "なぜこの作業仮説で説明仮説を確かめられるのかを記述します。";
+    } else if (sourceType === "suggestion" && targetType === "idea") {
+      elements.reasoningLabel.textContent = "検討する価値があると考えた理由";
+      elements.reasoningHint.textContent = "このsuggestionをideaとして保持した判断を記述できます。";
+    } else {
+      elements.reasoningLabel.textContent = "段階間の考え・根拠";
+      elements.reasoningHint.textContent = "この2つを結び付けた理由を任意で記述できます。";
+    }
+    updateGuidance(null, edgeId);
   }
 
   function renderRelatedNodes(nodeId) {
@@ -559,16 +653,49 @@
     related.forEach(({ node, edge, direction }) => {
       const item = document.createElement("li");
       const edgeLabel = edgeTypeByValue.get(edge.edgeType)?.label || "通常の有向リンク";
-      item.textContent = `${direction} ${node?.content || "不明なノード"}（${edgeLabel}）`;
+      const reasoningState = String(edge.reasoningText || "").trim() ? "・根拠あり" : "";
+      item.textContent = `${direction} ${node?.content || "不明なノード"}（${edgeLabel}${reasoningState}）`;
       elements.relatedNodes.appendChild(item);
     });
   }
 
-  function updateGuidance(selectedNodeId = null) {
+  function renderFormedHypotheses() {
+    if (!elements.formedHypotheses || !state.nodes) return;
+    const hypotheses = state.nodes
+      .get()
+      .filter((node) => ["explanatory_hypothesis", "operational_hypothesis"].includes(canonicalNodeType(node.nodeType)));
+    elements.formedHypotheses.replaceChildren();
+    if (!hypotheses.length) {
+      const item = document.createElement("li");
+      item.textContent = "説明仮説・作業仮説を作成すると、ここで確認できます。";
+      elements.formedHypotheses.appendChild(item);
+      return;
+    }
+    hypotheses.forEach((node) => {
+      const item = document.createElement("li");
+      const button = document.createElement("button");
+      button.type = "button";
+      const typeLabel = nodeTypeByValue.get(canonicalNodeType(node.nodeType))?.label || "仮説";
+      const candidateMark = node.existingReferenceType === "hypothesis_structure_candidate" ? "・構造候補追加済み" : "";
+      button.textContent = `${typeLabel}${candidateMark}: ${node.content}`;
+      button.addEventListener("click", () => {
+        state.network.selectNodes([String(node.id)]);
+        showNodeInspector(String(node.id));
+        state.network.focus(String(node.id), { animation: true, scale: 1 });
+      });
+      item.appendChild(button);
+      elements.formedHypotheses.appendChild(item);
+    });
+  }
+
+  function updateGuidance(selectedNodeId = null, selectedEdgeId = null) {
     if (!state.nodes || !window.ProcessMapSupport) return;
     const messages = window.ProcessMapSupport.generateGuidance(state.nodes.get(), state.edges.get());
-    const ordered = selectedNodeId
-      ? [...messages.filter((message) => message.nodeIds.includes(selectedNodeId)), ...messages.filter((message) => !message.nodeIds.includes(selectedNodeId))]
+    const isSelectedMessage = (message) =>
+      (selectedNodeId && message.nodeIds.includes(selectedNodeId)) ||
+      (selectedEdgeId && Array.isArray(message.edgeIds) && message.edgeIds.includes(selectedEdgeId));
+    const ordered = selectedNodeId || selectedEdgeId
+      ? [...messages.filter(isSelectedMessage), ...messages.filter((message) => !isSelectedMessage(message))]
       : messages;
     elements.guidanceList.replaceChildren();
     if (!ordered.length) {
@@ -584,33 +711,48 @@
     });
   }
 
-  function addNode() {
+  function addNode(requestedNodeType = null, sourceNodeId = null, requestedEdgeType = "directed") {
     if (!state.currentMapId || !state.network) {
       setStatus("マップの読み込み完了後に操作してください。", "error");
-      return;
+      return null;
     }
-    const nodeType = elements.nodeType.value;
+    const nodeType = typeof requestedNodeType === "string" ? requestedNodeType : elements.nodeType.value;
     const type = nodeTypeByValue.get(nodeType) || NODE_TYPES[0];
     const viewPosition = state.network.getViewPosition();
+    const sourcePosition = sourceNodeId ? state.network.getPositions([sourceNodeId])[sourceNodeId] : null;
+    const branchIndex = sourceNodeId
+      ? state.edges.get().filter((edge) => String(edge.from) === String(sourceNodeId)).length
+      : state.nodes.length;
     const offset = state.nodes.length * 12;
     const node = toVisNode({
       nodeId: createId(),
       nodeType,
       content: type.label,
-      x: viewPosition.x + (offset % 96),
-      y: viewPosition.y + (offset % 72),
+      x: sourcePosition ? sourcePosition.x + 250 : viewPosition.x + (offset % 96),
+      y: sourcePosition ? sourcePosition.y + (branchIndex - 1) * 90 : viewPosition.y + (offset % 72),
     });
     state.nodes.add(node);
+    if (sourceNodeId) createEdge(String(sourceNodeId), String(node.id), requestedEdgeType);
     state.network.selectNodes([node.id]);
     showNodeInspector(node.id);
     elements.nodeContent.focus();
     elements.nodeContent.select();
     markDirty();
-    logProcessAction("process_node_add", "探究プロセスマップ: ノード追加", {
+    logProcessAction("process_node_add", "仮説形成: ノード追加", {
       nodeId: node.id,
       nodeType,
     });
     setStatus("ノードを追加しました。右側で内容を編集してください。", "success");
+    renderFormedHypotheses();
+    return node;
+  }
+
+  function addNextStageNode() {
+    if (!state.selection || state.selection.kind !== "node") return;
+    const source = state.nodes.get(state.selection.id);
+    const nextStage = source && NEXT_STAGE[canonicalNodeType(source.nodeType)];
+    if (!nextStage) return;
+    addNode(nextStage.nodeType, String(source.id), nextStage.edgeType);
   }
 
   function updateSelectedNode(event) {
@@ -639,10 +781,21 @@
       updatedAt: new Date().toISOString(),
       ...nodeStyle(nodeType),
     });
-    elements.selectionKind.textContent = nodeTypeByValue.get(nodeType)?.label || "ノード";
+    if (
+      elements.existingReferenceType.value === "hypothesis_structure_candidate" &&
+      typeof window.addProcessHypothesisCandidate === "function"
+    ) {
+      window.addProcessHypothesisCandidate({
+        text: content,
+        processNodeId: String(node.id),
+        processMapId: String(state.currentMapId),
+        hypothesisKind: canonicalNodeType(nodeType),
+      });
+    }
     markDirty();
-    updateGuidance(node.id);
-    logProcessAction("process_node_edit", "探究プロセスマップ: ノード編集", {
+    renderFormedHypotheses();
+    showNodeInspector(node.id);
+    logProcessAction("process_node_edit", "仮説形成: ノード編集", {
       nodeId: node.id,
       nodeType,
     });
@@ -662,18 +815,19 @@
     state.nodes.remove(nodeId);
     showEmptyInspector();
     markDirty();
-    logProcessAction("process_node_delete", "探究プロセスマップ: ノード削除", {
+    logProcessAction("process_node_delete", "仮説形成: ノード削除", {
       nodeId,
       removedEdgeIds: connectedEdges.map((edge) => edge.id),
     });
     connectedEdges.forEach((edge) => {
-      logProcessAction("process_link_delete", "探究プロセスマップ: ノード削除に伴うリンク削除", {
+      logProcessAction("process_link_delete", "仮説形成: ノード削除に伴うリンク削除", {
         edgeId: edge.id,
         sourceNodeId: edge.from,
         targetNodeId: edge.to,
       });
     });
     setStatus("ノードを削除しました。", "success");
+    renderFormedHypotheses();
   }
 
   function deleteEdge(edgeId) {
@@ -682,12 +836,13 @@
     state.edges.remove(edgeId);
     showEmptyInspector();
     markDirty();
-    logProcessAction("process_link_delete", "探究プロセスマップ: リンク削除", {
+    logProcessAction("process_link_delete", "仮説形成: リンク削除", {
       edgeId,
       sourceNodeId: edge.from,
       targetNodeId: edge.to,
     });
     setStatus("リンクを削除しました。", "success");
+    updateGuidance();
   }
 
   function deleteSelection() {
@@ -702,17 +857,70 @@
     const edge = state.edges.get(state.selection.id);
     if (!edge) return;
     const edgeType = elements.detailEdgeType.value;
+    const reasoningText = elements.reasoningText.value.trim();
+    const memo = elements.edgeMemo.value.trim();
     state.edges.update({
       id: edge.id,
       edgeType,
-      label: edgeType === "directed" ? "" : edgeTypeByValue.get(edgeType)?.label || edgeType,
+      reasoningText,
+      memo,
+      label: formatEdgeLabel(edgeType, reasoningText),
+      updatedAt: new Date().toISOString(),
     });
     markDirty();
-    logProcessAction("process_link_edit", "探究プロセスマップ: リンク関係を編集", {
+    updateGuidance(null, edge.id);
+    logProcessAction("process_link_edit", "仮説形成: リンク編集", {
       edgeId: edge.id,
       edgeType,
+      hasReasoning: Boolean(reasoningText),
     });
-    setStatus("リンクの関係を更新しました。", "success");
+    setStatus("リンクの関係とreasoningを更新しました。", "success");
+  }
+
+  function addToHypothesisStructure() {
+    if (!state.selection || state.selection.kind !== "node") return;
+    const node = state.nodes.get(state.selection.id);
+    if (!node || !["explanatory_hypothesis", "operational_hypothesis"].includes(canonicalNodeType(node.nodeType))) {
+      setStatus("説明仮説または作業仮説を選択してください。", "error");
+      return;
+    }
+    if (typeof window.addProcessHypothesisCandidate !== "function") {
+      setStatus("仮説構造ビューの準備が完了していません。ページを再読み込みしてください。", "error");
+      return;
+    }
+    const result = window.addProcessHypothesisCandidate({
+      text: node.content,
+      processNodeId: String(node.id),
+      processMapId: String(state.currentMapId),
+      hypothesisKind: canonicalNodeType(node.nodeType),
+    });
+    if (!result || result.success === false) {
+      setStatus("仮説構造ビューへ候補を追加できませんでした。", "error");
+      return;
+    }
+    const candidateId = String(result.key ?? node.id);
+    state.nodes.update({
+      id: node.id,
+      existingReferenceType: "hypothesis_structure_candidate",
+      existingReferenceId: candidateId,
+      updatedAt: new Date().toISOString(),
+    });
+    elements.existingReferenceType.value = "hypothesis_structure_candidate";
+    elements.existingReferenceId.value = candidateId;
+    elements.addStructureCandidateBtn.disabled = false;
+    elements.addStructureCandidateBtn.textContent = "仮説構造候補を確認・同期";
+    markDirty();
+    renderFormedHypotheses();
+    logProcessAction("process_hypothesis_candidate_add", "仮説形成: 仮説構造ビューへ候補追加", {
+      nodeId: node.id,
+      candidateId,
+      hypothesisKind: canonicalNodeType(node.nodeType),
+      newlyAdded: result.added !== false,
+    });
+    setStatus(
+      result.added === false ? "既存の構造候補を確認しました。" : "仮説構造ビューへ候補として追加しました。",
+      "success"
+    );
   }
 
   async function handleChildGrain() {
@@ -737,12 +945,12 @@
         body: JSON.stringify({ userId: currentUserId(), parentNodeId: nodeId, title: title.trim(), grainSize }),
       });
       applyBundle(bundle);
-      logProcessAction("process_hierarchy_create", "探究プロセスマップ: 下位グレイン作成", {
+      logProcessAction("process_hierarchy_create", "仮説形成: 下位グレイン作成", {
         parentMapId: state.breadcrumbs.length > 1 ? state.breadcrumbs[state.breadcrumbs.length - 2]?.mapId : null,
         parentNodeId: nodeId,
         childMapId: bundle.map.mapId,
       });
-      logProcessAction("process_hierarchy_down", "探究プロセスマップ: 作成した下位グレインへ移動", {
+      logProcessAction("process_hierarchy_down", "仮説形成: 作成した下位グレインへ移動", {
         destinationMapId: bundle.map.mapId,
       });
       setStatus("下位グレインを作成しました。", "success");
@@ -817,10 +1025,18 @@
       relatedNodes: document.getElementById("processRelatedNodes"),
       childGrainState: document.getElementById("processChildGrainState"),
       childGrainBtn: document.getElementById("processChildGrainBtn"),
+      advanceBtn: document.getElementById("processAdvanceBtn"),
+      structureCandidate: document.getElementById("processStructureCandidate"),
+      addStructureCandidateBtn: document.getElementById("processAddStructureCandidateBtn"),
       deleteNodeBtn: document.getElementById("processDeleteNodeBtn"),
       edgeSummary: document.getElementById("processEdgeSummary"),
       detailEdgeType: document.getElementById("processDetailEdgeType"),
+      reasoningLabel: document.getElementById("processReasoningLabel"),
+      reasoningText: document.getElementById("processReasoningText"),
+      reasoningHint: document.getElementById("processReasoningHint"),
+      edgeMemo: document.getElementById("processEdgeMemo"),
       deleteEdgeBtn: document.getElementById("processDeleteEdgeBtn"),
+      formedHypotheses: document.getElementById("processFormedHypotheses"),
       guidanceList: document.getElementById("processGuidanceList"),
     };
   }
@@ -834,7 +1050,7 @@
     fillSelect(elements.detailEdgeType, EDGE_TYPES);
     setEditorEnabled(false);
     elements.tabs.forEach((tab) => tab.addEventListener("click", () => switchWorkspace(tab.dataset.workspaceTab)));
-    elements.addNodeBtn.addEventListener("click", addNode);
+    elements.addNodeBtn.addEventListener("click", () => addNode());
     elements.addEdgeBtn.addEventListener("click", () => {
       if (state.linkSourceNodeId !== null) cancelLinkMode();
       else beginLinkMode();
@@ -853,6 +1069,8 @@
       if (state.selection?.kind === "node") deleteNode(state.selection.id);
     });
     elements.childGrainBtn.addEventListener("click", handleChildGrain);
+    elements.advanceBtn.addEventListener("click", addNextStageNode);
+    elements.addStructureCandidateBtn.addEventListener("click", addToHypothesisStructure);
     elements.edgeForm.addEventListener("submit", updateSelectedEdge);
     elements.deleteEdgeBtn.addEventListener("click", () => {
       if (state.selection?.kind === "edge") deleteEdge(state.selection.id);

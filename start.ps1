@@ -70,14 +70,24 @@ if (Test-Path $pidFile) {
     }
 }
 
-$pythonCmd = Get-Command python3 -ErrorAction SilentlyContinue
-if (-not $pythonCmd) {
-    $pythonCmd = Get-Command python -ErrorAction SilentlyContinue
+$venvPython = if ($onWindows) {
+    Join-Path (Join-Path $root ".venv") "Scripts\python.exe"
+} else {
+    Join-Path (Join-Path $root ".venv") "bin/python"
 }
-if (-not $pythonCmd) {
-    throw "Python not found on PATH. Install Python 3 and ensure 'python3' or 'python' is available."
+
+if (Test-Path $venvPython) {
+    $python = $venvPython
+} else {
+    $pythonCmd = Get-Command python3 -ErrorAction SilentlyContinue
+    if (-not $pythonCmd) {
+        $pythonCmd = Get-Command python -ErrorAction SilentlyContinue
+    }
+    if (-not $pythonCmd) {
+        throw "Python not found. Create .venv or install Python 3 on PATH."
+    }
+    $python = $pythonCmd.Source
 }
-$python = $pythonCmd.Source
 
 $nodeCmd = Get-Command node -ErrorAction SilentlyContinue
 if (-not $nodeCmd) {

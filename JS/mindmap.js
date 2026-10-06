@@ -1321,6 +1321,52 @@ window.addEventListener('DOMContentLoaded', function() {
     });
   };
 
+  // 仮説形成ビューからは「候補」としてルート直下へ追加し、仮説同士の親子関係は自動決定しない。
+  window.addProcessHypothesisCandidate = function (candidate) {
+    if (!diagram.model) return { success: false };
+    candidate = candidate || {};
+    var text = String(candidate.text || "").trim();
+    var processNodeId = String(candidate.processNodeId || "").trim();
+    if (!text || !processNodeId) return { success: false };
+
+    var nodeArray = Array.isArray(diagram.model.nodeDataArray) ? diagram.model.nodeDataArray : [];
+    var existing = nodeArray.find(function (data) {
+      return String(data.processNodeId || "") === processNodeId && data.isStructureCandidate === true;
+    });
+    if (existing) {
+      var updated = String(existing.text || "") !== text;
+      if (updated) {
+        diagram.startTransaction("update hypothesis formation candidate");
+        diagram.model.set(existing, "text", text);
+        diagram.model.set(existing, "hypothesisKind", String(candidate.hypothesisKind || ""));
+        diagram.commitTransaction("update hypothesis formation candidate");
+      }
+      var existingNode = diagram.findNodeForData(existing);
+      if (existingNode) diagram.select(existingNode);
+      return { success: true, added: false, updated: updated, key: existing.key };
+    }
+
+    var rootNode = diagram.findNodeForKey(0);
+    if (!rootNode) return { success: false };
+    var newNodeData = {
+      text: text,
+      parent: rootNode.data.key,
+      sourceView: "hypothesis_formation",
+      processNodeId: processNodeId,
+      processMapId: String(candidate.processMapId || ""),
+      hypothesisKind: String(candidate.hypothesisKind || ""),
+      isStructureCandidate: true,
+    };
+    diagram.startTransaction("add hypothesis formation candidate");
+    diagram.model.addNodeData(newNodeData);
+    diagram.commitTransaction("add hypothesis formation candidate");
+    diagram.select(diagram.findNodeForData(newNodeData));
+    logMindmapAction(
+      `仮説構造化マップ: 仮説形成候補追加 processNode=${processNodeId} "${text}"`
+    );
+    return { success: true, added: true, key: newNodeData.key };
+  };
+
   window.deleteMindmapNodeByEntryId = function (entryId) {
     if (!diagram.model || !entryId) return false;
     var nodeDataToRemove = null;

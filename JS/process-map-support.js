@@ -10,86 +10,107 @@
   "use strict";
 
   const normalizeId = (value) => String(value ?? "");
+  const normalizeNodeType = (value) => {
+    const nodeType = String(value || "");
+    if (nodeType === "problem_question") return "problem";
+    if (nodeType === "idea_working_hypothesis") return "idea";
+    if (nodeType === "working_hypothesis") return "operational_hypothesis";
+    return nodeType;
+  };
 
   function generateGuidance(nodes, edges) {
     const safeNodes = Array.isArray(nodes) ? nodes : [];
     const safeEdges = Array.isArray(edges) ? edges : [];
-    const nodeById = new Map(safeNodes.map((node) => [normalizeId(node.id ?? node.nodeId), node]));
+    const nodeById = new Map(
+      safeNodes.map((node) => [
+        normalizeId(node.id ?? node.nodeId),
+        { ...node, nodeType: normalizeNodeType(node.nodeType) },
+      ])
+    );
     const outgoing = new Map();
-    const incoming = new Map();
 
     safeEdges.forEach((edge) => {
       const source = normalizeId(edge.from ?? edge.sourceNodeId);
-      const target = normalizeId(edge.to ?? edge.targetNodeId);
       if (!outgoing.has(source)) outgoing.set(source, []);
-      if (!incoming.has(target)) incoming.set(target, []);
       outgoing.get(source).push(edge);
-      incoming.get(target).push(edge);
     });
 
     const messages = [];
-    const explanationNodes = safeNodes.filter((node) => node.nodeType === "explanatory_hypothesis");
-    const workingNodes = safeNodes.filter((node) => node.nodeType === "working_hypothesis");
+    const normalizedNodes = [...nodeById.entries()].map(([id, node]) => ({ ...node, _id: id }));
 
-    if (explanationNodes.length > 0 && workingNodes.length === 0) {
-      messages.push({
-        code: "missing_working_hypothesis",
-        nodeIds: explanationNodes.map((node) => normalizeId(node.id ?? node.nodeId)),
-        message: "この説明が正しい場合、何が観察されると考えられますか？",
-      });
-    }
-
-    safeNodes
-      .filter((node) => node.nodeType === "information_work")
+    normalizedNodes
+      .filter((node) => node.nodeType === "problem")
       .forEach((node) => {
-        const nodeId = normalizeId(node.id ?? node.nodeId);
-        const isLinkedToHypothesis = (incoming.get(nodeId) || []).some((edge) => {
-          const sourceNode = nodeById.get(normalizeId(edge.from ?? edge.sourceNodeId));
-          return sourceNode && ["explanatory_hypothesis", "working_hypothesis"].includes(sourceNode.nodeType);
-        });
-        if (!isLinkedToHypothesis) {
+        const suggestions = (outgoing.get(node._id) || [])
+          .map((edge) => nodeById.get(normalizeId(edge.to ?? edge.targetNodeId)))
+          .filter((target) => target && target.nodeType === "suggestion");
+        if (suggestions.length >= 2) {
           messages.push({
-            code: "work_without_hypothesis",
-            nodeIds: [nodeId],
-            message: "この作業は、どの仮説を検証するためのものですか？",
+            code: "multiple_suggestions_to_consider",
+            nodeIds: [node._id],
+            message: "どの可能性をさらに検討したいですか？",
           });
         }
       });
 
-    safeNodes
-      .filter((node) => node.nodeType === "result")
-      .forEach((node) => {
-        const nodeId = normalizeId(node.id ?? node.nodeId);
-        const hasUpdateTarget = (outgoing.get(nodeId) || []).some((edge) => {
-          const edgeType = edge.edgeType || edge.edge_type || "directed";
-          const targetNode = nodeById.get(normalizeId(edge.to ?? edge.targetNodeId));
-          return (
-            ["support", "rejection", "revision"].includes(edgeType) ||
-            (targetNode && ["explanatory_hypothesis", "working_hypothesis", "revision_update"].includes(targetNode.nodeType))
-          );
-        });
-        if (!hasUpdateTarget) {
-          messages.push({
-            code: "result_without_update",
-            nodeIds: [nodeId],
-            message: "この結果によって、どの仮説が支持・修正されましたか？",
-          });
-        }
-      });
+    safeEdges.forEach((edge) => {
+      const sourceId = normalizeId(edge.from ?? edge.sourceNodeId);
+      const targetId = normalizeId(edge.to ?? edge.targetNodeId);
+      const source = nodeById.get(sourceId);
+      const target = nodeById.get(targetId);
+      const reasoningText = String(edge.reasoningText ?? edge.reasoning_text ?? "").trim();
 
-    safeNodes
-      .filter((node) => node.nodeType === "idea_working_hypothesis")
+      if (source?.nodeType === "suggestion" && target?.nodeType === "idea" && !reasoningText) {
+        messages.push({
+          code: "idea_without_selection_reason",
+          nodeIds: [sourceId, targetId],
+          edgeIds: [normalizeId(edge.id ?? edge.edgeId)],
+          message: "なぜこの可能性を検討する価値があると考えましたか？",
+        });
+      }
+
+      if (
+        source?.nodeType === "explanatory_hypothesis" &&
+        target?.nodeType === "operational_hypothesis" &&
+        !reasoningText
+      ) {
+        messages.push({
+          code: "missing_reasoning",
+          nodeIds: [sourceId, targetId],
+          edgeIds: [normalizeId(edge.id ?? edge.edgeId)],
+          message: "なぜこの作業仮説によって、この説明仮説を確かめられると考えますか？",
+        });
+      }
+    });
+
+    normalizedNodes
+      .filter((node) => node.nodeType === "idea")
       .forEach((node) => {
-        const nodeId = normalizeId(node.id ?? node.nodeId);
-        const hasExplanation = (outgoing.get(nodeId) || []).some((edge) => {
-          const targetNode = nodeById.get(normalizeId(edge.to ?? edge.targetNodeId));
-          return targetNode && targetNode.nodeType === "explanatory_hypothesis";
+        const hasExplanation = (outgoing.get(node._id) || []).some((edge) => {
+          const target = nodeById.get(normalizeId(edge.to ?? edge.targetNodeId));
+          return target?.nodeType === "explanatory_hypothesis";
         });
         if (!hasExplanation) {
           messages.push({
             code: "idea_without_explanation",
-            nodeIds: [nodeId],
-            message: "なぜこのideaが成り立つと考えますか？",
+            nodeIds: [node._id],
+            message: "なぜこの現象・関係が生じると考えますか？",
+          });
+        }
+      });
+
+    normalizedNodes
+      .filter((node) => node.nodeType === "explanatory_hypothesis")
+      .forEach((node) => {
+        const hasOperationalHypothesis = (outgoing.get(node._id) || []).some((edge) => {
+          const target = nodeById.get(normalizeId(edge.to ?? edge.targetNodeId));
+          return target?.nodeType === "operational_hypothesis";
+        });
+        if (!hasOperationalHypothesis) {
+          messages.push({
+            code: "missing_operational_hypothesis",
+            nodeIds: [node._id],
+            message: "この説明が正しいとすると、何が確認できるはずですか？",
           });
         }
       });
