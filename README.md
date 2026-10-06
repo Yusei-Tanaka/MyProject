@@ -182,6 +182,20 @@ curl.exe http://127.0.0.1:3000/users/user2/themes/user2
 - `content.nodes` と `content.edges` が存在すること
 - fallback対象では `content.migratedFromFallbackRoot = true` になること
 
+### 既存XML・Mindmap・仮説・操作ログをまとめて復元
+
+`migrate-local-files-to-db.js` は `XML` / `log` 配下の旧データをV2テーマと操作ログへ復元します。`--user` を指定すると、そのユーザーのファイルだけを対象にできます。
+
+```powershell
+# tanaka の対象件数だけ確認（DB更新なし）
+node scripts/migrate-local-files-to-db.js --dry-run --user tanaka
+
+# tanaka のみ復元
+node scripts/migrate-local-files-to-db.js --user tanaka
+```
+
+既存テーマは上書きせず、不足しているキーワードマップ・Mindmap・仮説だけを補完します。同じファイルとログは `import_key` により再実行時も重複登録されません。DBの照合順序上、表記違いのテーマ名が既存名と衝突する場合は `（旧データ）` を付けて分離します。
+
 ### 既存 user_themes から DB V2 のキーワード表へ移行
 
 `user_themes.content_json` を元に、`keyword_nodes` / `keyword_edges` を含むDB V2テーブルへ移行できます。

@@ -16,6 +16,7 @@ for (let i = 0; i < args.length; i += 1) {
 }
 
 const dryRun = argMap.get("--dry-run") === "true";
+const requestedUserArg = String(argMap.get("--user") || "").trim();
 const rootDir = path.resolve(__dirname, "..");
 const xmlDir = path.resolve(argMap.get("--xml-dir") || path.join(rootDir, "XML"));
 const logDir = path.resolve(argMap.get("--log-dir") || path.join(rootDir, "log"));
@@ -50,6 +51,11 @@ const normalizeThemeName = (value) => {
   const normalized = String(value || "").trim();
   return (normalized || "migrated_theme").slice(0, 255);
 };
+
+const inferThemeLanguage = (themeName) =>
+  /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uff01-\uff60\u3000-\u303f]/.test(String(themeName || ""))
+    ? "ja"
+    : "en";
 
 const decodeXml = (value) =>
   String(value || "")
@@ -345,6 +351,7 @@ const countExistingKeys = async (connection, tableName, keys) => {
 };
 
 (async () => {
+  const requestedUserId = requestedUserArg ? sanitizeUserId(requestedUserArg) : "";
   const connection = await createConnection();
   const xmlFiles = await readFiles(xmlDir);
   const logFiles = await readFiles(logDir);
@@ -404,6 +411,17 @@ const countExistingKeys = async (connection, tableName, keys) => {
     fileScopes.set(normalizeSlashes(path.relative(rootDir, file.fullPath)), scope);
   }
 
+  const matchesRequestedUser = (file) => {
+    if (!requestedUserId) return true;
+    const sourcePath = normalizeSlashes(path.relative(rootDir, file.fullPath));
+    return fileScopes.get(sourcePath)?.userId === requestedUserId;
+  };
+  const selectedXmlFiles = xmlFiles.filter(matchesRequestedUser);
+  const selectedLogFiles = logFiles.filter(matchesRequestedUser);
+  const selectedGroups = [...groups.values()].filter(
+    (group) => !requestedUserId || group.userId === requestedUserId
+  );
+
   let archiveInserted = 0;
   let archiveSkipped = 0;
   let logInserted = 0;
@@ -413,7 +431,7 @@ const countExistingKeys = async (connection, tableName, keys) => {
     await ensureImportSchema(connection);
     await connection.beginTransaction();
     try {
-      for (const file of [...xmlFiles, ...logFiles]) {
+      for (const file of [...selectedXmlFiles, ...selectedLogFiles]) {
         const sourcePath = normalizeSlashes(path.relative(rootDir, file.fullPath));
         const contentHash = sha256(file.buffer);
         const importKey = sha256(`legacy-file-v1\u0000${sourcePath}\u0000${contentHash}`);
@@ -440,7 +458,7 @@ const countExistingKeys = async (connection, tableName, keys) => {
         else archiveSkipped += 1;
       }
 
-      for (const file of logFiles) {
+      for (const file of selectedLogFiles) {
         if (file.name.toLowerCase().endsWith(".zip")) continue;
         const sourcePath = normalizeSlashes(path.relative(rootDir, file.fullPath));
         const scope = parseLogScope(file.name);
@@ -473,7 +491,7 @@ const countExistingKeys = async (connection, tableName, keys) => {
       throw error;
     }
   } else {
-    const archiveKeys = [...xmlFiles, ...logFiles].map((file) => {
+    const archiveKeys = [...selectedXmlFiles, ...selectedLogFiles].map((file) => {
       const sourcePath = normalizeSlashes(path.relative(rootDir, file.fullPath));
       return sha256(`legacy-file-v1\u0000${sourcePath}\u0000${sha256(file.buffer)}`);
     });
@@ -481,7 +499,7 @@ const countExistingKeys = async (connection, tableName, keys) => {
     archiveInserted = archiveKeys.length - archiveSkipped;
 
     const logKeys = [];
-    for (const file of logFiles) {
+    for (const file of selectedLogFiles) {
       if (file.name.toLowerCase().endsWith(".zip")) continue;
       const sourcePath = normalizeSlashes(path.relative(rootDir, file.fullPath));
       const lines = file.buffer.toString("utf8").split(/\r?\n/);
@@ -505,12 +523,17 @@ const countExistingKeys = async (connection, tableName, keys) => {
   let mindmapImported = 0;
   let hypothesisImported = 0;
 
-  for (const group of groups.values()) {
-    const existing = await getExistingTheme(group.userId, group.themeName);
+  for (const group of selectedGroups) {
+    let destinationThemeName = group.themeName;
+    let existing = await getExistingTheme(group.userId, destinationThemeName);
+    if (existing && existing.themeName !== destinationThemeName) {
+      destinationThemeName = normalizeThemeName(`${group.themeName}（旧データ）`);
+      existing = await getExistingTheme(group.userId, destinationThemeName);
+    }
     const existingContent = existing && existing.content && typeof existing.content === "object"
       ? existing.content
       : {};
-    const incoming = { title: group.themeName };
+    const incoming = { title: destinationThemeName };
     const sources = [];
     const importedSources = new Set(
       Array.isArray(existingContent?.legacyImport?.sourceFiles)
@@ -569,10 +592,15 @@ const countExistingKeys = async (connection, tableName, keys) => {
     };
 
     console.log(
-      `[${dryRun ? "DRY-RUN" : "IMPORT"}] ${group.userId} / ${group.themeName}: ${sources.join(", ")}`
+      `[${dryRun ? "DRY-RUN" : "IMPORT"}] ${group.userId} / ${destinationThemeName}: ${sources.join(", ")}`
     );
     if (!dryRun) {
-      await putTheme(group.userId, group.themeName, existing?.language || "", incoming);
+      await putTheme(
+        group.userId,
+        destinationThemeName,
+        existing?.language || inferThemeLanguage(group.themeName),
+        incoming
+      );
     }
     if (existing) themesUpdated += 1;
     else themesCreated += 1;
@@ -580,12 +608,18 @@ const countExistingKeys = async (connection, tableName, keys) => {
 
   const summary = {
     dryRun,
+    requestedUserId: requestedUserId || null,
     apiBase,
-    localFiles: { xmlDirectory: xmlFiles.length, logDirectory: logFiles.length },
+    localFiles: {
+      xmlDirectory: selectedXmlFiles.length,
+      logDirectory: selectedLogFiles.length,
+      totalXmlDirectory: xmlFiles.length,
+      totalLogDirectory: logFiles.length,
+    },
     archive: { inserted: archiveInserted, skipped: archiveSkipped },
     logs: { inserted: logInserted, skipped: logSkipped },
     themes: {
-      groups: groups.size,
+      groups: selectedGroups.length,
       created: themesCreated,
       updated: themesUpdated,
       unchanged: themesUnchanged,
