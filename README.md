@@ -436,3 +436,9 @@ USE myapp;
 - `.env` は Git 管理対象外です（`.gitignore` 設定済み）。
 - APIキーやDBパスワードを `README` やソースに直接書かないでください。
 - もしキーを誤って保存・共有した場合は、必ず失効（ローテーション）してください。
+
+## 11. 探究プロセスマップ
+
+`main.html` 上部の「探究プロセスマップ」タブから、9種類の探究ノード、関係リンク、再帰的な下位グレインを編集できます。データは既存テーブルを変更せず、`process_maps` / `process_nodes` / `process_edges` / `process_hierarchy` に保存されます。
+
+新規環境へのDB適用、実装ファイル、対応機能、未実装機能、確認手順は [探究プロセスマップ実装報告](docs/process-map-implementation.md) を参照してください。

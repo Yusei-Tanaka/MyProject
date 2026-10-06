@@ -149,16 +149,9 @@ finally:
 $apiScript = Join-Path $root "api.py"
 $backendScript = Join-Path (Join-Path $root "JS") "server.js"
 
-<<<<<<< HEAD
 $http = Start-BackgroundProcess -Name "http" -FilePath $python -ArgumentList @("-m", "http.server", "$staticPort", "--bind", "0.0.0.0") -WorkingDirectory $root
 $api  = Start-BackgroundProcess -Name "api" -FilePath $python -ArgumentList @($apiScript) -WorkingDirectory $root
-$nodeProc = Start-BackgroundProcess -Name "saveXML" -FilePath $node -ArgumentList @($saveXmlScript) -WorkingDirectory $jsDir
 $backendProc = Start-BackgroundProcess -Name "backend" -FilePath $node -ArgumentList @($backendScript) -WorkingDirectory $root
-=======
-$http = Start-BackgroundProcess -FilePath $python -ArgumentList @("-m", "http.server", "$staticPort", "--bind", "0.0.0.0") -WorkingDirectory $root
-$api  = Start-BackgroundProcess -FilePath $python -ArgumentList @($apiScript) -WorkingDirectory $root
-$backendProc = Start-BackgroundProcess -FilePath $node -ArgumentList @($backendScript) -WorkingDirectory $root
->>>>>>> c319aea2e42d5f6512abd34c436286e8d24e7a6b
 
 Start-Sleep -Seconds 2
 

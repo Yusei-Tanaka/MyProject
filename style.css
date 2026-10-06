@@ -477,6 +477,24 @@ body {
     min-height: 0;
 }
 
+.app-tab-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+#existing-system-view.is-active {
+    display: flex;
+    flex-direction: column;
+}
+
+.app-tab-panel[hidden] {
+    display: none !important;
+}
+
+body[data-active-workspace="process"] #showLeftBtn {
+    visibility: hidden;
+}
+
 /* ===================== 左ナビ ===================== */
 #left-navi-content,
 .left-navi {
@@ -1204,4 +1222,3 @@ select {
     width: 16px;
     height: 16px;
 }
-

@@ -1,14 +1,8 @@
 (() => {
   const rawConfig = {
   "protocol": "http",
-<<<<<<< HEAD
   "host": "auto",
   "apiPort": 3000,
-  "saveXmlPort": 3005,
-=======
-  "host": "10.158.102.176",
-  "apiPort": 3000,
->>>>>>> c319aea2e42d5f6512abd34c436286e8d24e7a6b
   "flaskApiPort": 8000,
   "phpMyAdminPath": "/phpmyadmin"
 };

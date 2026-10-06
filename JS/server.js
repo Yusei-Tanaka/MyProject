@@ -105,10 +105,42 @@ const V2_TABLES = {
 };
 const USER_ACTION_LOGS_TABLE = "user_action_logs";
 const LEGACY_FILE_IMPORTS_TABLE = "legacy_file_imports";
+const PROCESS_TABLES = {
+  maps: "process_maps",
+  nodes: "process_nodes",
+  edges: "process_edges",
+  hierarchy: "process_hierarchy",
+};
+
+const PROCESS_NODE_TYPES = new Set([
+  "problem_question",
+  "suggestion",
+  "idea_working_hypothesis",
+  "explanatory_hypothesis",
+  "reasoning",
+  "working_hypothesis",
+  "information_work",
+  "result",
+  "revision_update",
+]);
+
+const PROCESS_EDGE_TYPES = new Set([
+  "directed",
+  "suggestion_generation",
+  "selection_retention",
+  "explanation",
+  "reasoning",
+  "operationalization",
+  "verification",
+  "support",
+  "rejection",
+  "revision",
+]);
 
 const ENABLE_V2_READ = String(process.env.ENABLE_V2_READ || "false").toLowerCase() === "true";
 let v2SchemaReady = false;
 let v2ThemeLanguageColumnReady = false;
+let processMapSchemaReady = false;
 
 const hashPassword = (password) => crypto.createHash("sha256").update(password).digest("hex");
 
@@ -1029,6 +1061,267 @@ const ensureSchema = async () => {
   );
 };
 
+const ensureProcessMapSchema = async () => {
+  await pool.execute(
+    `CREATE TABLE IF NOT EXISTS ${PROCESS_TABLES.maps} (
+      map_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      user_id VARCHAR(64) NOT NULL,
+      theme_id BIGINT NOT NULL,
+      title VARCHAR(255) NOT NULL,
+      grain_size VARCHAR(64) NOT NULL DEFAULT '研究全体',
+      is_root TINYINT(1) NOT NULL DEFAULT 0,
+      root_theme_id BIGINT AS (CASE WHEN is_root = 1 THEN theme_id ELSE NULL END) STORED,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      CONSTRAINT fk_process_maps_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      CONSTRAINT fk_process_maps_theme FOREIGN KEY (theme_id) REFERENCES ${V2_TABLES.themes}(id) ON DELETE CASCADE,
+      UNIQUE KEY uk_process_maps_root (user_id, root_theme_id),
+      INDEX idx_process_maps_theme_updated (theme_id, updated_at)
+    )`
+  );
+
+  await pool.execute(
+    `CREATE TABLE IF NOT EXISTS ${PROCESS_TABLES.nodes} (
+      node_id VARCHAR(64) PRIMARY KEY,
+      map_id BIGINT NOT NULL,
+      node_type VARCHAR(64) NOT NULL,
+      content TEXT NOT NULL,
+      memo TEXT NULL,
+      related_keywords_json JSON NULL,
+      related_reference TEXT NULL,
+      parent_node_id VARCHAR(64) NULL,
+      existing_reference_type VARCHAR(64) NULL,
+      existing_reference_id VARCHAR(255) NULL,
+      x DOUBLE NULL,
+      y DOUBLE NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      CONSTRAINT fk_process_nodes_map FOREIGN KEY (map_id) REFERENCES ${PROCESS_TABLES.maps}(map_id) ON DELETE CASCADE,
+      INDEX idx_process_nodes_map_updated (map_id, updated_at),
+      INDEX idx_process_nodes_parent (parent_node_id)
+    )`
+  );
+
+  await pool.execute(
+    `CREATE TABLE IF NOT EXISTS ${PROCESS_TABLES.edges} (
+      edge_id VARCHAR(64) PRIMARY KEY,
+      map_id BIGINT NOT NULL,
+      source_node_id VARCHAR(64) NOT NULL,
+      target_node_id VARCHAR(64) NOT NULL,
+      edge_type VARCHAR(64) NOT NULL DEFAULT 'directed',
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT fk_process_edges_map FOREIGN KEY (map_id) REFERENCES ${PROCESS_TABLES.maps}(map_id) ON DELETE CASCADE,
+      CONSTRAINT fk_process_edges_source FOREIGN KEY (source_node_id) REFERENCES ${PROCESS_TABLES.nodes}(node_id) ON DELETE CASCADE,
+      CONSTRAINT fk_process_edges_target FOREIGN KEY (target_node_id) REFERENCES ${PROCESS_TABLES.nodes}(node_id) ON DELETE CASCADE,
+      INDEX idx_process_edges_map (map_id),
+      INDEX idx_process_edges_source (source_node_id),
+      INDEX idx_process_edges_target (target_node_id)
+    )`
+  );
+
+  await pool.execute(
+    `CREATE TABLE IF NOT EXISTS ${PROCESS_TABLES.hierarchy} (
+      parent_map_id BIGINT NOT NULL,
+      child_map_id BIGINT NOT NULL,
+      parent_node_id VARCHAR(64) NOT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (parent_map_id, child_map_id),
+      UNIQUE KEY uk_process_hierarchy_child (child_map_id),
+      UNIQUE KEY uk_process_hierarchy_parent_node (parent_node_id),
+      CONSTRAINT fk_process_hierarchy_parent_map FOREIGN KEY (parent_map_id) REFERENCES ${PROCESS_TABLES.maps}(map_id) ON DELETE CASCADE,
+      CONSTRAINT fk_process_hierarchy_child_map FOREIGN KEY (child_map_id) REFERENCES ${PROCESS_TABLES.maps}(map_id) ON DELETE CASCADE,
+      CONSTRAINT fk_process_hierarchy_parent_node FOREIGN KEY (parent_node_id) REFERENCES ${PROCESS_TABLES.nodes}(node_id) ON DELETE RESTRICT,
+      INDEX idx_process_hierarchy_parent (parent_map_id)
+    )`
+  );
+};
+
+const normalizeProcessText = (value, maxLength) => String(value || "").trim().slice(0, maxLength);
+const PROCESS_CLIENT_ID_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/;
+
+const parseProcessMapId = (value) => {
+  const mapId = Number(value);
+  return Number.isInteger(mapId) && mapId > 0 ? mapId : null;
+};
+
+const resolveProcessTheme = async (executor, { userId, themeName, language, forUpdate = false }) => {
+  const where = ["user_id = ?", "theme_name = ?", "deleted_at IS NULL"];
+  const params = [userId, themeName];
+  if (language && v2ThemeLanguageColumnReady) {
+    where.push("theme_language = ?");
+    params.push(language);
+  }
+  const [rows] = await executor.execute(
+    `SELECT id, user_id, theme_name${v2ThemeLanguageColumnReady ? ", theme_language" : ""}
+       FROM ${V2_TABLES.themes}
+      WHERE ${where.join(" AND ")}
+      ORDER BY updated_at DESC, id DESC
+      LIMIT 1${forUpdate ? " FOR UPDATE" : ""}`,
+    params
+  );
+  return rows[0] || null;
+};
+
+const processMapRowToJson = (row) => ({
+  mapId: Number(row.map_id),
+  userId: row.user_id,
+  themeId: Number(row.theme_id),
+  title: row.title,
+  grainSize: row.grain_size,
+  isRoot: Boolean(row.is_root),
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+});
+
+const fetchProcessMapBundle = async (executor, mapId, userId) => {
+  const [mapRows] = await executor.execute(
+    `SELECT map_id, user_id, theme_id, title, grain_size, is_root, created_at, updated_at
+       FROM ${PROCESS_TABLES.maps}
+      WHERE map_id = ? AND user_id = ?
+      LIMIT 1`,
+    [mapId, userId]
+  );
+  if (mapRows.length === 0) return null;
+
+  const [nodeRows] = await executor.execute(
+    `SELECT node_id, map_id, node_type, content, memo, related_keywords_json,
+            related_reference, parent_node_id, existing_reference_type, existing_reference_id,
+            x, y, created_at, updated_at
+       FROM ${PROCESS_TABLES.nodes}
+      WHERE map_id = ?
+      ORDER BY created_at, node_id`,
+    [mapId]
+  );
+  const [edgeRows] = await executor.execute(
+    `SELECT edge_id, map_id, source_node_id, target_node_id, edge_type, created_at
+       FROM ${PROCESS_TABLES.edges}
+      WHERE map_id = ?
+      ORDER BY created_at, edge_id`,
+    [mapId]
+  );
+  const [childRows] = await executor.execute(
+    `SELECT h.parent_node_id, h.child_map_id, m.title, m.grain_size, m.created_at, m.updated_at
+       FROM ${PROCESS_TABLES.hierarchy} h
+       INNER JOIN ${PROCESS_TABLES.maps} m ON m.map_id = h.child_map_id
+      WHERE h.parent_map_id = ?
+      ORDER BY h.created_at, h.child_map_id`,
+    [mapId]
+  );
+
+  const breadcrumbs = [];
+  let cursor = mapRows[0];
+  const visited = new Set();
+  while (cursor && breadcrumbs.length < 50 && !visited.has(Number(cursor.map_id))) {
+    visited.add(Number(cursor.map_id));
+    breadcrumbs.unshift({
+      mapId: Number(cursor.map_id),
+      title: cursor.title,
+      grainSize: cursor.grain_size,
+    });
+    const [parentRows] = await executor.execute(
+      `SELECT parent.map_id, parent.user_id, parent.theme_id, parent.title, parent.grain_size,
+              parent.is_root, parent.created_at, parent.updated_at
+         FROM ${PROCESS_TABLES.hierarchy} h
+         INNER JOIN ${PROCESS_TABLES.maps} parent ON parent.map_id = h.parent_map_id
+        WHERE h.child_map_id = ?
+        LIMIT 1`,
+      [cursor.map_id]
+    );
+    cursor = parentRows[0] || null;
+  }
+
+  return {
+    map: processMapRowToJson(mapRows[0]),
+    breadcrumbs,
+    nodes: nodeRows.map((row) => ({
+      nodeId: row.node_id,
+      mapId: Number(row.map_id),
+      nodeType: row.node_type,
+      content: row.content,
+      memo: row.memo || "",
+      relatedKeywords: parseJsonField(row.related_keywords_json) || [],
+      relatedReference: row.related_reference || "",
+      parentNodeId: row.parent_node_id || null,
+      existingReferenceType: row.existing_reference_type || "",
+      existingReferenceId: row.existing_reference_id || "",
+      x: row.x === null ? null : Number(row.x),
+      y: row.y === null ? null : Number(row.y),
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    })),
+    edges: edgeRows.map((row) => ({
+      edgeId: row.edge_id,
+      mapId: Number(row.map_id),
+      sourceNodeId: row.source_node_id,
+      targetNodeId: row.target_node_id,
+      edgeType: row.edge_type,
+      createdAt: row.created_at,
+    })),
+    childMaps: childRows.map((row) => ({
+      parentNodeId: row.parent_node_id,
+      childMapId: Number(row.child_map_id),
+      title: row.title,
+      grainSize: row.grain_size,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    })),
+  };
+};
+
+const validateProcessSnapshot = (body) => {
+  const nodes = Array.isArray(body.nodes) ? body.nodes : null;
+  const edges = Array.isArray(body.edges) ? body.edges : null;
+  if (!nodes || !edges) return { error: "nodes and edges must be arrays" };
+  if (nodes.length > 1000 || edges.length > 2000) return { error: "process map is too large" };
+
+  const nodeIds = new Set();
+  const normalizedNodes = [];
+  for (const node of nodes) {
+    const nodeId = String(node.nodeId || "").trim();
+    const nodeType = String(node.nodeType || "").trim();
+    const content = String(node.content || "").trim();
+    if (!PROCESS_CLIENT_ID_PATTERN.test(nodeId)) return { error: "invalid nodeId" };
+    if (nodeIds.has(nodeId)) return { error: "duplicate nodeId" };
+    if (!PROCESS_NODE_TYPES.has(nodeType)) return { error: "invalid nodeType" };
+    if (!content || content.length > 10000) return { error: "invalid node content" };
+    const relatedKeywords = Array.isArray(node.relatedKeywords)
+      ? [...new Set(node.relatedKeywords.map((value) => String(value || "").trim()).filter(Boolean))].slice(0, 100)
+      : [];
+    nodeIds.add(nodeId);
+    normalizedNodes.push({
+      nodeId,
+      nodeType,
+      content,
+      memo: String(node.memo || "").slice(0, 50000),
+      relatedKeywords,
+      relatedReference: String(node.relatedReference || "").slice(0, 50000),
+      parentNodeId: node.parentNodeId && PROCESS_CLIENT_ID_PATTERN.test(String(node.parentNodeId)) ? String(node.parentNodeId) : null,
+      existingReferenceType: normalizeProcessText(node.existingReferenceType, 64) || null,
+      existingReferenceId: normalizeProcessText(node.existingReferenceId, 255) || null,
+      x: Number.isFinite(Number(node.x)) ? Number(node.x) : null,
+      y: Number.isFinite(Number(node.y)) ? Number(node.y) : null,
+    });
+  }
+
+  const edgeIds = new Set();
+  const normalizedEdges = [];
+  for (const edge of edges) {
+    const edgeId = String(edge.edgeId || "").trim();
+    const sourceNodeId = String(edge.sourceNodeId || "").trim();
+    const targetNodeId = String(edge.targetNodeId || "").trim();
+    const edgeType = String(edge.edgeType || "directed").trim();
+    if (!PROCESS_CLIENT_ID_PATTERN.test(edgeId)) return { error: "invalid edgeId" };
+    if (edgeIds.has(edgeId)) return { error: "duplicate edgeId" };
+    if (!nodeIds.has(sourceNodeId) || !nodeIds.has(targetNodeId)) return { error: "edge endpoint is missing" };
+    if (sourceNodeId === targetNodeId) return { error: "self links are not supported" };
+    if (!PROCESS_EDGE_TYPES.has(edgeType)) return { error: "invalid edgeType" };
+    edgeIds.add(edgeId);
+    normalizedEdges.push({ edgeId, sourceNodeId, targetNodeId, edgeType });
+  }
+
+  return { nodes: normalizedNodes, edges: normalizedEdges };
+};
+
 app.post("/users", async (req, res) => {
   const id = normalizeUserId(req.body.id);
   const password = normalizePassword(req.body.passwordHash);
@@ -1425,6 +1718,345 @@ app.delete("/users/:id/themes/:themeName", async (req, res) => {
   }
 });
 
+app.get("/process-maps/root", async (req, res) => {
+  if (!processMapSchemaReady) {
+    return res.status(503).json({ error: "process map schema is not ready" });
+  }
+  const userId = normalizeUserId(req.query.userId);
+  const themeName = normalizeThemeName(req.query.themeName);
+  const language = req.query.language ? normalizeThemeLanguage(req.query.language) : "";
+  if (!isValidUserId(userId) || !isValidThemeName(themeName)) {
+    return res.status(400).json({ error: "invalid userId or themeName" });
+  }
+  if (req.query.language && !language) {
+    return res.status(400).json({ error: "invalid language" });
+  }
+
+  try {
+    const theme = await resolveProcessTheme(pool, { userId, themeName, language });
+    if (!theme) return res.status(404).json({ error: "theme not found" });
+    const [mapRows] = await pool.execute(
+      `SELECT map_id
+         FROM ${PROCESS_TABLES.maps}
+        WHERE user_id = ? AND theme_id = ? AND is_root = 1
+        ORDER BY map_id
+        LIMIT 1`,
+      [userId, theme.id]
+    );
+    if (mapRows.length === 0) return res.status(404).json({ error: "process map not found" });
+    const bundle = await fetchProcessMapBundle(pool, Number(mapRows[0].map_id), userId);
+    return res.json(bundle);
+  } catch (err) {
+    console.error("fetch root process map failed", err);
+    return res.status(500).json({ error: "db error" });
+  }
+});
+
+app.post("/process-maps/root", async (req, res) => {
+  if (!processMapSchemaReady) {
+    return res.status(503).json({ error: "process map schema is not ready" });
+  }
+  const userId = normalizeUserId(req.body.userId);
+  const themeName = normalizeThemeName(req.body.themeName);
+  const language = normalizeThemeLanguage(req.body.language) || inferThemeLanguageFromName(themeName);
+  const title = normalizeProcessText(req.body.title || themeName, 255);
+  if (!isValidUserId(userId) || !isValidThemeName(themeName) || !isValidThemeLanguage(language) || !title) {
+    return res.status(400).json({ error: "invalid process map fields" });
+  }
+
+  const connection = await pool.getConnection();
+  let mapId = null;
+  let created = false;
+  try {
+    await connection.beginTransaction();
+    const theme = await resolveProcessTheme(connection, {
+      userId,
+      themeName,
+      language,
+      forUpdate: true,
+    });
+    if (!theme) {
+      await connection.rollback();
+      return res.status(404).json({ error: "theme not found" });
+    }
+    const [existingRows] = await connection.execute(
+      `SELECT map_id
+         FROM ${PROCESS_TABLES.maps}
+        WHERE user_id = ? AND theme_id = ? AND is_root = 1
+        LIMIT 1 FOR UPDATE`,
+      [userId, theme.id]
+    );
+    if (existingRows.length > 0) {
+      mapId = Number(existingRows[0].map_id);
+    } else {
+      const [result] = await connection.execute(
+        `INSERT INTO ${PROCESS_TABLES.maps} (user_id, theme_id, title, grain_size, is_root)
+         VALUES (?, ?, ?, '研究全体', 1)`,
+        [userId, theme.id, title]
+      );
+      mapId = Number(result.insertId);
+      created = true;
+    }
+    await connection.commit();
+  } catch (err) {
+    await connection.rollback();
+    console.error("create root process map failed", err);
+    return res.status(500).json({ error: "db error" });
+  } finally {
+    connection.release();
+  }
+
+  try {
+    const bundle = await fetchProcessMapBundle(pool, mapId, userId);
+    return res.status(created ? 201 : 200).json(bundle);
+  } catch (err) {
+    console.error("fetch created root process map failed", err);
+    return res.status(500).json({ error: "db error" });
+  }
+});
+
+app.get("/process-maps/:mapId", async (req, res) => {
+  if (!processMapSchemaReady) {
+    return res.status(503).json({ error: "process map schema is not ready" });
+  }
+  const mapId = parseProcessMapId(req.params.mapId);
+  const userId = normalizeUserId(req.query.userId);
+  if (!mapId || !isValidUserId(userId)) {
+    return res.status(400).json({ error: "invalid mapId or userId" });
+  }
+  try {
+    const bundle = await fetchProcessMapBundle(pool, mapId, userId);
+    if (!bundle) return res.status(404).json({ error: "process map not found" });
+    return res.json(bundle);
+  } catch (err) {
+    console.error("fetch process map failed", err);
+    return res.status(500).json({ error: "db error" });
+  }
+});
+
+app.put("/process-maps/:mapId/snapshot", async (req, res) => {
+  if (!processMapSchemaReady) {
+    return res.status(503).json({ error: "process map schema is not ready" });
+  }
+  const mapId = parseProcessMapId(req.params.mapId);
+  const userId = normalizeUserId(req.body.userId);
+  const title = normalizeProcessText(req.body.title, 255);
+  const grainSize = normalizeProcessText(req.body.grainSize, 64);
+  const snapshot = validateProcessSnapshot(req.body);
+  if (!mapId || !isValidUserId(userId)) {
+    return res.status(400).json({ error: "invalid mapId or userId" });
+  }
+  if (snapshot.error) return res.status(400).json({ error: snapshot.error });
+  if (!title || !grainSize) return res.status(400).json({ error: "title and grainSize are required" });
+
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    const [mapRows] = await connection.execute(
+      `SELECT map_id FROM ${PROCESS_TABLES.maps} WHERE map_id = ? AND user_id = ? LIMIT 1 FOR UPDATE`,
+      [mapId, userId]
+    );
+    if (mapRows.length === 0) {
+      const error = new Error("process map not found");
+      error.status = 404;
+      throw error;
+    }
+
+    const incomingNodeIds = new Set(snapshot.nodes.map((node) => node.nodeId));
+    const [protectedRows] = await connection.execute(
+      `SELECT parent_node_id FROM ${PROCESS_TABLES.hierarchy} WHERE parent_map_id = ?`,
+      [mapId]
+    );
+    const missingProtectedNode = protectedRows.find((row) => !incomingNodeIds.has(String(row.parent_node_id)));
+    if (missingProtectedNode) {
+      const error = new Error("a node with a child process map cannot be deleted");
+      error.status = 409;
+      error.nodeId = missingProtectedNode.parent_node_id;
+      throw error;
+    }
+
+    if (snapshot.nodes.length > 0) {
+      const placeholders = snapshot.nodes.map(() => "?").join(", ");
+      const [collisionRows] = await connection.query(
+        `SELECT node_id FROM ${PROCESS_TABLES.nodes} WHERE node_id IN (${placeholders}) AND map_id <> ? LIMIT 1`,
+        [...snapshot.nodes.map((node) => node.nodeId), mapId]
+      );
+      if (collisionRows.length > 0) {
+        const error = new Error("nodeId already belongs to another process map");
+        error.status = 409;
+        throw error;
+      }
+    }
+    if (snapshot.edges.length > 0) {
+      const placeholders = snapshot.edges.map(() => "?").join(", ");
+      const [collisionRows] = await connection.query(
+        `SELECT edge_id FROM ${PROCESS_TABLES.edges} WHERE edge_id IN (${placeholders}) AND map_id <> ? LIMIT 1`,
+        [...snapshot.edges.map((edge) => edge.edgeId), mapId]
+      );
+      if (collisionRows.length > 0) {
+        const error = new Error("edgeId already belongs to another process map");
+        error.status = 409;
+        throw error;
+      }
+    }
+
+    await connection.execute(`DELETE FROM ${PROCESS_TABLES.edges} WHERE map_id = ?`, [mapId]);
+
+    for (const node of snapshot.nodes) {
+      await connection.execute(
+        `INSERT INTO ${PROCESS_TABLES.nodes}
+          (node_id, map_id, node_type, content, memo, related_keywords_json, related_reference,
+           parent_node_id, existing_reference_type, existing_reference_id, x, y)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE
+           node_type = VALUES(node_type),
+           content = VALUES(content),
+           memo = VALUES(memo),
+           related_keywords_json = VALUES(related_keywords_json),
+           related_reference = VALUES(related_reference),
+           parent_node_id = VALUES(parent_node_id),
+           existing_reference_type = VALUES(existing_reference_type),
+           existing_reference_id = VALUES(existing_reference_id),
+           x = VALUES(x),
+           y = VALUES(y),
+           updated_at = CURRENT_TIMESTAMP`,
+        [
+          node.nodeId,
+          mapId,
+          node.nodeType,
+          node.content,
+          node.memo || null,
+          JSON.stringify(node.relatedKeywords),
+          node.relatedReference || null,
+          node.parentNodeId,
+          node.existingReferenceType,
+          node.existingReferenceId,
+          node.x,
+          node.y,
+        ]
+      );
+    }
+
+    if (snapshot.nodes.length > 0) {
+      const placeholders = snapshot.nodes.map(() => "?").join(", ");
+      await connection.query(
+        `DELETE FROM ${PROCESS_TABLES.nodes} WHERE map_id = ? AND node_id NOT IN (${placeholders})`,
+        [mapId, ...snapshot.nodes.map((node) => node.nodeId)]
+      );
+    } else {
+      await connection.execute(`DELETE FROM ${PROCESS_TABLES.nodes} WHERE map_id = ?`, [mapId]);
+    }
+
+    for (const edge of snapshot.edges) {
+      await connection.execute(
+        `INSERT INTO ${PROCESS_TABLES.edges}
+          (edge_id, map_id, source_node_id, target_node_id, edge_type)
+         VALUES (?, ?, ?, ?, ?)`,
+        [edge.edgeId, mapId, edge.sourceNodeId, edge.targetNodeId, edge.edgeType]
+      );
+    }
+
+    await connection.execute(
+      `UPDATE ${PROCESS_TABLES.maps}
+          SET title = ?, grain_size = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE map_id = ?`,
+      [title, grainSize, mapId]
+    );
+    await connection.commit();
+    return res.json({ saved: true, mapId, nodeCount: snapshot.nodes.length, edgeCount: snapshot.edges.length });
+  } catch (err) {
+    await connection.rollback();
+    if (err.status) {
+      return res.status(err.status).json({ error: err.message, nodeId: err.nodeId || null });
+    }
+    console.error("save process map snapshot failed", err);
+    return res.status(500).json({ error: "db error" });
+  } finally {
+    connection.release();
+  }
+});
+
+app.post("/process-maps/:mapId/children", async (req, res) => {
+  if (!processMapSchemaReady) {
+    return res.status(503).json({ error: "process map schema is not ready" });
+  }
+  const parentMapId = parseProcessMapId(req.params.mapId);
+  const userId = normalizeUserId(req.body.userId);
+  const parentNodeId = String(req.body.parentNodeId || "").trim();
+  const title = normalizeProcessText(req.body.title, 255);
+  const grainSize = normalizeProcessText(req.body.grainSize || "個別作業", 64);
+  if (
+    !parentMapId ||
+    !isValidUserId(userId) ||
+    !PROCESS_CLIENT_ID_PATTERN.test(parentNodeId) ||
+    !title ||
+    !grainSize
+  ) {
+    return res.status(400).json({ error: "invalid child process map fields" });
+  }
+
+  const connection = await pool.getConnection();
+  let childMapId = null;
+  let created = false;
+  try {
+    await connection.beginTransaction();
+    const [parentRows] = await connection.execute(
+      `SELECT map_id, theme_id FROM ${PROCESS_TABLES.maps} WHERE map_id = ? AND user_id = ? LIMIT 1 FOR UPDATE`,
+      [parentMapId, userId]
+    );
+    if (parentRows.length === 0) {
+      const error = new Error("parent process map not found");
+      error.status = 404;
+      throw error;
+    }
+    const [nodeRows] = await connection.execute(
+      `SELECT node_id FROM ${PROCESS_TABLES.nodes} WHERE node_id = ? AND map_id = ? LIMIT 1 FOR UPDATE`,
+      [parentNodeId, parentMapId]
+    );
+    if (nodeRows.length === 0) {
+      const error = new Error("parent node not found; save the map before creating a child grain");
+      error.status = 404;
+      throw error;
+    }
+    const [existingRows] = await connection.execute(
+      `SELECT child_map_id FROM ${PROCESS_TABLES.hierarchy} WHERE parent_node_id = ? LIMIT 1 FOR UPDATE`,
+      [parentNodeId]
+    );
+    if (existingRows.length > 0) {
+      childMapId = Number(existingRows[0].child_map_id);
+    } else {
+      const [insertMapResult] = await connection.execute(
+        `INSERT INTO ${PROCESS_TABLES.maps} (user_id, theme_id, title, grain_size, is_root)
+         VALUES (?, ?, ?, ?, 0)`,
+        [userId, parentRows[0].theme_id, title, grainSize]
+      );
+      childMapId = Number(insertMapResult.insertId);
+      await connection.execute(
+        `INSERT INTO ${PROCESS_TABLES.hierarchy} (parent_map_id, child_map_id, parent_node_id)
+         VALUES (?, ?, ?)`,
+        [parentMapId, childMapId, parentNodeId]
+      );
+      created = true;
+    }
+    await connection.commit();
+  } catch (err) {
+    await connection.rollback();
+    if (err.status) return res.status(err.status).json({ error: err.message });
+    console.error("create child process map failed", err);
+    return res.status(500).json({ error: "db error" });
+  } finally {
+    connection.release();
+  }
+
+  try {
+    const bundle = await fetchProcessMapBundle(pool, childMapId, userId);
+    return res.status(created ? 201 : 200).json(bundle);
+  } catch (err) {
+    console.error("fetch child process map failed", err);
+    return res.status(500).json({ error: "db error" });
+  }
+});
+
 app.post("/auth/login", async (req, res) => {
   const id = normalizeUserId(req.body.id);
   const password = normalizePassword(req.body.password ?? req.body.passwordHash);
@@ -1798,12 +2430,15 @@ const startServer = async () => {
           "themes.theme_language is missing. Run scripts/sql/20260422_theme_language_partition_up.sql for full language filtering."
         );
       }
+      await ensureProcessMapSchema();
+      processMapSchemaReady = true;
     }
     app.listen(PORT, () => {
       console.log(`API server listening on port ${PORT}`);
       console.log(`V2 write: ${canWriteV2() ? "enabled" : "disabled"}`);
       console.log(`V2 read: ${canReadV2() ? "enabled" : "disabled"}`);
       console.log(`Theme language column: ${v2ThemeLanguageColumnReady ? "enabled" : "missing"}`);
+      console.log(`Process maps: ${processMapSchemaReady ? "enabled" : "disabled"}`);
     });
   } catch (err) {
     console.error("failed to initialize schema", err);

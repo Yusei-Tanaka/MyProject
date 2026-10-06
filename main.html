@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="process-map.css">
     <link rel="icon" type="image/svg+xml" href="./img/favicon.svg">
     <script>
       (function () {
@@ -63,15 +64,165 @@
       <input type="file" id="loadInput" class="is-hidden-input" accept="application/json">
       <button id="loadBtn">作業内容読込</button>-->
     </div>
-    
-    <div id="golden-layout-container"></div>
 
-    <div class="footer">
-      <div class="h5">&emsp;&emsp;&emsp;&emsp;<span data-i18n="main.log">ログ</span></div>
-      <div id="logBoxContainer">
-        <div id="logBox"></div>
+    <nav class="workspace-tabs" role="tablist" aria-label="表示する画面">
+      <button
+        id="existingSystemTab"
+        class="workspace-tab is-active"
+        type="button"
+        role="tab"
+        aria-selected="true"
+        aria-controls="existing-system-view"
+        data-workspace-tab="existing"
+      >既存システム</button>
+      <button
+        id="processMapTab"
+        class="workspace-tab"
+        type="button"
+        role="tab"
+        aria-selected="false"
+        aria-controls="process-map-view"
+        data-workspace-tab="process"
+      >探究プロセスマップ</button>
+    </nav>
+
+    <section
+      id="existing-system-view"
+      class="app-tab-panel is-active"
+      role="tabpanel"
+      aria-labelledby="existingSystemTab"
+    >
+      <div id="golden-layout-container"></div>
+
+      <div class="footer">
+        <div class="h5">&emsp;&emsp;&emsp;&emsp;<span data-i18n="main.log">ログ</span></div>
+        <div id="logBoxContainer">
+          <div id="logBox"></div>
+        </div>
       </div>
-    </div>
+    </section>
+
+    <section
+      id="process-map-view"
+      class="app-tab-panel process-map-view"
+      role="tabpanel"
+      aria-labelledby="processMapTab"
+      hidden
+    >
+      <div class="process-map-context">
+        <div class="process-map-context__summary">
+          <button id="processMapBackBtn" class="process-map-secondary-button" type="button" disabled>上位階層へ戻る</button>
+          <div>
+            <div class="process-map-eyebrow">現在のテーマ</div>
+            <h1 id="processMapTitle">探究プロセスマップ</h1>
+          </div>
+          <div class="process-map-grain">
+            <span class="process-map-eyebrow">グレインサイズ</span>
+            <strong id="processMapGrainSize">研究全体</strong>
+          </div>
+        </div>
+        <nav id="processMapBreadcrumbs" class="process-map-breadcrumbs" aria-label="現在の階層"></nav>
+      </div>
+
+      <div class="process-map-workspace">
+        <main class="process-map-editor" aria-label="探究プロセスマップ編集領域">
+          <div class="process-map-toolbar">
+            <label for="processNodeType">ノード種別</label>
+            <select id="processNodeType"></select>
+            <button id="processAddNodeBtn" type="button">ノード追加</button>
+            <label for="processEdgeType">関係</label>
+            <select id="processEdgeType"></select>
+            <button id="processAddEdgeBtn" type="button">リンク作成</button>
+            <button id="processDeleteSelectionBtn" class="process-map-danger-button" type="button">選択を削除</button>
+            <span class="process-map-toolbar__spacer" aria-hidden="true">&nbsp;</span>
+            <button id="processFitBtn" class="process-map-secondary-button" type="button">全体表示</button>
+            <button id="processReloadBtn" class="process-map-secondary-button" type="button">再読み込み</button>
+            <button id="processSaveBtn" type="button">保存</button>
+          </div>
+          <div id="processMapStatus" class="process-map-status" role="status" aria-live="polite"></div>
+          <div id="processMapNetwork" tabindex="0" aria-label="ノードとリンクを配置するキャンバス"></div>
+        </main>
+
+        <aside class="process-map-inspector" aria-label="選択項目の詳細">
+          <div class="process-map-inspector__header">
+            <h2>詳細</h2>
+            <span id="processSelectionKind" class="process-map-selection-kind">未選択</span>
+          </div>
+
+          <div id="processEmptyInspector" class="process-map-empty-state">
+            ノードを選択すると、内容やメモを編集できます。
+          </div>
+
+          <form id="processNodeForm" class="process-map-form" hidden>
+            <label for="processDetailNodeType">ノード種別</label>
+            <select id="processDetailNodeType"></select>
+
+            <label for="processNodeContent">内容</label>
+            <textarea id="processNodeContent" rows="4" required></textarea>
+
+            <label for="processNodeMemo">メモ</label>
+            <textarea id="processNodeMemo" rows="3"></textarea>
+
+            <label for="processRelatedKeywords">関連キーワード（カンマ区切り）</label>
+            <input id="processRelatedKeywords" type="text">
+
+            <label for="processRelatedReference">関連資料</label>
+            <input id="processRelatedReference" type="text">
+
+            <div class="process-map-reference-row">
+              <div>
+                <label for="processExistingReferenceType">既存データ種別</label>
+                <select id="processExistingReferenceType">
+                  <option value="">参照なし</option>
+                  <option value="hypothesis">仮説</option>
+                  <option value="keyword_map">キーワードマップ</option>
+                  <option value="keyword">関連キーワード</option>
+                </select>
+              </div>
+              <div>
+                <label for="processExistingReferenceId">参照ID</label>
+                <input id="processExistingReferenceId" type="text">
+              </div>
+            </div>
+
+            <section class="process-map-related">
+              <h3>関連ノード</h3>
+              <ul id="processRelatedNodes"></ul>
+            </section>
+
+            <div class="process-map-form__actions">
+              <button type="submit">変更を反映</button>
+              <button id="processDeleteNodeBtn" class="process-map-danger-button" type="button">ノード削除</button>
+            </div>
+
+            <section class="process-map-child-grain">
+              <div>
+                <h3>下位グレイン</h3>
+                <p id="processChildGrainState">まだ作成されていません。</p>
+              </div>
+              <button id="processChildGrainBtn" class="process-map-secondary-button" type="button">下位グレインを作成</button>
+            </section>
+          </form>
+
+          <form id="processEdgeForm" class="process-map-form" hidden>
+            <p id="processEdgeSummary" class="process-map-edge-summary"></p>
+            <label for="processDetailEdgeType">関係種別</label>
+            <select id="processDetailEdgeType"></select>
+            <div class="process-map-form__actions">
+              <button type="submit">関係を更新</button>
+              <button id="processDeleteEdgeBtn" class="process-map-danger-button" type="button">リンク削除</button>
+            </div>
+          </form>
+
+          <section class="process-map-guidance" aria-labelledby="processGuidanceTitle">
+            <h3 id="processGuidanceTitle">探究の支援メッセージ</h3>
+            <ul id="processGuidanceList">
+              <li>マップを読み込むと、構造に応じた確認事項を表示します。</li>
+            </ul>
+          </section>
+        </aside>
+      </div>
+    </section>
     
     <div id="left-navi-content" class="is-hidden">
       <div class="left-navi">
@@ -150,5 +301,7 @@
     <script src="JS/set-title.js"></script>
     <script src="JS/keywords_O(1).js?v=20260622-1"></script>
     <script src="JS/admin-menu.js"></script>
+    <script src="JS/process-map-support.js"></script>
+    <script src="JS/process-map.js"></script>
   </body>
 </html>
