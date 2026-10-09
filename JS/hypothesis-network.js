@@ -337,7 +337,7 @@
     button('リンク削除',() => { state.edges = state.edges.filter(v => v.id !== e.id); changed(); },details);
   }
   function renderGraph() {
-    if (!canvas || !window.vis) return;
+    if (!canvas || !window.vis || canvas.clientWidth === 0 || canvas.clientHeight === 0) return;
     const colors = { working: '#e8efff', explanatory: '#fff1d3', operational: '#dcf5e9' };
     const nodes = state.nodes.map((n,i) => ({ id: n.id, label: `${M.types[n.hypothesisType]}\n${n.text.length > 100 ? n.text.slice(0,100)+'…' : n.text}`, ...(n.position ? {x:n.position.x,y:n.position.y} : {x:(i%4)*300,y:Math.floor(i/4)*180}), color: colors[n.hypothesisType] || '#eef1f4', shape: 'box', margin: 12, widthConstraint: { maximum: 240 } }));
     const edges = state.edges.map(e => ({ id: e.id, from: e.sourceNodeId, to: e.targetNodeId, label: e.label, arrows: 'to', smooth: { type:'curvedCW', roundness:0.12 }, font: { size: 11, align: 'middle' } }));
@@ -392,6 +392,8 @@
   }
   function readableView() {
     if(!network) return;
+    network.setSize('100%', '100%');
+    network.redraw();
     network.fit({animation:false});
     if(network.getScale() < 0.9) network.moveTo({scale:0.9,animation:false});
   }
@@ -457,8 +459,6 @@
     button('自動配置',() => { state.nodes.forEach((n,i) => n.position = {x:(i%4)*300,y:Math.floor(i/4)*180}); changed(); network?.fit(); },toolbar);
     button('パネル幅を変更',() => panel.classList.toggle('hn-wide'),toolbar);
     button('読める大きさ',readableView,toolbar);
-    const expand = button('拡大表示',() => {},toolbar);
-    expand.dataset.mapExpand = 'extraContent';
     canvas = el('div',null,'hn-canvas'); canvas.id = 'hypothesisNetworkCanvas'; main.append(canvas);
     itemList = el('details',null,'hn-item-list'); sidebar.append(itemList);
     analysis = el('details',null,'hn-analysis'); sidebar.append(analysis);
@@ -497,8 +497,11 @@
     observer.observe(document.getElementById('hypothesisWrapper'),{ childList:true, subtree:true });
     window.addEventListener('hn-render',renderHistory);
     window.addEventListener('app-layout-resized',() => network?.redraw());
+    window.addEventListener('workspace-drawer-changed', event => {
+      if(event.detail.id === 'hypothesisWorkspaceDrawer' && event.detail.open) { render(); requestAnimationFrame(() => { renderGraph(); network?.redraw(); }); }
+    });
     window.addEventListener('app-language-changed',() => { if (activeKey !== key()) message('言語が変更されました。対象言語の仮説を読み込むにはページを再読み込みしてください。'); });
-    new ResizeObserver(() => network?.redraw()).observe(canvas);
+    new ResizeObserver(() => { if(network) network.redraw(); else renderGraph(); }).observe(canvas);
     renderHistory(); render();
   }
   function addFromEntry(entry, textarea, select = true) {

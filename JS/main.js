@@ -22,6 +22,7 @@ if (!activeTheme) {
 }
 
 // 1. レイアウト設定
+const KEYWORD_PANEL_WIDTH_PERCENT = 15;
 var config = {
   // グローバル設定: 閉じる/最大化/ポップアウトアイコンをすべて表示
   settings: {
@@ -30,41 +31,42 @@ var config = {
       showPopoutIcon: true
   },
   
-  // レイアウト構造: 左右2列
+  // 上段にキーワード生成とマップ、下段に横幅全体の探究プロセスマップ
   content: [{
-      type: 'row',
+      type: 'column',
       content: [
           {
-              type: 'column',
-              width: 20, // キーワード生成を初期表示
+              type: 'row',
+              height: 30,
               content: [
                   {
-                      type: 'component',
-                      componentName: 'leftNavi',
-                      closable: true,
-                      header: { show: false }
+                      type: 'column',
+                      width: KEYWORD_PANEL_WIDTH_PERCENT,
+                      content: [{
+                          type: 'component',
+                          componentName: 'leftNavi',
+                          closable: true,
+                          header: { show: false }
+                      }]
+                  },
+                  {
+                      type: 'column',
+                      width: 100 - KEYWORD_PANEL_WIDTH_PERCENT,
+                      content: [{
+                          type: 'component',
+                          componentName: 'mainContents',
+                          closable: true,
+                          header: { show: false }
+                      }]
                   }
               ]
           },
           {
-              type: 'column',
-              width: 80, // マップと精緻化ワークスペース
-              content: [
-                  {
-                      type: 'component',
-                      componentName: 'mainContents',
-                      height: 30,
-                      closable: true,
-                      header: { show: false }
-                  },
-                  {
-                      type: 'component',
-                      componentName: 'extraContent',
-                      height: 70,
-                      closable: true,
-                      header: { show: false }
-                  }
-              ]
+              type: 'component',
+              componentName: 'extraContent',
+              height: 70,
+              closable: true,
+              header: { show: false }
           }
       ]
   }]
@@ -121,10 +123,6 @@ function updateLayoutSize() {
         myLayout.updateSize(width, height);
     }
 
-    if (myLayout.root && myLayout.root.contentItems && myLayout.root.contentItems[0]) {
-        myLayout.root.contentItems[0].callDownwards("setSize");
-    }
-
     notifyVisualResize();
 }
 
@@ -145,6 +143,11 @@ function logLayoutAction(message) {
     }
 }
 
+function getKeywordWorkspaceRow() {
+    const workspace = myLayout.root.contentItems[0];
+    return workspace?.contentItems.find(item => item.isRow) || null;
+}
+
 function getLayoutColumns(row) {
     if (!row || !Array.isArray(row.contentItems) || row.contentItems.length < 2) {
         return { leftCol: null, rightCol: null };
@@ -159,8 +162,8 @@ function applySideViewState(row, shouldOpen) {
     const columns = getLayoutColumns(row);
     if (!columns.leftCol || !columns.rightCol) return false;
 
-    columns.leftCol.config.width = shouldOpen ? 20 : 0;
-    columns.rightCol.config.width = shouldOpen ? 80 : 100;
+    columns.leftCol.config.width = shouldOpen ? KEYWORD_PANEL_WIDTH_PERCENT : 0;
+    columns.rightCol.config.width = shouldOpen ? 100 - KEYWORD_PANEL_WIDTH_PERCENT : 100;
     row.callDownwards('setSize');
     updateLayoutSize();
 
@@ -193,7 +196,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-// 5. ボタン押下で左20%・右80%に変更
+// 5. キーワード提示エリアの表示を切り替える
 $(function(){
     var row = null;
     var isSideViewOpen = true;
@@ -201,7 +204,7 @@ $(function(){
     updateLayoutSize();
     myLayout.on('initialised', function(){
         // 初期化後に row を取得し、サイズ再計算
-        row = myLayout.root.contentItems[0];
+        row = getKeywordWorkspaceRow();
         if (row) {
             row.callDownwards('setSize');
         }
@@ -213,10 +216,10 @@ $(function(){
         updateSideViewButtonLabel(isSideViewOpen);
     });
 
-    // 左 30%・右 70% に切替するボタン
+    // 再表示時も初期表示と同じ幅へ戻す
     $('#showLeftBtn').on('click', function(){
         if (!row) {
-            row = myLayout.root.contentItems[0];
+            row = getKeywordWorkspaceRow();
         }
         if (!row) return;
 
@@ -258,8 +261,31 @@ document.addEventListener('click', event => {
     if (button) window.toggleWorkspaceMap(button.dataset.mapExpand);
 });
 document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && enlargedMapItem?.isMaximised && !document.getElementById('processMapDrawer')?.open) {
+    const drawer = document.getElementById('hypothesisWorkspaceDrawer');
+    if(event.key === 'Escape' && drawer?.open) { drawer.open = false; return; }
+    if (event.key === 'Escape' && enlargedMapItem?.isMaximised && !document.getElementById('hypothesisWorkspaceDrawer')?.open) {
         const name = enlargedMapItem.contentItems[0]?.config.componentName;
         if (name) window.toggleWorkspaceMap(name);
     }
+});
+
+
+function toggleWorkspaceDrawer(drawer) {
+    const opened = drawer.open;
+    const layout = document.getElementById('golden-layout-container');
+    if (layout) layout.inert = opened;
+    const summary = drawer.querySelector('summary');
+    summary.textContent = opened ? '仮説構造化を閉じる · Escでも戻れます' : drawer.dataset.title;
+    drawer.setAttribute('role', opened ? 'dialog' : 'group');
+    if (opened) drawer.setAttribute('aria-modal', 'true');
+    else drawer.removeAttribute('aria-modal');
+    summary.focus();
+    window.dispatchEvent(new CustomEvent('workspace-drawer-changed', {detail:{id:drawer.id,open:opened}}));
+    requestAnimationFrame(notifyVisualResize);
+}
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.workspace-map-drawer').forEach(drawer => {
+        drawer.addEventListener('toggle', () => toggleWorkspaceDrawer(drawer));
+        if(drawer.open) toggleWorkspaceDrawer(drawer);
+    });
 });

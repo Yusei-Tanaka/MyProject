@@ -9,14 +9,18 @@ body.main-page { height: 100dvh; overflow: hidden; font-family: -apple-system, B
 .main-page .header .theme-switcher { position: static; inset: auto; flex: 0 0 auto; padding: 4px; margin: 0; box-shadow: none; background: transparent; border: 0; }
 .main-page .theme-switcher-palette { gap: 5px; }
 .main-page .header .theme-switcher-dot { width: 14px; height: 14px; min-height: 0; padding: 0; }
-.main-page #existing-system-view { overflow: auto; min-height: 0; padding: 12px; gap: 10px; background: #edf2f7; }
-.main-page #golden-layout-container { flex: 0 0 auto; height: calc(100dvh - 124px); min-height: 520px; width: 100%; }
+.main-page #existing-system-view { overflow: hidden; min-height: 0; padding: 12px; gap: 10px; background: #edf2f7; }
+.main-page #golden-layout-container { flex: 1 1 0; height: auto; min-height: 0; width: 100%; }
 .main-page .lm_content { overflow: hidden; border-radius: 8px; }
 .main-page .lm_splitter { background: #edf2f7; }
 .main-page .left-navi, .main-page .main-contents, .main-page .extra-content { height: 100%; min-height: 0; min-width: 0; padding: 12px; overflow: hidden; border: 1px solid #dce4ed; border-radius: 8px; background: #fff; }
-.main-page .left-navi { display: grid; grid-template-rows: auto minmax(100px, .35fr) minmax(120px, 1fr); gap: 10px; }
+.main-page .process-main-content { display: flex; flex-direction: column; height: 100%; min-height: 0; min-width: 0; overflow: hidden; border: 1px solid #dce4ed; border-radius: 8px; background: #fff; }
+.main-page .process-main-content > .process-map-view { flex: 1 1 0; min-height: 0; overflow: hidden; }
+.main-page .left-navi { display: grid; grid-template-rows: auto minmax(40px, 64px) minmax(0, 1fr); gap: 8px; }
 .main-page .left-navi label[for="intersectionMode"] { display: none; }
 .main-page .left-navi .h3 { margin: 0; padding: 0; background: none; border-radius: 0; font-size: 13px; line-height: 1.5; gap: 8px; }
+.main-page .left-navi .h3 > span { min-width: 0; }
+.main-page .left-navi .h3 > button { flex: 0 0 auto; white-space: nowrap; }
 .main-page .main-contents > .h3, .main-page .extra-content > .h3 { flex: 0 0 auto; font-size: 14px; line-height: 1.5; font-weight: 650; margin: 0 0 8px; color: #24374b; }
 .main-page .output-area, .main-page #resultBox { margin: 0; height: auto; min-height: 0; border: 1px solid #e0e7ef; border-radius: 6px; padding: 10px; font-size: 13px; }
 .main-page #resultBox strong { font-size: 12px; color: #64748b; }
@@ -48,9 +52,9 @@ body.main-page { height: 100dvh; overflow: hidden; font-family: -apple-system, B
 .main-page .hn-item-list, .main-page .hn-analysis { flex: 0 0 auto; margin: 0; padding: 6px 0; border-top: 1px solid #e7edf3; font-size: 12px; max-height: 120px; overflow: auto; }
 .main-page summary { cursor: pointer; font-size: 12px; color: #51647b; }
 .main-page .hn-sidebar > details { margin: 0; padding: 10px 0; border-bottom: 1px solid #e7edf3; }
-.main-page .process-map-drawer { border: 1px solid #dce4ed; border-radius: 8px; overflow: hidden; background: #fff; }
-.main-page .process-map-drawer > summary { padding: 10px 14px; font-size: 13px; }
-.main-page .process-map-drawer[open] > summary { border-bottom: 1px solid #e7edf3; }
+.main-page .workspace-map-drawer { flex: 0 0 auto; border: 1px solid #dce4ed; border-radius: 8px; overflow: hidden; background: #fff; }
+.main-page .workspace-map-drawer > summary { padding: 10px 14px; font-size: 13px; }
+.main-page .workspace-map-drawer[open] > summary { border-bottom: 1px solid #e7edf3; }
 @media (max-width: 1100px) {
   .main-page .header { gap: 8px; padding: 0 12px; }
   .main-page .header-admin-select { max-width: 120px; }
@@ -59,20 +63,20 @@ body.main-page { height: 100dvh; overflow: hidden; font-family: -apple-system, B
 @media (max-width: 760px) {
   .main-page .header { flex-wrap: wrap; height: auto; min-height: 84px; flex-basis: 84px; padding: 8px; }
   .main-page #myTitle { flex-basis: calc(100% - 190px); }
-  .main-page #golden-layout-container { min-width: 720px; height: calc(100dvh - 150px); }
+  .main-page #golden-layout-container { min-width: 720px; }
 }
 .main-page .hn-map-main > .hn-actions > button:first-child { background: var(--color-button-primary); border-color: var(--color-button-primary); color: #fff; }
 .main-page .hn-panel button:hover { border-color: #91adc8; background: #eef4fa; }
 .main-page .hn-map-main > .hn-actions > button:first-child:hover { background: var(--color-button-primary-hover); }
 .main-page button:focus-visible, .main-page summary:focus-visible { outline: 2px solid var(--color-button-primary); outline-offset: 2px; }
 /* Focus on a map inside the viewport instead of stacking another screen below it. */
-.main-page #existing-system-view { overflow: hidden; }
-.main-page #golden-layout-container { flex: 1 1 0; height: auto; min-height: 0; }
-.main-page .process-map-drawer { flex: 0 0 auto; }
-.main-page .process-map-drawer[open] { position: fixed; z-index: 100; top: 70px; right: 12px; bottom: 12px; left: 12px; display: flex; flex-direction: column; box-shadow: 0 0 0 100vmax rgba(20,35,50,.3), 0 12px 40px rgba(20,35,50,.18); }
-.main-page .process-map-drawer[open] > summary { flex: 0 0 auto; color: #234765; background: #f4f8fc; font-weight: 600; }
-.main-page .process-map-drawer[open] .process-map-view { flex: 1 1 0; height: auto; min-height: 0; overflow: hidden; }
-.main-page .process-map-workspace { min-height: 0; overflow: hidden; }
+.main-page .workspace-map-drawer[open] { position: fixed; z-index: 100; top: 70px; right: 12px; bottom: 12px; left: 12px; display: flex; flex-direction: column; box-shadow: 0 0 0 100vmax rgba(20,35,50,.3), 0 12px 40px rgba(20,35,50,.18); }
+.main-page .workspace-map-drawer[open] > summary { flex: 0 0 42px; height: 42px; line-height: 20px; color: #234765; background: #f4f8fc; font-weight: 600; }
+/* Native details has an internal content box; anchor the editor to the panel itself. */
+.main-page .workspace-map-drawer[open] > .extra-content { position: absolute; inset: 42px 0 0; height: auto; min-height: 0; overflow: hidden; border: 0; border-radius: 0; }
+.main-page .process-map-workspace { grid-template-columns: minmax(0, 1fr) 310px; grid-template-rows: minmax(0, 1fr); min-height: 0; overflow: hidden; }
+.main-page .process-map-editor { min-height: 0; }
+.main-page .process-map-inspector { overflow: auto; border-top: 0; border-left: 1px solid var(--color-main-border); }
 .main-page #processMapNetwork { flex: 1 1 0; min-height: 0; }
 .main-page .process-map-context__summary > div:not(.process-map-grain) { flex: 1; min-width: 0; }
 .main-page #processMapTitle { font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -81,8 +85,7 @@ body.main-page { height: 100dvh; overflow: hidden; font-family: -apple-system, B
 .main-page .hn-item-list button { display: block; width: 100%; border: 1px solid #d3dee9; background: #f8fafc; color: #34495e; text-align: left; margin: 6px 0; }
 .main-page .hn-map-main > .hn-actions { gap: 5px; }
 @media (max-width: 760px) {
-  .main-page .process-map-drawer[open] { top: 96px; left: 8px; right: 8px; bottom: 8px; }
+  .main-page .workspace-map-drawer[open] { top: 96px; left: 8px; right: 8px; bottom: 8px; }
   .main-page .process-map-workspace { grid-template-columns: minmax(0, 1fr) 240px; }
   .main-page .process-map-editor { overflow: auto; }
-  .main-page #processMapNetwork { min-height: 200px; }
 }
