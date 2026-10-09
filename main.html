@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="process-map.css">
+    <link rel="stylesheet" href="process-map.css?v=20261009-mapfocus1">
     <link rel="icon" type="image/svg+xml" href="./img/favicon.svg">
     <script>
       (function () {
@@ -37,10 +37,11 @@
       })();
     </script>
 
-    <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
-    <script src="https://golden-layout.com/files/latest/js/goldenlayout.min.js"></script>
-    <link type="text/css" rel="stylesheet" href="https://golden-layout.com/files/latest/css/goldenlayout-base.css" />
-      <link rel="stylesheet" href="hypothesis-network.css">
+    <script src="JS/vendor/jquery-1.11.1.min.js"></script>
+    <script src="JS/vendor/goldenlayout.min.js"></script>
+    <link type="text/css" rel="stylesheet" href="JS/vendor/goldenlayout-base.css" />
+      <link rel="stylesheet" href="hypothesis-network.css?v=20261009-mapfocus1">
+    <link rel="stylesheet" href="workspace-shell.css?v=20261009-mapfocus1">
 </head>
   <body class="main-page">
     <div class="header">
@@ -49,7 +50,7 @@
           <script>
               <!-- localStorageからmyTitleに値をセットするJSは外部ファイル化 -->
           </script>
-      <button id="showLeftBtn" data-i18n="main.showSideView">サイドビューを表示</button>
+      <button id="showLeftBtn">キーワード生成を隠す</button>
       <select
         id="headerAdminMenuSelect"
         class="header-admin-select"
@@ -66,49 +67,19 @@
       <button id="loadBtn">作業内容読込</button>-->
     </div>
 
-    <nav class="workspace-tabs" role="tablist" aria-label="表示する画面">
-      <button
-        id="existingSystemTab"
-        class="workspace-tab is-active"
-        type="button"
-        role="tab"
-        aria-selected="true"
-        aria-controls="existing-system-view"
-        data-workspace-tab="existing"
-      >既存システム</button>
-      <button
-        id="processMapTab"
-        class="workspace-tab"
-        type="button"
-        role="tab"
-        aria-selected="false"
-        aria-controls="process-map-view"
-        data-workspace-tab="process"
-      >探究プロセスマップ</button>
-    </nav>
-
     <section
       id="existing-system-view"
       class="app-tab-panel is-active"
-      role="tabpanel"
-      aria-labelledby="existingSystemTab"
+      aria-label="探究ワークスペース"
     >
       <div id="golden-layout-container"></div>
 
-      <div class="footer">
-        <div class="h5">&emsp;&emsp;&emsp;&emsp;<span data-i18n="main.log">ログ</span></div>
-        <div id="logBoxContainer">
-          <div id="logBox"></div>
-        </div>
-      </div>
-    </section>
-
+      <details id="processMapDrawer" class="process-map-drawer" aria-label="探究プロセスマップ">
+        <summary>探究プロセスマップを画面内で開く</summary>
     <section
       id="process-map-view"
-      class="app-tab-panel process-map-view"
-      role="tabpanel"
-      aria-labelledby="processMapTab"
-      hidden
+      class="process-map-view is-active"
+      aria-label="探究プロセスマップ"
     >
       <div class="process-map-context">
         <div class="process-map-context__summary">
@@ -137,6 +108,7 @@
             <button id="processDeleteSelectionBtn" class="process-map-danger-button" type="button">選択を削除</button>
             <span class="process-map-toolbar__spacer" aria-hidden="true">&nbsp;</span>
             <button id="processFitBtn" class="process-map-secondary-button" type="button">全体表示</button>
+            <button id="processReadableBtn" class="process-map-secondary-button" type="button">読める大きさ</button>
             <button id="processReloadBtn" class="process-map-secondary-button" type="button">再読み込み</button>
             <button id="processSaveBtn" type="button">保存</button>
           </div>
@@ -225,6 +197,16 @@
       </div>
     </section>
     
+      </details>
+
+      <div class="footer">
+        <div class="h5">&emsp;&emsp;&emsp;&emsp;<span data-i18n="main.log">ログ</span></div>
+        <div id="logBoxContainer">
+          <div id="logBox"></div>
+        </div>
+      </div>
+    </section>
+
     <div id="left-navi-content" class="is-hidden">
       <div class="left-navi">
         <div class="h3"><span data-i18n="main.keywordArea">キーワード提示エリア</span>
@@ -252,7 +234,9 @@
           <button id="deleteNodeBtn" data-i18n="main.deleteKeyword">キーワードの削除</button>
           <button id="addEdgeBtn" data-i18n="main.addLink">リンクの追加</button>
           <button id="deleteEdgeBtn" data-i18n="main.deleteLink">リンクの削除</button>
-          <button id="createHypothesisBtn" class="is-hidden" hidden data-i18n="main.createHypothesis">仮説を追加</button>
+          <button id="createHypothesisBtn" data-i18n="main.createHypothesis">仮説を追加</button>
+          <button id="readableKeywordMapBtn" type="button">読める大きさ</button>
+          <button data-map-expand="mainContents" type="button" aria-pressed="false">拡大表示</button>
           <label for="arrowToggle">
             <input type="checkbox" id="arrowToggle">
             <span data-i18n="main.enableArrows">矢印を有効化</span>
@@ -283,28 +267,28 @@
 
     <script src="JS/runtime-config.js"></script>
     <script src="JS/i18n.js"></script>
-    <script src="JS/global-theme.js"></script>
+    <script src="JS/global-theme.js?v=20261009-mapfocus1"></script>
     <script src="JS/prompt-context.js?v=20260622-1"></script>
     <script src="JS/vendor/vis-network.min.js"></script>
-    <script src="JS/network.js?v=20260424-4"></script>
-    <script src="JS/hypothesis-network-model.js"></script>
-    <script src="JS/hypothesis-network.js"></script>
+    <script src="JS/network.js?v=20261009-mapfocus1"></script>
+    <script src="JS/hypothesis-network-model.js?v=20261009-mapfocus1"></script>
+    <script src="JS/hypothesis-network.js?v=20261009-mapfocus1"></script>
     <script src="JS/hypothesis.js?v=20261009-1"></script>
     <script src="JS/log.js?v=20260417-1"></script>
-    <script src="JS/setFontSize.js"></script>
+    <script src="JS/setFontSize.js?v=20261009-mapfocus1"></script>
     <script src="JS/kuromoji.js"></script>
     <script src="JS/vendor/compromise.js"></script>
     <script src="JS/word-analyze.js"></script>
     <script src="JS/csv.js"></script>
     <script src="JS/wiki-query.js"></script>
     <script src="JS/search.js"></script>
-    <script src="JS/main.js"></script>
+    <script src="JS/main.js?v=20261009-mapfocus1"></script>
     <script src="JS/vendor/go.js"></script>
     <script src="JS/mindmap.js?v=20260610-1"></script>
     <script src="JS/set-title.js"></script>
     <script src="JS/keywords_O(1).js?v=20260622-1"></script>
     <script src="JS/admin-menu.js"></script>
     <script src="JS/process-map-support.js"></script>
-    <script src="JS/process-map.js"></script>
+    <script src="JS/process-map.js?v=20261009-mapfocus1"></script>
   </body>
 </html>

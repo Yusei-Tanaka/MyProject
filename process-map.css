@@ -1,37 +1,3 @@
-.workspace-tabs {
-  flex: 0 0 auto;
-  display: flex;
-  gap: 4px;
-  padding: 6px 12px 0;
-  background: var(--color-header-bg);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.workspace-tab {
-  appearance: none;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-bottom: none;
-  border-radius: 7px 7px 0 0;
-  padding: 8px 18px;
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--color-header-subtext);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.workspace-tab:hover,
-.workspace-tab:focus-visible {
-  background: rgba(255, 255, 255, 0.2);
-  color: var(--color-header-text);
-}
-
-.workspace-tab.is-active {
-  background: var(--color-main-bg);
-  color: var(--color-heading-text);
-  border-color: var(--color-main-border);
-}
-
 .process-map-view.is-active {
   display: flex;
   flex-direction: column;
@@ -397,3 +363,9 @@
     margin-left: 0;
   }
 }
+
+/* Inline companion to the hypothesis workspace, without switching screens. */
+.process-map-drawer { flex: 0 0 auto; border-top: 1px solid var(--color-main-border); background: var(--color-main-bg); color: var(--color-heading-text); }
+.process-map-drawer > summary { cursor: pointer; padding: 10px 16px; font-weight: 600; }
+.process-map-drawer .process-map-view { height: min(65vh, 650px); min-height: 420px; overflow: auto; }
+#golden-layout-container { min-height: 480px; }

@@ -276,7 +276,9 @@
     });
 
     root.appendChild(palette);
-    document.body.appendChild(root);
+    const workspaceHeader = document.querySelector(".main-page .header");
+    if (workspaceHeader) workspaceHeader.insertBefore(root, document.getElementById("myTitle"));
+    else document.body.appendChild(root);
     switcherRoot = root;
     updateThemeSwitcherLocale();
     updateActiveDot(getStoredTheme());

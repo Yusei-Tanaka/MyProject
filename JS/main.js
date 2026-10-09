@@ -36,17 +36,11 @@ var config = {
       content: [
           {
               type: 'column',
-              width: 0, // 初期: 左カラム 0%
+              width: 20, // キーワード生成を初期表示
               content: [
                   {
                       type: 'component',
                       componentName: 'leftNavi',
-                      closable: true,
-                      header: { show: false }
-                  },
-                  {
-                      type: 'component',
-                      componentName: 'rightNavi',
                       closable: true,
                       header: { show: false }
                   }
@@ -54,19 +48,19 @@ var config = {
           },
           {
               type: 'column',
-              width: 100, // 初期: 右カラム 100%
+              width: 80, // マップと精緻化ワークスペース
               content: [
                   {
                       type: 'component',
                       componentName: 'mainContents',
-                      height: 25,
+                      height: 30,
                       closable: true,
                       header: { show: false }
                   },
                   {
                       type: 'component',
                       componentName: 'extraContent',
-                      height: 75,
+                      height: 70,
                       closable: true,
                       header: { show: false }
                   }
@@ -165,16 +159,12 @@ function applySideViewState(row, shouldOpen) {
     const columns = getLayoutColumns(row);
     if (!columns.leftCol || !columns.rightCol) return false;
 
-    columns.leftCol.config.width = shouldOpen ? 30 : 0;
-    columns.rightCol.config.width = shouldOpen ? 70 : 100;
+    columns.leftCol.config.width = shouldOpen ? 20 : 0;
+    columns.rightCol.config.width = shouldOpen ? 80 : 100;
     row.callDownwards('setSize');
     updateLayoutSize();
 
-    if (shouldOpen) {
-        $('#createHypothesisBtn').removeAttr('hidden').removeClass('is-hidden');
-    } else {
-        $('#createHypothesisBtn').attr('hidden', true).addClass('is-hidden');
-    }
+    $('#createHypothesisBtn').removeAttr('hidden').removeClass('is-hidden');
 
     return true;
 }
@@ -183,8 +173,8 @@ function updateSideViewButtonLabel(isOpen) {
     const button = document.getElementById("showLeftBtn");
     if (!button) return;
     button.textContent = isOpen
-        ? t("main.hideSideView", {}, "サイドビューを閉じる")
-        : t("main.showSideView", {}, "サイドビューを表示");
+        ? "キーワード生成を隠す"
+        : "キーワード生成を表示";
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -206,7 +196,9 @@ document.addEventListener("DOMContentLoaded", function () {
 // 5. ボタン押下で左20%・右80%に変更
 $(function(){
     var row = null;
-    var isSideViewOpen = false;
+    var isSideViewOpen = true;
+    updateSideViewButtonLabel(isSideViewOpen);
+    updateLayoutSize();
     myLayout.on('initialised', function(){
         // 初期化後に row を取得し、サイズ再計算
         row = myLayout.root.contentItems[0];
@@ -229,11 +221,6 @@ $(function(){
         if (!row) return;
 
         if (!isSideViewOpen) {
-            const shouldOpen = window.confirm(
-                t("confirms.reopenSideView", {}, "本当に整理は終わりましたか？")
-            );
-            if (!shouldOpen) return;
-
             if (applySideViewState(row, true)) {
                 isSideViewOpen = true;
                 updateSideViewButtonLabel(isSideViewOpen);
@@ -248,4 +235,31 @@ $(function(){
             logLayoutAction(t("logs.hideSideView", {}, "画面: 左サイドビューを閉じる"));
         }
     });
+});
+
+// Enlarge existing Golden Layout items without moving or recreating editor DOM.
+let enlargedMapItem = null;
+window.toggleWorkspaceMap = function (componentName) {
+    const component = myLayout.root.getItemsByFilter(item => item.config.componentName === componentName)[0];
+    if (!component) return;
+    const item = component.parent && component.parent.isStack ? component.parent : component;
+    if (enlargedMapItem && enlargedMapItem !== item && enlargedMapItem.isMaximised) enlargedMapItem.toggleMaximise();
+    item.toggleMaximise();
+    enlargedMapItem = item.isMaximised ? item : null;
+    document.querySelectorAll('[data-map-expand]').forEach(button => {
+        const expanded = button.dataset.mapExpand === componentName && !!enlargedMapItem;
+        button.textContent = expanded ? '元の配置に戻す' : '拡大表示';
+        button.setAttribute('aria-pressed', String(expanded));
+    });
+    requestAnimationFrame(updateLayoutSize);
+};
+document.addEventListener('click', event => {
+    const button = event.target.closest?.('[data-map-expand]');
+    if (button) window.toggleWorkspaceMap(button.dataset.mapExpand);
+});
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && enlargedMapItem?.isMaximised && !document.getElementById('processMapDrawer')?.open) {
+        const name = enlargedMapItem.contentItems[0]?.config.componentName;
+        if (name) window.toggleWorkspaceMap(name);
+    }
 });

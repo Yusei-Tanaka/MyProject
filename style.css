@@ -491,9 +491,6 @@ body {
     display: none !important;
 }
 
-body[data-active-workspace="process"] #showLeftBtn {
-    visibility: hidden;
-}
 
 /* ===================== 左ナビ ===================== */
 #left-navi-content,

@@ -1,0 +1,88 @@
+/* Main workspace only: stable geometry around the existing editors. */
+body.main-page { height: 100dvh; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13px; line-height: 1.5; }
+.main-page *, .main-page *::before, .main-page *::after { box-sizing: border-box; }
+.main-page .header { flex: 0 0 58px; height: 58px; width: 100%; display: flex; gap: 12px; padding: 0 18px; justify-content: flex-start; }
+.main-page .user-name-display { position: static; flex: 0 0 auto; min-width: 64px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; font-size: 12px; padding: 4px 12px; }
+.main-page #myTitle { flex: 1 1 0; min-width: 100px; max-width: none; height: 34px; margin: 0; padding: 6px 12px; text-align: left; font-size: 15px; font-weight: 500; border: 0; background: rgba(255,255,255,.08); }
+.main-page .header button, .main-page .header select { flex: 0 0 auto; height: 32px; margin: 0; padding: 4px 10px; font-size: 12px; line-height: 1.4; border-radius: 6px; }
+.main-page .header-admin-select { max-width: 165px; }
+.main-page .header .theme-switcher { position: static; inset: auto; flex: 0 0 auto; padding: 4px; margin: 0; box-shadow: none; background: transparent; border: 0; }
+.main-page .theme-switcher-palette { gap: 5px; }
+.main-page .header .theme-switcher-dot { width: 14px; height: 14px; min-height: 0; padding: 0; }
+.main-page #existing-system-view { overflow: auto; min-height: 0; padding: 12px; gap: 10px; background: #edf2f7; }
+.main-page #golden-layout-container { flex: 0 0 auto; height: calc(100dvh - 124px); min-height: 520px; width: 100%; }
+.main-page .lm_content { overflow: hidden; border-radius: 8px; }
+.main-page .lm_splitter { background: #edf2f7; }
+.main-page .left-navi, .main-page .main-contents, .main-page .extra-content { height: 100%; min-height: 0; min-width: 0; padding: 12px; overflow: hidden; border: 1px solid #dce4ed; border-radius: 8px; background: #fff; }
+.main-page .left-navi { display: grid; grid-template-rows: auto minmax(100px, .35fr) minmax(120px, 1fr); gap: 10px; }
+.main-page .left-navi label[for="intersectionMode"] { display: none; }
+.main-page .left-navi .h3 { margin: 0; padding: 0; background: none; border-radius: 0; font-size: 13px; line-height: 1.5; gap: 8px; }
+.main-page .main-contents > .h3, .main-page .extra-content > .h3 { flex: 0 0 auto; font-size: 14px; line-height: 1.5; font-weight: 650; margin: 0 0 8px; color: #24374b; }
+.main-page .output-area, .main-page #resultBox { margin: 0; height: auto; min-height: 0; border: 1px solid #e0e7ef; border-radius: 6px; padding: 10px; font-size: 13px; }
+.main-page #resultBox strong { font-size: 12px; color: #64748b; }
+.main-page #resultBox u { text-decoration: none; }
+.main-page button { font-family: inherit; }
+.main-page .button-container { flex: 0 0 auto; gap: 6px; align-items: center; margin: 0 0 8px; }
+.main-page .button-container button, .main-page #keywordCreationBtn, .main-page .hn-panel button { font-size: 12px; line-height: 1.4; min-height: 30px; padding: 5px 10px; margin: 0; border-radius: 6px; font-weight: 500; }
+.main-page .button-container button { color: #42566e; border-color: #d3dee9; }
+.main-page #keywordCreationBtn, .main-page #createHypothesisBtn { color: #fff; background: var(--color-button-primary); border-color: var(--color-button-primary); }
+.main-page .button-container label { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; white-space: nowrap; }
+.main-page #mynetwork { flex: 1 1 0; min-height: 0; margin: 0; border-radius: 6px; background-size: 28px 28px; }
+.main-page #copiedContent:empty { display: none; }
+.main-page .extra-content-area { flex: 1 1 0; min-height: 0; height: auto; overflow: hidden; }
+.main-page .hn-panel { flex: 1 1 0; height: 100%; min-height: 0; grid-template-columns: minmax(0, 1fr) 310px; gap: 12px; font-size: 13px; line-height: 1.6; }
+.main-page .hn-panel.hn-wide { grid-template-columns: minmax(0, 1fr) minmax(310px, 43%); }
+.main-page .hn-map-main { gap: 8px; min-width: 0; min-height: 0; overflow: hidden; }
+.main-page .hn-actions { gap: 6px; padding: 0; align-items: center; }
+.main-page .hn-map-main > .hn-actions { flex: 0 0 auto; }
+.main-page .hn-canvas { flex: 1 1 0; height: auto; min-height: 0; border-radius: 8px; border-color: #dce5ef; background: #f8fafc; }
+.main-page .hn-sidebar { padding: 0 0 0 12px; border-color: #e4eaf1; background: #fff; scrollbar-gutter: stable; }
+.main-page .hn-details, .main-page .hn-support { padding: 10px 0; border: 0; border-bottom: 1px solid #e7edf3; }
+.main-page .hn-details > p, .main-page .hn-support > p { margin: 0 0 10px; }
+.main-page .hn-sidebar h3, .main-page .hn-sidebar h4 { font-size: 13px; line-height: 1.6; margin: 12px 0 8px; color: #273e56; }
+.main-page .hn-sidebar button { margin: 0 4px 6px 0; max-width: 100%; text-align: left; }
+.main-page .hn-sidebar .hn-actions { align-items: flex-start; }
+.main-page .hn-sidebar .hn-actions button { margin: 0; }
+.main-page .hn-status { margin: 8px 0; font-size: 11px; color: #64748b; }
+.main-page .hn-review-row { border-color: #e1e8f0; padding: 10px; background: #f8fafc; }
+.main-page .hn-item-list, .main-page .hn-analysis { flex: 0 0 auto; margin: 0; padding: 6px 0; border-top: 1px solid #e7edf3; font-size: 12px; max-height: 120px; overflow: auto; }
+.main-page summary { cursor: pointer; font-size: 12px; color: #51647b; }
+.main-page .hn-sidebar > details { margin: 0; padding: 10px 0; border-bottom: 1px solid #e7edf3; }
+.main-page .process-map-drawer { border: 1px solid #dce4ed; border-radius: 8px; overflow: hidden; background: #fff; }
+.main-page .process-map-drawer > summary { padding: 10px 14px; font-size: 13px; }
+.main-page .process-map-drawer[open] > summary { border-bottom: 1px solid #e7edf3; }
+@media (max-width: 1100px) {
+  .main-page .header { gap: 8px; padding: 0 12px; }
+  .main-page .header-admin-select { max-width: 120px; }
+  .main-page .hn-panel { grid-template-columns: minmax(0, 1fr) 280px; gap: 8px; }
+}
+@media (max-width: 760px) {
+  .main-page .header { flex-wrap: wrap; height: auto; min-height: 84px; flex-basis: 84px; padding: 8px; }
+  .main-page #myTitle { flex-basis: calc(100% - 190px); }
+  .main-page #golden-layout-container { min-width: 720px; height: calc(100dvh - 150px); }
+}
+.main-page .hn-map-main > .hn-actions > button:first-child { background: var(--color-button-primary); border-color: var(--color-button-primary); color: #fff; }
+.main-page .hn-panel button:hover { border-color: #91adc8; background: #eef4fa; }
+.main-page .hn-map-main > .hn-actions > button:first-child:hover { background: var(--color-button-primary-hover); }
+.main-page button:focus-visible, .main-page summary:focus-visible { outline: 2px solid var(--color-button-primary); outline-offset: 2px; }
+/* Focus on a map inside the viewport instead of stacking another screen below it. */
+.main-page #existing-system-view { overflow: hidden; }
+.main-page #golden-layout-container { flex: 1 1 0; height: auto; min-height: 0; }
+.main-page .process-map-drawer { flex: 0 0 auto; }
+.main-page .process-map-drawer[open] { position: fixed; z-index: 100; top: 70px; right: 12px; bottom: 12px; left: 12px; display: flex; flex-direction: column; box-shadow: 0 0 0 100vmax rgba(20,35,50,.3), 0 12px 40px rgba(20,35,50,.18); }
+.main-page .process-map-drawer[open] > summary { flex: 0 0 auto; color: #234765; background: #f4f8fc; font-weight: 600; }
+.main-page .process-map-drawer[open] .process-map-view { flex: 1 1 0; height: auto; min-height: 0; overflow: hidden; }
+.main-page .process-map-workspace { min-height: 0; overflow: hidden; }
+.main-page #processMapNetwork { flex: 1 1 0; min-height: 0; }
+.main-page .process-map-context__summary > div:not(.process-map-grain) { flex: 1; min-width: 0; }
+.main-page #processMapTitle { font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.main-page .process-map-toolbar button { font-size: 12px; padding: 5px 10px; min-height: 30px; }
+.main-page .hn-sidebar .hn-item-list, .main-page .hn-sidebar .hn-analysis { max-height: none; }
+.main-page .hn-item-list button { display: block; width: 100%; border: 1px solid #d3dee9; background: #f8fafc; color: #34495e; text-align: left; margin: 6px 0; }
+.main-page .hn-map-main > .hn-actions { gap: 5px; }
+@media (max-width: 760px) {
+  .main-page .process-map-drawer[open] { top: 96px; left: 8px; right: 8px; bottom: 8px; }
+  .main-page .process-map-workspace { grid-template-columns: minmax(0, 1fr) 240px; }
+  .main-page .process-map-editor { overflow: auto; }
+  .main-page #processMapNetwork { min-height: 200px; }
+}

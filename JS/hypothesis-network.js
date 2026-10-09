@@ -5,6 +5,7 @@
   let state = M.normalize(), ready = false, dirty = false, network, graphNodes, graphEdges;
   let panel, review, status, analysis, details, canvas, sourceSelection, extractionBusy = false, itemList, activeKey;
   let selectedId = null, activeSessionId = null, sideMode = 'idle', editorHost, refinement, legacySupport;
+  let initialViewSet = false;
   const linkBusy = new Set();
   const config = window.APP_CONFIG || {};
   const key = () => JSON.stringify(['hypothesis-network-draft', localStorage.getItem('userName'), localStorage.getItem('searchTitle'), window.APP_I18N?.getLanguage() || 'ja']);
@@ -342,7 +343,7 @@
     const edges = state.edges.map(e => ({ id: e.id, from: e.sourceNodeId, to: e.targetNodeId, label: e.label, arrows: 'to', smooth: { type:'curvedCW', roundness:0.12 }, font: { size: 11, align: 'middle' } }));
     if (!network) {
       graphNodes = new vis.DataSet(nodes); graphEdges = new vis.DataSet(edges);
-      network = new vis.Network(canvas,{ nodes:graphNodes, edges:graphEdges }, { physics: false, interaction: { hover: true }, nodes: { font:{ size:13 } } });
+      network = new vis.Network(canvas,{ nodes:graphNodes, edges:graphEdges }, { physics: false, interaction: { hover: true }, nodes: { font:{ size:15 } } });
       network.on('doubleClick',params => { const n = state.nodes.find(n => n.id === params.nodes[0]); if(n) beginRefinement(n); });
       network.on('dragEnd', params => { if (!params.nodes.length) return; savePositions(); persist(); });
       network.on('click',params => {
@@ -354,6 +355,7 @@
       graphNodes.remove(graphNodes.getIds().filter(id => !nodes.some(n => n.id === id)));
       graphNodes.update(nodes); graphEdges.update(edges);
     }
+    if(state.nodes.length && !initialViewSet) {initialViewSet = true; requestAnimationFrame(readableView);}
   }
   function render() {
     renderReview(); bindSources(); renderGraph();
@@ -387,6 +389,11 @@
       const from = map.get(String(v.parent)), to = map.get(String(v.key));
       if (from && to && !state.linkCandidates.some(e => e.sourceNodeId === from && e.targetNodeId === to)) state.linkCandidates.push({ ...M.edge({ sourceNodeId:from, targetNodeId:to, explanation:'旧マップの親子関係です。意味と方向を確認・変更してください。' }),status:'pending' });
     }); changed();
+  }
+  function readableView() {
+    if(!network) return;
+    network.fit({animation:false});
+    if(network.getScale() < 0.9) network.moveTo({scale:0.9,animation:false});
   }
   function savePositions() {
     const positions = network?.getPositions() || {};
@@ -449,9 +456,12 @@
     button('全体を表示',() => network?.fit(),toolbar);
     button('自動配置',() => { state.nodes.forEach((n,i) => n.position = {x:(i%4)*300,y:Math.floor(i/4)*180}); changed(); network?.fit(); },toolbar);
     button('パネル幅を変更',() => panel.classList.toggle('hn-wide'),toolbar);
+    button('読める大きさ',readableView,toolbar);
+    const expand = button('拡大表示',() => {},toolbar);
+    expand.dataset.mapExpand = 'extraContent';
     canvas = el('div',null,'hn-canvas'); canvas.id = 'hypothesisNetworkCanvas'; main.append(canvas);
-    itemList = el('details',null,'hn-item-list'); main.append(itemList);
-    analysis = el('details',null,'hn-analysis'); main.append(analysis);
+    itemList = el('details',null,'hn-item-list'); sidebar.append(itemList);
+    analysis = el('details',null,'hn-analysis'); sidebar.append(analysis);
     details = el('div',null,'hn-details'); sidebar.append(details);
     editorHost = el('div'); sidebar.append(editorHost);
     refinement = el('section',null,'hn-support'); refinement.hidden = true; sidebar.append(refinement);

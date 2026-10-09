@@ -91,9 +91,7 @@ function handleNetworkResize() {
   if (!network || !container) return;
   try {
     network.redraw();
-    network.fit({
-      animation: false,
-    });
+    // Preserve the learner's zoom and pan when the workspace changes size.
   } catch (error) {
     console.warn("network resize failed:", error);
   }
@@ -557,6 +555,7 @@ if (recenterMapBtn) {
   // main.html を開いた直後に中央表示を実行し、ボタンを押下状態にする
   window.addEventListener("load", function () {
     recenterMapBtn.click();
+    setTimeout(setReadableKeywordView,450);
   });
 }
 
@@ -951,6 +950,7 @@ async function restoreUserConceptMap() {
 
     isRestoringConceptMap = true;
     applyConceptMapPayload(content);
+    requestAnimationFrame(setReadableKeywordView);
     lastSavedConceptMapFingerprint = buildConceptMapFingerprint();
     logAction(`キーワードマップ: DBから復元しました (theme=${themeName})`);
   } catch (error) {
@@ -1050,3 +1050,10 @@ if (callApiBtn) {
     callApi();
   });
 }
+
+function setReadableKeywordView() {
+  network.fit({animation:false});
+  if(network.getScale() < 0.85) network.moveTo({scale:0.85,animation:false});
+}
+const readableKeywordBtn = document.getElementById('readableKeywordMapBtn');
+if (readableKeywordBtn) readableKeywordBtn.addEventListener('click', setReadableKeywordView);

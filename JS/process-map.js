@@ -464,7 +464,7 @@
     updateGuidance();
     requestAnimationFrame(() => {
       state.network.redraw();
-      if (nodes.length) state.network.fit({ animation: false });
+      if (nodes.length) readableProcessMap();
     });
     state.loading = false;
   }
@@ -758,26 +758,30 @@
     await openMap(String(parent.mapId), "process_hierarchy_up", "上位グレインへ移動");
   }
 
-  function switchWorkspace(target) {
-    const existing = target === "existing";
-    elements.existingPanel.hidden = !existing;
-    elements.processPanel.hidden = existing;
-    elements.existingPanel.classList.toggle("is-active", existing);
-    elements.processPanel.classList.toggle("is-active", !existing);
-    document.body.dataset.activeWorkspace = target;
-    elements.tabs.forEach((tab) => {
-      const active = tab.dataset.workspaceTab === target;
-      tab.classList.toggle("is-active", active);
-      tab.setAttribute("aria-selected", String(active));
-      tab.tabIndex = active ? 0 : -1;
-    });
-    if (existing) {
-      saveNow(false);
+  function readableProcessMap() {
+    if (!state.network) return;
+    state.network.fit({animation:false});
+    if (state.network.getScale() < 0.9) state.network.moveTo({scale:0.9,animation:false});
+  }
+
+  function toggleProcessMap() {
+    const opened = elements.drawer.open;
+    const layout = document.getElementById('golden-layout-container');
+    if (layout) layout.inert = opened;
+    elements.drawer.querySelector('summary').textContent = opened ? 'プロセスマップを閉じる · Escでも戻れます' : '探究プロセスマップを画面内で開く';
+    elements.drawer.setAttribute('role', opened ? 'dialog' : 'group');
+    if(opened) elements.drawer.setAttribute('aria-modal', 'true'); else elements.drawer.removeAttribute('aria-modal');
+    if (!opened) {
+      if (state.initialized) saveNow(false);
       window.dispatchEvent(new Event("app-layout-resized"));
       return;
     }
+    elements.drawer.querySelector('summary').focus();
     initializeNetwork();
-    requestAnimationFrame(() => state.network?.redraw());
+    requestAnimationFrame(() => {
+      state.network?.redraw();
+      window.dispatchEvent(new Event("app-layout-resized"));
+    });
     if (!state.initialized) {
       state.initialized = true;
       loadInitialMap();
@@ -786,8 +790,7 @@
 
   function bindElements() {
     elements = {
-      tabs: [...document.querySelectorAll("[data-workspace-tab]")],
-      existingPanel: document.getElementById("existing-system-view"),
+      drawer: document.getElementById("processMapDrawer"),
       processPanel: document.getElementById("process-map-view"),
       backBtn: document.getElementById("processMapBackBtn"),
       title: document.getElementById("processMapTitle"),
@@ -799,6 +802,7 @@
       addEdgeBtn: document.getElementById("processAddEdgeBtn"),
       deleteSelectionBtn: document.getElementById("processDeleteSelectionBtn"),
       fitBtn: document.getElementById("processFitBtn"),
+      readableBtn: document.getElementById("processReadableBtn"),
       reloadBtn: document.getElementById("processReloadBtn"),
       saveBtn: document.getElementById("processSaveBtn"),
       status: document.getElementById("processMapStatus"),
@@ -827,19 +831,23 @@
 
   function initialize() {
     bindElements();
-    if (!elements.processPanel || !elements.tabs.length) return;
+    if (!elements.processPanel || !elements.drawer) return;
     fillSelect(elements.nodeType, NODE_TYPES);
     fillSelect(elements.detailNodeType, NODE_TYPES);
     fillSelect(elements.edgeType, EDGE_TYPES);
     fillSelect(elements.detailEdgeType, EDGE_TYPES);
     setEditorEnabled(false);
-    elements.tabs.forEach((tab) => tab.addEventListener("click", () => switchWorkspace(tab.dataset.workspaceTab)));
+    elements.drawer.addEventListener("toggle", toggleProcessMap);
+    if (elements.drawer.open) toggleProcessMap();
     elements.addNodeBtn.addEventListener("click", addNode);
     elements.addEdgeBtn.addEventListener("click", () => {
       if (state.linkSourceNodeId !== null) cancelLinkMode();
       else beginLinkMode();
     });
     elements.deleteSelectionBtn.addEventListener("click", deleteSelection);
+    elements.readableBtn?.addEventListener('click', readableProcessMap);
+    window.addEventListener('resize', () => state.network?.redraw());
+    document.addEventListener('keydown', event => { if(event.key === 'Escape' && elements.drawer.open) elements.drawer.open = false; });
     elements.fitBtn.addEventListener("click", () => state.network?.fit({ animation: true }));
     elements.reloadBtn.addEventListener("click", () => {
       if (!state.currentMapId) return;
@@ -857,7 +865,7 @@
     elements.deleteEdgeBtn.addEventListener("click", () => {
       if (state.selection?.kind === "edge") deleteEdge(state.selection.id);
     });
-    document.body.dataset.activeWorkspace = "existing";
+
   }
 
   if (document.readyState === "loading") {
