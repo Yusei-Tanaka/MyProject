@@ -21,3 +21,24 @@
 
 .hn-item-list { padding: 8px; }
 .hn-item-list button { display: block; margin: 5px 0; text-align: left; max-width: 100%; overflow-wrap: anywhere; cursor: pointer; }
+
+/* One continuous workspace; the map remains visible during refinement. */
+.hn-panel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 360px); height: 100%; min-height: 0; overflow: hidden; }
+.hn-panel.hn-wide { grid-template-columns: minmax(0, 1fr) minmax(340px, 48%); }
+.hn-map-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.hn-canvas { flex: 1; height: auto; min-height: 200px; }
+.hn-sidebar { min-width: 0; overflow: auto; border-left: 1px solid #cdd7e2; background: var(--color-sidebar-bg, #fff); padding: 8px; }
+.hn-sidebar > details { margin: 8px 0; }
+.hn-sidebar .hypothesis-area { height: auto; min-height: 0; overflow: visible; }
+.hn-dialog { width: auto; max-height: none; margin: 0; padding: 10px; }
+.hn-dialog select[multiple] { min-height: 100px; }
+.hn-support textarea { width: 100%; box-sizing: border-box; min-height: 130px; padding: 8px; }
+.hn-support > p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.hn-support[hidden], .hn-details[hidden], .hn-review[hidden] { display: none; }
+.hn-analysis { max-height: 120px; overflow: auto; }
+.extra-content-area { min-height: 0; overflow: hidden; }
+.hn-sidebar #myDiagramDiv { min-height: 250px; height: 300px; }
+@media (max-width: 760px) {
+  .hn-panel, .hn-panel.hn-wide { grid-template-columns: minmax(200px, 1fr) minmax(240px, 44%); }
+  .hn-actions { gap: 2px; padding: 2px; }
+}

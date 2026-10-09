@@ -1,6 +1,6 @@
 // 仮説コンテナを初期化して取得（右ナビ内）
 function ensureHypothesisContainer() {
-  var container = document.querySelector(".right-navi .hypothesis-area");
+  var container = document.querySelector(".hn-sidebar .hypothesis-area") || document.querySelector(".right-navi .hypothesis-area");
   if (!container) {
     var right = document.querySelector(".right-navi") || document.body;
     container = document.createElement("div");
@@ -1089,6 +1089,7 @@ function addHypothesisEntry(nodeIds, options) {
   enableScamperOnEntry(entry);
   entry.scrollIntoView({ behavior: "smooth" });
   logHypothesisAction(`仮説: 追加 (基づくキーワード: ${keywordLabels.join("、")})`);
+  window.HypothesisNetwork?.addFromEntry(entry, ta);
   scheduleHypothesisSave();
   return entry;
 }
@@ -1630,6 +1631,11 @@ function addNodeToNetwork(entry, sourceTextarea) {
   const candidateText = (rawText || "").trim();
   if (!candidateText) {
     alert(t("alerts.enterHypothesisToAdd", {}, "追加する仮説の内容を入力してください。"));
+    return;
+  }
+
+  if (window.HypothesisNetwork?.canSave()) {
+    window.HypothesisNetwork.addFromEntry(entry, sourceTextarea || fallbackTextarea);
     return;
   }
 

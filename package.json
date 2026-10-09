@@ -85,7 +85,8 @@
     "db:v2:up": "node -e \"console.log('Use mysql client to run scripts/sql/20260217_db_v2_up.sql')\"",
     "db:v2:down": "node -e \"console.log('Use mysql client to run scripts/sql/20260217_db_v2_down.sql')\"",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test:hypothesis-network": "node scripts/verify-hypothesis-network.js"
+    "test:hypothesis-network": "node scripts/verify-hypothesis-network.js",
+    "test:hypothesis-workspace": "node scripts/verify-hypothesis-workspace.js"
   },
   "keywords": [],
   "author": "",

@@ -59,12 +59,14 @@ var config = {
                   {
                       type: 'component',
                       componentName: 'mainContents',
+                      height: 25,
                       closable: true,
                       header: { show: false }
                   },
                   {
                       type: 'component',
                       componentName: 'extraContent',
+                      height: 75,
                       closable: true,
                       header: { show: false }
                   }

@@ -4,11 +4,11 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.HypothesisNetworkModel = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
-  const types = { working: '作業仮説', explanatory: '説明仮説', operational: '検証可能な仮説' };
+  const types = { working: '作業仮説', explanatory: '説明仮説', operational: '検証可能な仮説', idea: 'working hypothesis', unclassified: '未分類' };
   const relations = {
     specification: '対象・条件を具体化',
     decomposition: '理由・仕組みを詳しくした',
-    operationalization: '検証できる形にした',
+    operationalization: '検証できる形にした', alternative: '代替的な説明', complement: '補完', unclassified: 'その他・未分類',
   };
   const id = () => typeof crypto !== 'undefined' && crypto.randomUUID
     ? crypto.randomUUID() : `hn-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -16,14 +16,16 @@
   function node(value = {}) {
     const now = new Date().toISOString();
     return { ...value, id: str(value.id) || id(), text: str(value.text).trim(),
-      hypothesisType: Object.hasOwn(types, value.hypothesisType) ? value.hypothesisType : 'working',
+      hypothesisType: Object.hasOwn(types, value.hypothesisType) ? value.hypothesisType : 'unclassified',
       subject: str(value.subject), relationship: str(value.relationship), object: str(value.object),
       context: str(value.context), qualifier: str(value.qualifier), sourceText: str(value.sourceText),
       sourceConversationId: str(value.sourceConversationId),
+      reviewStatus: str(value.reviewStatus) || 'unexamined',
+      position: value.position && Number.isFinite(value.position.x) && Number.isFinite(value.position.y) ? {x:value.position.x,y:value.position.y} : null,
       createdAt: str(value.createdAt) || now, updatedAt: str(value.updatedAt) || now };
   }
   function edge(value = {}) {
-    const relationType = str(value.relationType) || 'specification';
+    const relationType = str(value.relationType) || 'unclassified';
     return { ...value, id: str(value.id) || id(), sourceNodeId: str(value.sourceNodeId),
       targetNodeId: str(value.targetNodeId), relationType,
       label: str(value.label) || (Object.hasOwn(relations, relationType) ? relations[relationType] : relationType),
@@ -36,11 +38,12 @@
     const nodes = (Array.isArray(value.nodes) ? value.nodes : []).filter(v => v && typeof v === 'object').map(node).filter(n => n.text);
     const unique = list => [...new Map(list.map(item => [item.id, item])).values()];
     const ids = new Set(nodes.map(n => n.id));
-    return { ...value, schemaVersion: 1, nodes: unique(nodes),
+    return { ...value, schemaVersion: 2, nodes: unique(nodes),
       edges: unique((Array.isArray(value.edges) ? value.edges : []).filter(v => v && typeof v === 'object').map(edge)
         .filter(e => ids.has(e.sourceNodeId) && ids.has(e.targetNodeId) && e.sourceNodeId !== e.targetNodeId)),
       candidates: Array.isArray(value.candidates) ? value.candidates.filter(v => v && typeof v === 'object') : [],
       linkCandidates: Array.isArray(value.linkCandidates) ? value.linkCandidates.filter(v => v && typeof v === 'object') : [],
+      sessions: Array.isArray(value.sessions) ? unique(value.sessions.filter(v => v && typeof v === 'object').map(v => ({...v, id:str(v.id) || id(), nodeId:str(v.nodeId), text:str(v.text), questions:Array.isArray(v.questions) ? v.questions : [], history:Array.isArray(v.history) ? v.history : []}))) : [],
       conversations: Array.isArray(value.conversations) ? value.conversations.filter(v => v && typeof v === 'object') : [] };
   }
   function validateEdge(graph, value, allowCycles = false) {
