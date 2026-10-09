@@ -1,0 +1,82 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><title>仮説ネットワーク UI 検証</title><link rel="stylesheet" href="../hypothesis-network.css">
+<style>body{font:14px sans-serif;margin:20px} .layout{display:grid;grid-template-columns:38% 60%;gap:2%} textarea{width:95%;min-height:65px}#results{white-space:pre-wrap;padding:12px;background:#e8efff}</style>
+<h1>仮説ネットワーク UI 検証（APIはモック）</h1><pre id="results">検証中…</pre>
+<div class="layout"><div class="hypothesis-area"><div id="hypothesisWrapper"><div class="hypothesis-box" data-hypothesis-entry-id="fixture-entry"><textarea class="hypothesis-text">SAFの製造コストが高いことがSAFの普及を妨げている。なぜ高いのだろう？</textarea></div></div></div><div class="extra-content-area"><div id="myDiagramDiv">既存マップの表示</div></div></div>
+<script src="../JS/vendor/vis-network.min.js"></script><script src="../JS/hypothesis-network-model.js"></script>
+<script>
+localStorage.setItem('userName','ui-fixture');localStorage.setItem('searchTitle','SAF');
+window.APP_CONFIG={flaskApiBaseUrl:'/mock'};
+function ensureHypothesisContainer() { return document.querySelector('.hypothesis-area'); }
+let savedSnapshots=[];
+function scheduleHypothesisSave(){ savedSnapshots.push(window.HypothesisNetwork.snapshot()); }
+window.getMindmapNodes=()=>[{key:0,text:'RQ'},{key:1,text:'旧仮説A',parent:0},{key:2,text:'旧仮説B',parent:1}];
+window.fetch=async (url,options)=>{
+ const prompt=JSON.parse(options.body).prompt;
+ const input=JSON.parse(prompt.slice(prompt.indexOf('\n{')+1));
+ if(prompt.includes('"candidates"')) {
+  const s=input.sources[0];return {ok:true,json:async()=>({result:JSON.stringify({candidates:[{sourceId:s.id,sourceText:'SAFの製造コストが高いことがSAFの普及を妨げている。',text:'製造コストがSAFの普及を抑制する',hypothesisType:'explanatory',subject:'SAFの製造コスト',relationship:'抑制する',object:'SAFの普及'}]})})};
+ }
+ return {ok:true,json:async()=>({result:JSON.stringify({edges:[{sourceNodeId:input.nodes[0].id,targetNodeId:input.newNodeId,relationType:'decomposition',confidence:0.8,explanation:'理由を掘り下げているため'}]})})};
+};
+</script><script src="../JS/hypothesis-network.js"></script>
+<script>
+window.addEventListener('DOMContentLoaded',async()=>{
+ const out=document.getElementById('results'), checks=[];
+ const check=(condition,name)=>{if(!condition)throw Error(name);checks.push('PASS '+name);};
+ const settle=async()=>{for(let i=0;i<15;i++)await Promise.resolve();};
+ const click=async(text,scope=document)=>{const b=[...scope.querySelectorAll('button')].find(b=>b.textContent===text);if(!b)throw Error('ボタンなし: '+text);b.click();await settle();};
+ try {
+  HypothesisNetwork.restore({nodes:[],edges:[],updatedAt:'9999'});
+  check(!document.getElementById('myDiagramDiv').hidden,'既存マップの初期表示を維持');
+  await click('仮説ネットワーク');check(document.getElementById('myDiagramDiv').hidden,'ネットワーク表示切替');
+  await click('AIで仮説候補を抽出');
+  check(HypothesisNetwork.snapshot().candidates.length===1,'AI抽出候補の登録');
+  check(HypothesisNetwork.snapshot().nodes.length===0,'AI候補は自動確定されない');
+  check(document.querySelector('.hn-pending')?.textContent.includes('SAF'),'元文章の候補ハイライト');
+  await click('修正・範囲変更・分割');
+  const d=document.querySelector('dialog'), f=d.querySelector('form');
+  f.querySelector('textarea').value='コストが普及を抑制する';f.requestSubmit();await settle();
+  check(HypothesisNetwork.snapshot().candidates[0].text==='コストが普及を抑制する','候補本文の修正');
+  await click('ノードとして確定');
+  check(HypothesisNetwork.snapshot().nodes[0].subject==='SAFの製造コスト','確定ノードのSRO保持');
+  check(!!document.querySelector('.hn-confirmed'),'確定範囲のハイライト保持');
+  const ta=document.querySelector('.hypothesis-text');ta.selectionStart=ta.value.indexOf('なぜ');ta.selectionEnd=ta.value.length;ta.dispatchEvent(new Event('select'));
+  await click('選択した文章を候補に追加');await click('キャンセル',document.querySelector('dialog'));
+  check(HypothesisNetwork.snapshot().candidates.length===2,'未抽出文章の手動候補追加');
+  await click('候補から除外');check(HypothesisNetwork.snapshot().candidates[1].status==='excluded','候補の除外');
+  await click('仮説ノード追加');
+  const nf=document.querySelector('dialog form');nf.querySelector('textarea').value='原料供給が少ないため製造コストが高い';nf.querySelector('select').value='operational';nf.requestSubmit();await settle();
+  check(HypothesisNetwork.snapshot().nodes.length===2,'手動ノード追加');
+  check(HypothesisNetwork.snapshot().linkCandidates.length===1,'新規ノードのAIリンク候補');
+  check(HypothesisNetwork.snapshot().edges.length===0,'AIリンクは自動採用されない');
+  await click('採用・方向・リンク先・タイプ変更');
+  const ef=document.querySelector('dialog form');ef.querySelectorAll('select')[2].value='operationalization';ef.requestSubmit();await settle();
+  check(HypothesisNetwork.snapshot().edges[0].relationType==='operationalization','リンクタイプ変更後の採用');
+  await click('既存マップから取り込む');
+  check(HypothesisNetwork.snapshot().nodes.length===4,'旧マップノードの取り込み');
+  check(HypothesisNetwork.snapshot().edges.length===1,'旧親子関係は未確定候補');
+  check(HypothesisNetwork.analyze().relationTypes.operationalization===1,'ネットワーク状態の分析');
+  const nbutton=[...document.querySelectorAll('.hn-item-list button')].find(b=>b.textContent.includes('コストが普及を抑制する'));
+  nbutton.click();await settle();await click('編集',document.querySelector('.hn-details'));
+  const edit=document.querySelector('dialog form');edit.querySelector('textarea').value='改訂した仮説';edit.requestSubmit();await settle();
+  check(HypothesisNetwork.snapshot().nodes[0].text==='改訂した仮説','ノード編集');
+  await click('リンク: 検証できる形にした',document.querySelector('.hn-item-list'));await click('方向・リンク先・タイプ・理由を編集');
+  document.querySelector('dialog form').querySelectorAll('select')[2].value='specification';document.querySelector('dialog form').requestSubmit();await settle();
+  check(HypothesisNetwork.snapshot().edges[0].relationType==='specification','既存リンク編集');
+  await click('リンク: 対象・条件を具体化',document.querySelector('.hn-item-list'));await click('リンク削除');
+  check(HypothesisNetwork.snapshot().edges.length===0,'リンク削除');
+  const main=document.querySelector('.hypothesis-text');main.selectionStart=0;main.selectionEnd=3;main.dispatchEvent(new Event('select'));
+  await click('選択した文章を候補に追加');document.querySelector('dialog textarea').value='第一の仮説\n第二の仮説';await click('改行ごとに複数の候補へ分割',document.querySelector('dialog'));
+  check(HypothesisNetwork.snapshot().candidates.filter(c=>c.status==='pending').length===2,'候補の分割');
+  await click('4. 作業仮説: 旧仮説B',document.querySelector('.hn-item-list'));
+  const confirmOriginal=window.confirm;window.confirm=()=>true;await click('削除',document.querySelector('.hn-details'));window.confirm=confirmOriginal;
+  check(HypothesisNetwork.snapshot().nodes.length===3,'ノード削除');
+  check(!HypothesisNetwork.snapshot().linkCandidates.some(e=>!HypothesisNetwork.snapshot().nodes.some(n=>n.id===e.targetNodeId)),'削除ノードのリンク候補除去');
+  window.__hnTestSnapshot=HypothesisNetwork.snapshot();
+  const snapshot=HypothesisNetwork.snapshot();HypothesisNetwork.saved(snapshot);
+  check(!HypothesisNetwork.hasDraft(),'DB保存成功時の下書き解消');
+  check(savedSnapshots.length>0,'編集操作が既存保存へ接続');
+  out.textContent=checks.join('\n')+'\n全UI検証に成功しました。';
+ }catch(e){out.textContent=checks.join('\n')+'\nFAIL '+e.stack;}
+});
+</script></html>

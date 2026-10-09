@@ -3,6 +3,7 @@ const express = require("express");
 const mysql = require("mysql2/promise");
 const crypto = require("crypto");
 const path = require("path");
+const hypothesisNetworkModel = require("./hypothesis-network-model");
 
 const app = express();
 app.use(express.json({ limit: "10mb" }));
@@ -372,6 +373,7 @@ const normalizeHypothesisPayload = (value) => {
   return {
     ...hypothesis,
     schemaVersion: 2,
+    ...(hypothesis.network ? { network: hypothesisNetworkModel.normalize(hypothesis.network) } : {}),
     html,
     nodes,
     entries: {

@@ -264,38 +264,19 @@ function collectHypothesisNodesFromWrapper(wrapper) {
   return rows;
 }
 
-async function saveHypothesisStateToDb(serializedHtml, hypothesisNodes) {
+async function saveHypothesisStateToDb(serializedHtml, hypothesisNodes, networkSnapshot) {
+  if (window.HypothesisNetwork && !window.HypothesisNetwork.canSave()) throw new Error("保存データの読み込みが完了していません。ページを再読み込みしてください。");
   const { userId, themeName } = getCurrentUserThemeRaw();
-  if (!userId || !themeName) return;
+  if (!userId || !themeName) throw new Error("ユーザーとテーマを設定してください。");
 
-  let existingContent = {};
   try {
     const language = getCurrentThemeLanguage();
-    const getRes = await fetch(
-      `${hypothesisDbApiBaseUrl}/users/${encodeURIComponent(userId)}/themes/${encodeURIComponent(themeName)}?language=${encodeURIComponent(language)}`,
-      { cache: "no-store" }
-    );
-
-    if (getRes.ok) {
-      const currentTheme = await getRes.json();
-      if (currentTheme && currentTheme.content && typeof currentTheme.content === "object") {
-        existingContent = currentTheme.content;
-      }
-    } else if (getRes.status !== 404) {
-      throw new Error(`HTTP ${getRes.status}`);
-    }
-
-    const existingHypothesis =
-      existingContent && existingContent.hypothesis && typeof existingContent.hypothesis === "object"
-        ? existingContent.hypothesis
-        : {};
-
+    // Submit only this editor's fields; the server merges the other map state.
     const mergedContent = {
-      ...existingContent,
       hypothesis: {
-        ...existingHypothesis,
         html: serializedHtml,
         nodes: Array.isArray(hypothesisNodes) ? hypothesisNodes : [],
+        ...(networkSnapshot ? { network: networkSnapshot } : {}),
         savedAt: new Date().toISOString(),
       },
     };
@@ -323,13 +304,14 @@ async function saveHypothesisStateToDb(serializedHtml, hypothesisNodes) {
           )
         );
       }
-      return;
+      throw new Error(`ユーザー ${userId} がDBに存在しません`);
     }
     if (!putRes.ok) {
       throw new Error(`HTTP ${putRes.status}`);
     }
   } catch (error) {
     console.error("仮説発散エリアのDB保存に失敗しました:", error);
+    throw error;
   }
 }
 
@@ -342,6 +324,7 @@ function scheduleHypothesisSave() {
 
 function serializeHypothesisWrapper(wrapper) {
   const clone = wrapper.cloneNode(true);
+  clone.querySelectorAll(".hn-source-preview").forEach(preview => preview.remove());
   clone.querySelectorAll("textarea").forEach(function (ta) {
     ta.textContent = ta.value;
   });
@@ -357,7 +340,7 @@ async function saveHypothesisState() {
     const serializedHtml = serializeHypothesisWrapper(wrapper);
     const hypothesisNodes = collectHypothesisNodesFromWrapper(wrapper);
 
-    await saveHypothesisStateToDb(serializedHtml, hypothesisNodes);
+    await saveHypothesisStateToDb(serializedHtml, hypothesisNodes, window.HypothesisNetwork?.snapshot());
   } catch (error) {
     console.error("仮説発散エリアの保存に失敗しました:", error);
   }
@@ -372,7 +355,9 @@ function buildHypothesisSaveSnapshot() {
 
   const serializedHtml = serializeHypothesisWrapper(wrapper);
   const hypothesisNodes = collectHypothesisNodesFromWrapper(wrapper);
+  const networkSnapshot = window.HypothesisNetwork?.snapshot();
   const fingerprint = JSON.stringify({
+    network: networkSnapshot,
     html: serializedHtml,
     nodes: hypothesisNodes,
   });
@@ -380,13 +365,14 @@ function buildHypothesisSaveSnapshot() {
   return {
     serializedHtml,
     hypothesisNodes,
+    networkSnapshot,
     fingerprint,
   };
 }
 
 function resetHypothesisSaveFingerprintFromCurrent() {
   const snapshot = buildHypothesisSaveSnapshot();
-  lastSavedHypothesisFingerprint = snapshot ? snapshot.fingerprint : "";
+  lastSavedHypothesisFingerprint = window.HypothesisNetwork?.hasDraft() ? "" : (snapshot ? snapshot.fingerprint : "");
 }
 
 async function flushHypothesisSave() {
@@ -403,10 +389,12 @@ async function flushHypothesisSave() {
 
   hypothesisSaveInFlight = true;
   try {
-    await saveHypothesisStateToDb(snapshot.serializedHtml, snapshot.hypothesisNodes);
+    await saveHypothesisStateToDb(snapshot.serializedHtml, snapshot.hypothesisNodes, snapshot.networkSnapshot);
+    window.HypothesisNetwork?.saved(snapshot.networkSnapshot);
     lastSavedHypothesisFingerprint = snapshot.fingerprint;
   } catch (error) {
     console.error("仮説発散エリアの保存に失敗しました:", error);
+    window.HypothesisNetwork?.saveFailed();
   } finally {
     hypothesisSaveInFlight = false;
     if (hypothesisSaveQueued) {
@@ -550,16 +538,20 @@ async function restoreHypothesisState() {
         if (dbHtml) {
           wrapper.innerHTML = dbHtml;
           rebindRestoredHypothesis(wrapper);
+          window.HypothesisNetwork?.restore(dbHypothesis?.network);
           resetHypothesisSaveFingerprintFromCurrent();
           return;
         }
+        window.HypothesisNetwork?.restore(dbHypothesis?.network);
       } else if (dbRes.status !== 404) {
         throw new Error(`HTTP ${dbRes.status}`);
       }
     }
 
+    window.HypothesisNetwork?.restore();
     return;
   } catch (error) {
+    window.HypothesisNetwork?.restoreFailed();
     console.error("仮説発散エリアの復元に失敗しました:", error);
   }
 }
@@ -2187,6 +2179,7 @@ function triggerScamperQuestion(targetTag, scamperLabel) {
       }
       console.log(data.result);
       const questionTexts = items.map((li) => li.textContent).filter(Boolean);
+      window.HypothesisNetwork?.recordConversation(questionTexts.join("\n"), "assistant");
       if (questionTexts.length > 0) {
         logHypothesisAction(`仮説: 生成質問一覧 [${questionTexts.join(" / ")}]`);
       }
