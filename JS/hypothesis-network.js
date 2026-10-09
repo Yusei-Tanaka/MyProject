@@ -16,6 +16,16 @@
     parent.append(b); return b;
   }
   function message(text) { if (status) status.textContent = text; }
+  function openStructuring() {
+    const drawer = document.getElementById('hypothesisWorkspaceDrawer');
+    if (drawer) drawer.open = true;
+  }
+  function openProcessSupport(id) {
+    const drawer = document.getElementById('hypothesisWorkspaceDrawer');
+    if (drawer) drawer.open = false;
+    const support = document.getElementById(id);
+    if (support) { support.open = true; support.scrollIntoView({block:'nearest'}); }
+  }
   function persist() {
     state.updatedAt = new Date().toISOString(); dirty = true;
     try { localStorage.setItem(activeKey || key(), JSON.stringify(state)); } catch (_) { message('下書き保存に失敗しました。DB保存を確認してください。'); }
@@ -111,6 +121,7 @@
     candidate.aiGenerated = false; state.candidates.push(candidate); changed(); candidateEditor(candidate);
   }
   function form(title, fields, onSave, extra) {
+    openStructuring();
     const dialog = el('section', null, 'hn-dialog'), body = el('form');
     editorHost.replaceChildren(dialog); details.hidden = true; refinement.hidden = true; review.hidden = true;
     dialog.close = () => { dialog.remove(); details.hidden = false; review.hidden = false; if (sideMode === 'refine') showRefinement(); else if (selectedId) {const n=state.nodes.find(n=>n.id===selectedId);if(n) showNode(n);} };
@@ -326,8 +337,8 @@
       const other = state.nodes.find(v => v.id === (e.sourceNodeId === n.id ? e.targetNodeId : e.sourceNodeId));
       button(`${e.sourceNodeId === n.id ? '→' : '←'} ${e.label}: ${other?.text || ''}`,() => showEdge(e),details);
     });
-    button('仮説を深める',() => beginRefinement(n),details);
-    state.sessions.filter(v => v.nodeId === n.id).forEach((v,i) => button(`精緻化 ${i+1} を再開`,() => {activeSessionId=v.id;sideMode='refine';showRefinement();renderReview();},details));
+    button('プロセスマップで検討',() => beginRefinement(n),details);
+    state.sessions.filter(v => v.nodeId === n.id).forEach((v,i) => button(`検討 ${i+1} をプロセスマップで再開`,() => {activeSessionId=v.id;sideMode='refine';showRefinement();renderReview();openProcessSupport('processThinkingSupport');},details));
     button('編集',() => nodeEditor(n),details); button('削除',() => removeNode(n),details); button('AIリンク候補を再取得',() => inferLinks(n.id),details);
   }
   function showEdge(e) {
@@ -344,7 +355,7 @@
     if (!network) {
       graphNodes = new vis.DataSet(nodes); graphEdges = new vis.DataSet(edges);
       network = new vis.Network(canvas,{ nodes:graphNodes, edges:graphEdges }, { physics: false, interaction: { hover: true }, nodes: { font:{ size:15 } } });
-      network.on('doubleClick',params => { const n = state.nodes.find(n => n.id === params.nodes[0]); if(n) beginRefinement(n); });
+      network.on('doubleClick',params => { const n = state.nodes.find(n => n.id === params.nodes[0]); if(n) nodeEditor(n); });
       network.on('dragEnd', params => { if (!params.nodes.length) return; savePositions(); persist(); });
       network.on('click',params => {
         if (params.nodes.length) { const n = state.nodes.find(n => n.id === params.nodes[0]); if (n) showNode(n); }
@@ -365,13 +376,12 @@
       state.edges.forEach(e => button(`リンク: ${e.label}`,() => showEdge(e),itemList));
     }
     if (!analysis) return;
-    const a = M.analyze(state); analysis.replaceChildren(el('summary','現在の仮説形成状態'));
+    const a = M.analyze(state); analysis.replaceChildren(el('summary','仮説・関係の概要'));
     analysis.append(el('p',`仮説 ${state.nodes.length} / リンク ${state.edges.length} / 分岐 ${a.branches.length} / 統合 ${a.integrations.length} / 未接続 ${a.isolated.length}`));
     analysis.append(el('p',Object.entries(M.relations).map(([k,v]) => `${v}: ${a.relationTypes[k] || 0}`).join(' / ')));
-    a.guidance.forEach(g => analysis.append(el('p',`${g.observation} ${g.question}`)));
-    analysis.append(el('small','リンク数から見た検討の手がかりです。思考の不足を断定したり、仮説タイプの順序を指定したりするものではありません。'));
+    analysis.append(el('small','役割や関係を自由に整理できます。仮説タイプに順序はありません。'));
     if (sideMode === 'idle' && details) { details.hidden = false; refinement.hidden = true; }
-    if (details && sideMode === 'idle') details.replaceChildren(el('p','ノードを選択して内容を確認し、「仮説を深める」で思考を進めます。ダブルクリックでも開始できます。'));
+    if (details && sideMode === 'idle') details.replaceChildren(el('p','仮説を選択して本文・役割・関係を整理します。ダブルクリックで編集できます。発散や検討はプロセスマップで行います。'));
     if (sideMode === 'selected' && !editorHost.children.length) { const n = state.nodes.find(n => n.id === selectedId); if(n) showNode(n); }
     if (sideMode === 'refine' && !editorHost.children.length) showRefinement();
   }
@@ -383,7 +393,7 @@
       const n = existing || M.node({ text: v.text, sourceText: v.text, legacyKey: String(v.key), sourceConversationId:String(v.hypothesisEntryId || '') });
       if (!existing) state.nodes.push(n); else n.legacyKey = String(v.key); map.set(String(v.key),n.id);
     });
-    document.querySelectorAll('#hypothesisWrapper textarea.hypothesis-text').forEach(ta => { const entryId = ta.closest('.hypothesis-box')?.dataset.hypothesisEntryId; if(ta.value.trim() && !state.nodes.some(n => n.sourceConversationId === entryId)) state.nodes.push(M.node({text:ta.value,sourceConversationId:entryId,sourceText:ta.value})); });
+    document.querySelectorAll('#hypothesisWrapper textarea.hypothesis-text').forEach(ta => { const entry = ta.closest('.hypothesis-box'), entryId = entry?.dataset.hypothesisEntryId; if(!entry?.dataset.processNodeId && ta.value.trim() && !state.nodes.some(n => n.sourceConversationId === entryId)) state.nodes.push(M.node({text:ta.value,sourceConversationId:entryId,sourceText:ta.value})); });
     // Legacy parenthood is imported for review, never asserted as a semantic relation.
     raw.forEach(v => {
       const from = map.get(String(v.parent)), to = map.get(String(v.key));
@@ -413,14 +423,14 @@
     selectedId = n.id; sideMode = 'refine';
     const session = {id:M.id(),nodeId:n.id,text:'',questions:[],history:[],createdAt:new Date().toISOString(),hypothesisSnapshot:n.text};
     state.sessions.push(session); activeSessionId = session.id; n.reviewStatus = 'in_progress';
-    editorHost.replaceChildren(); details.hidden = true; changed();
+    editorHost.replaceChildren(); details.hidden = true; changed(); openProcessSupport('processThinkingSupport');
   }
   function showRefinement() {
     const session = state.sessions.find(v => v.id === activeSessionId), n = state.nodes.find(v => v.id === selectedId);
     if(!session || !n) return;
     details.hidden = true; refinement.hidden = false; refinement.replaceChildren(el('h3','仮説を深める'),el('p',n.text));
     emphasize(n.id);
-    button('仮説の詳細に戻る',() => showNode(n),refinement);
+    button('構造化で仮説を整理',() => { showNode(n); openStructuring(); },refinement);
     const history = el('select'); history.setAttribute('aria-label','精緻化セッション');
     state.sessions.filter(v => v.nodeId === n.id).forEach((v,i) => {const o = el('option',`精緻化 ${i+1}`);o.value=v.id;history.append(o);}); history.value=session.id;
     history.onchange = () => {activeSessionId=history.value;showRefinement();renderReview();}; refinement.append(history);
@@ -440,7 +450,7 @@
     const updatePreview = () => highlight({id:session.id,text:session.text},preview); updatePreview();
     memo.oninput = () => {session.text=memo.value;session.updatedAt=new Date().toISOString();sourceSelection=null;persist();updatePreview();};
     memo.onselect = () => sourceSelection={id:session.id,start:memo.selectionStart,end:memo.selectionEnd};
-    button('この記述からAIで候補を抽出',() => extract(session.id),refinement);
+    button('この記述からAIで候補を抽出',async () => { await extract(session.id); openStructuring(); },refinement);
     button('選択した文章を候補に追加',manualCandidate,refinement);
     refinement.append(el('small','方向性は思考の手がかりです。分類・接続は採用時に自由に設定できます。'));
   }
@@ -464,10 +474,11 @@
     analysis = el('details',null,'hn-analysis'); sidebar.append(analysis);
     details = el('div',null,'hn-details'); sidebar.append(details);
     editorHost = el('div'); sidebar.append(editorHost);
-    refinement = el('section',null,'hn-support'); refinement.hidden = true; sidebar.append(refinement);
+    refinement = el('section',null,'hn-support'); refinement.hidden = true;
+    document.getElementById('processRefinementHost').append(refinement);
     const support = el('section',null,'hn-support'); sidebar.append(support);
-    legacySupport = el('details'); legacySupport.append(el('summary','キーワードからの仮説形成・既存SCAMPER支援'));
-    const container = document.querySelector('.hypothesis-area'); legacySupport.append(container); sidebar.append(legacySupport,legacyDrawer);
+    legacySupport = document.getElementById('processScamperSupport');
+    const container = document.querySelector('.hypothesis-area'); document.getElementById('processScamperHost').append(container); sidebar.append(legacyDrawer);
     legacySupport.addEventListener('toggle',() => { if(legacySupport.open) bindSources(); });
     const actions = el('div',null,'hn-actions'); support.append(actions);
     button('AIで仮説候補を抽出',extract,actions); button('選択した文章を候補に追加',guard(manualCandidate),actions);
@@ -487,7 +498,7 @@
     const conversation = el('details'); conversation.append(el('summary','対話内容・追加の思考メモ'));
     const memo = el('textarea'); memo.placeholder = '対話内容や思考メモを追加'; memo.setAttribute('aria-label','対話内容や思考メモ'); conversation.append(memo);
     button('記録に追加',guard(() => { if (memo.value.trim()) { recordConversation(memo.value,'learner'); memo.value = ''; } }),conversation);
-    const history = el('div',null,'hn-conversations'); conversation.append(history); support.append(conversation);
+    const history = el('div',null,'hn-conversations'); conversation.append(history); document.getElementById('processConversationHost').append(conversation);
     function renderHistory() {
       history.replaceChildren(); state.conversations.forEach(c => { const row = el('div',null,'hn-review-row'); row.append(el('small',c.role === 'assistant' ? 'AI対話' : '学習者の記録')); const preview = el('div',null,'hn-source-preview'); preview.dataset.sourceId = c.id; highlight({id:c.id,text:c.text},preview); row.append(preview); history.append(row); });
     }
@@ -508,9 +519,10 @@
     if(!ready || !textarea?.value.trim()) return;
     const sourceId = textarea === entry.querySelector('textarea.hypothesis-text') ? entry.dataset.hypothesisEntryId : (textarea.dataset.hnSourceId ||= M.id());
     let n = state.nodes.find(v => v.sourceConversationId === sourceId);
+    if (!select && entry.dataset.processNodeId && !n) return;
     if(n) {n.text=textarea.value.trim();n.updatedAt=new Date().toISOString();}
     else {n=M.node({text:textarea.value,sourceText:textarea.value,sourceConversationId:sourceId,context:entry.dataset.basedKeywordLabels || ''});state.nodes.push(n);}
-    changed();if(select) showNode(n);
+    changed();if(select) { showNode(n); openStructuring(); } return n;
   }
   function recordConversation(text,role) {
     if (!text?.trim()) return;

@@ -87,7 +87,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:hypothesis-network": "node scripts/verify-hypothesis-network.js",
     "test:hypothesis-workspace": "node scripts/verify-hypothesis-workspace.js",
-    "test:map-display": "node scripts/verify-map-display.js"
+    "test:map-display": "node scripts/verify-map-display.js",
+    "test:process-scamper": "node scripts/verify-process-scamper.js"
   },
   "keywords": [],
   "author": "",

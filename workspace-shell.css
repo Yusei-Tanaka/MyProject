@@ -83,6 +83,18 @@ body.main-page { height: 100dvh; overflow: hidden; font-family: -apple-system, B
 .main-page .process-map-toolbar button { font-size: 12px; padding: 5px 10px; min-height: 30px; }
 .main-page .hn-sidebar .hn-item-list, .main-page .hn-sidebar .hn-analysis { max-height: none; }
 .main-page .hn-item-list button { display: block; width: 100%; border: 1px solid #d3dee9; background: #f8fafc; color: #34495e; text-align: left; margin: 6px 0; }
+.main-page .process-thinking-support { margin: 0 0 12px; padding: 10px; border: 1px solid #dce5ef; border-radius: 6px; background: #fff; }
+.main-page .process-thinking-support > summary { font-weight: 600; font-size: 13px; }
+.main-page .process-thinking-support p { overflow-wrap: anywhere; }
+.main-page .process-thinking-support .hypothesis-area { height: auto; overflow: visible; padding: 0; margin: 10px 0 0; border: 0; }
+.main-page .process-thinking-support .hypothesis-box { min-height: 0; max-height: none; overflow: visible; }
+.main-page .process-thinking-support .hn-support { padding: 10px 0; }
+.main-page .process-thinking-support .hn-support[hidden] { display: none; }
+.main-page .process-thinking-support textarea { width: 100%; max-width: 100%; font-family: inherit; font-size: 13px; }
+.main-page .process-thinking-support .hypothesis-action-bar { flex-wrap: wrap; justify-content: flex-start; }
+.main-page .process-thinking-support .hypothesis-action-bar button { flex: 0 1 auto; }
+.main-page .process-thinking-support button { font-size: 12px; padding: 5px 8px; min-height: 30px; margin: 3px 0; max-width: 100%; }
+.main-page .process-thinking-support .scamper-tag { width: auto; max-width: 100%; white-space: normal; }
 .main-page .hn-map-main > .hn-actions { gap: 5px; }
 @media (max-width: 760px) {
   .main-page .workspace-map-drawer[open] { top: 96px; left: 8px; right: 8px; bottom: 8px; }

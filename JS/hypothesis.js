@@ -1,6 +1,6 @@
-// 仮説コンテナを初期化して取得（右ナビ内）
+// 保存済みの発散記述を、探究プロセスマップの支援欄で継続利用する。
 function ensureHypothesisContainer() {
-  var container = document.querySelector(".hn-sidebar .hypothesis-area") || document.querySelector(".right-navi .hypothesis-area");
+  var container = document.querySelector(".process-map-inspector .hypothesis-area") || document.querySelector(".hn-sidebar .hypothesis-area") || document.querySelector(".right-navi .hypothesis-area");
   if (!container) {
     var right = document.querySelector(".right-navi") || document.body;
     container = document.createElement("div");
@@ -1044,6 +1044,10 @@ function addHypothesisEntry(nodeIds, options) {
   entry.className = "hypothesis-box";
   entry.dataset.basedNodeIds = JSON.stringify(nodeIds);
   entry.dataset.basedKeywordLabels = JSON.stringify(keywordLabels);
+  if (options.processContext) {
+    entry.dataset.processMapId = String(options.processContext.mapId);
+    entry.dataset.processNodeId = String(options.processContext.nodeId);
+  }
   ensureHypothesisEntryId(entry, options.entryId);
 
   var hdr = document.createElement("div");
@@ -1087,12 +1091,31 @@ function addHypothesisEntry(nodeIds, options) {
   wrapper.appendChild(entry);
   bindHypothesisEntrySelection(entry);
   enableScamperOnEntry(entry);
-  entry.scrollIntoView({ behavior: "smooth" });
+  const support = document.getElementById("processScamperSupport");
+  if (support) support.open = true;
+  entry.scrollIntoView({block: "nearest"});
   logHypothesisAction(`仮説: 追加 (基づくキーワード: ${keywordLabels.join("、")})`);
-  window.HypothesisNetwork?.addFromEntry(entry, ta);
+  if (!options.processContext) window.HypothesisNetwork?.addFromEntry(entry, ta);
   scheduleHypothesisSave();
   return entry;
 }
+
+window.startProcessScamper = function ({mapId, node}) {
+  const wrapper = ensureHypothesisContainer().querySelector("#hypothesisWrapper");
+  let entry = Array.from(wrapper.querySelectorAll(".hypothesis-box")).find(box =>
+    box.dataset.processMapId === String(mapId) && box.dataset.processNodeId === String(node.id) &&
+    box.querySelector(".hypothesis-text")?.value === node.content);
+  if (!entry) entry = addHypothesisEntry([], {
+    hypothesisText: node.content, keywordLabels: node.relatedKeywords,
+    processContext: {mapId, nodeId: node.id}
+  });
+  document.getElementById("processScamperSupport").open = true;
+  entry.scrollIntoView({block: "nearest"});
+  const textarea = entry.querySelector(".hypothesis-text");
+  updateHypothesisContextFromEntry(entry, textarea.value);
+  createScamperMenu(0, 0, entry, textarea, null, entry.querySelector(".scamper-button"));
+  return entry;
+};
 
 // 表示されている仮説の番号を更新
 function updateHypothesisNumbers(wrapper) {
@@ -1635,7 +1658,10 @@ function addNodeToNetwork(entry, sourceTextarea) {
   }
 
   if (window.HypothesisNetwork?.canSave()) {
-    window.HypothesisNetwork.addFromEntry(entry, sourceTextarea || fallbackTextarea);
+    const textarea = sourceTextarea || fallbackTextarea;
+    const hypothesis = window.HypothesisNetwork.addFromEntry(entry, textarea);
+    const processNodeId = textarea?.dataset.processIdeaNodeId || (textarea === entry.querySelector('.hypothesis-text') ? entry.dataset.processNodeId : null);
+    if (hypothesis && processNodeId) window.ProcessMap?.linkHypothesis(processNodeId, entry.dataset.processMapId, hypothesis.id);
     return;
   }
 
@@ -1752,7 +1778,7 @@ function attachHypothesisActions(targetTextarea, entry, parentContainer = null, 
   const addNodeBtn = document.createElement("button");
   addNodeBtn.type = "button";
   addNodeBtn.className = "hypothesis-action-button add-node-button";
-  addNodeBtn.innerText = t("buttons.addNode", {}, "仮説を追加");
+  addNodeBtn.innerText = entry.dataset.processNodeId ? "仮説として整理" : t("buttons.addNode", {}, "仮説を追加");
   addNodeBtn.addEventListener("click", function () {
     if (!targetTextarea.value.trim()) {
       alert(t("alerts.enterHypothesis", {}, "仮説を入力してください。"));
@@ -1780,6 +1806,32 @@ function attachHypothesisActions(targetTextarea, entry, parentContainer = null, 
     createScamperMenu(e.clientX, e.clientY, entry, targetTextarea, parentContainer, e.currentTarget);
   });
 
+  if (parentContainer) {
+    const addProcessBtn = document.createElement("button");
+    addProcessBtn.type = "button";
+    addProcessBtn.className = "hypothesis-action-button";
+    addProcessBtn.textContent = "プロセスマップへ追加";
+    addProcessBtn.addEventListener("click", function () {
+      try {
+        if (!entry.dataset.processNodeId) {
+          const source = window.ProcessMap.getScamperSource();
+          entry.dataset.processMapId = source.mapId;
+          entry.dataset.processNodeId = source.nodeId;
+        }
+        const nodeId = window.ProcessMap.addScamperIdea({
+          text: targetTextarea.value,
+          sourceMapId: entry.dataset.processMapId,
+          sourceNodeId: entry.dataset.processNodeId,
+          ideaNodeId: targetTextarea.dataset.processIdeaNodeId,
+          perspective: optionLabel,
+          hypothesisId: window.HypothesisNetwork?.snapshot()?.nodes.find(node => node.sourceConversationId === targetTextarea.dataset.hnSourceId)?.id
+        });
+        targetTextarea.dataset.processIdeaNodeId = nodeId;
+        scheduleHypothesisSave();
+      } catch (error) { alert(error.message); }
+    });
+    actionBar.appendChild(addProcessBtn);
+  }
   actionBar.appendChild(addNodeBtn);
   actionBar.appendChild(scamperBtn);
 
@@ -1949,6 +2001,10 @@ function createScamperMenu(x, y, entry, targetBox, parentContainer = null, ancho
   });
 
   document.body.appendChild(menu);
+  menu.style.maxHeight = Math.max(100, window.innerHeight - 24) + "px";
+  menu.style.overflowY = "auto";
+  menu.style.left = Math.max(window.scrollX + 12, Math.min(left, window.scrollX + window.innerWidth - menu.offsetWidth - 12)) + "px";
+  menu.style.top = Math.max(window.scrollY + 12, Math.min(top, window.scrollY + window.innerHeight - menu.offsetHeight - 12)) + "px";
 
   // 外部クリックで閉じる（次回のみ）
   setTimeout(function () {

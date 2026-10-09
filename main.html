@@ -41,7 +41,7 @@
     <script src="JS/vendor/goldenlayout.min.js"></script>
     <link type="text/css" rel="stylesheet" href="JS/vendor/goldenlayout-base.css" />
       <link rel="stylesheet" href="hypothesis-network.css?v=20261009-swap1">
-    <link rel="stylesheet" href="workspace-shell.css?v=20261009-sidebar2">
+    <link rel="stylesheet" href="workspace-shell.css?v=20261009-scamper1">
 </head>
   <body class="main-page">
     <div class="header">
@@ -173,6 +173,7 @@
             <select id="processEdgeType"></select>
             <button id="processAddEdgeBtn" type="button">リンク作成</button>
             <button id="processDeleteSelectionBtn" class="process-map-danger-button" type="button">選択を削除</button>
+            <button id="processScamperBtn" type="button">SCAMPERで発散</button>
             <span class="process-map-toolbar__spacer" aria-hidden="true">&nbsp;</span>
             <button id="processFitBtn" class="process-map-secondary-button" type="button">全体表示</button>
             <button data-map-expand="extraContent" type="button" class="process-map-secondary-button" aria-pressed="false">拡大表示</button>
@@ -189,6 +190,18 @@
             <h2>詳細</h2>
             <span id="processSelectionKind" class="process-map-selection-kind">未選択</span>
           </div>
+
+          <details id="processScamperSupport" class="process-thinking-support">
+            <summary>SCAMPER・仮説の発散</summary>
+            <p>ノードを選び「SCAMPERで発散」から考えを広げます。記述した案はプロセスマップへ追加し、仮説として残すものを構造化で整理できます。</p>
+            <div id="processScamperHost"></div>
+          </details>
+
+          <details id="processThinkingSupport" class="process-thinking-support">
+            <summary>仮説の検討・思考メモ</summary>
+            <div id="processRefinementHost"></div>
+            <div id="processConversationHost"></div>
+          </details>
 
           <div id="processEmptyInspector" class="process-map-empty-state">
             ノードを選択すると、内容やメモを編集できます。
@@ -274,8 +287,8 @@
     <script src="JS/vendor/vis-network.min.js"></script>
     <script src="JS/network.js?v=20261009-swap1"></script>
     <script src="JS/hypothesis-network-model.js?v=20261009-swap1"></script>
-    <script src="JS/hypothesis-network.js?v=20261009-swap3"></script>
-    <script src="JS/hypothesis.js?v=20261009-1"></script>
+    <script src="JS/hypothesis-network.js?v=20261009-scamper1"></script>
+    <script src="JS/hypothesis.js?v=20261009-scamper1"></script>
     <script src="JS/log.js?v=20260417-1"></script>
     <script src="JS/setFontSize.js?v=20261009-swap1"></script>
     <script src="JS/kuromoji.js"></script>
@@ -291,6 +304,6 @@
     <script src="JS/keywords_O(1).js?v=20260622-1"></script>
     <script src="JS/admin-menu.js"></script>
     <script src="JS/process-map-support.js"></script>
-    <script src="JS/process-map.js?v=20261009-swap1"></script>
+    <script src="JS/process-map.js?v=20261009-scamper1"></script>
   </body>
 </html>

@@ -12,8 +12,10 @@ class Element {
   get selectedOptions() {return this.options.filter(o=>o.selected);}
 }
 const storage = new Map();
+const drawer = {open:false};
+const processSupport = {open:false,scrollIntoView(){}};
 const window = {HypothesisNetworkModel:M,APP_CONFIG:{},location:{hostname:'localhost'},dispatchEvent(){},addEventListener(){}};
-const sandbox = {window,document:{createElement:t=>new Element(t),querySelectorAll:()=>[],addEventListener(){}},
+const sandbox = {window,document:{createElement:t=>new Element(t),querySelectorAll:()=>[],getElementById:id=>id==='hypothesisWorkspaceDrawer' ? drawer : id==='processThinkingSupport' ? processSupport : null,addEventListener(){}},
   localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
   scheduleHypothesisSave(){},Event:class {},AbortController,setTimeout,clearTimeout,
   fetch:async()=>({ok:true,json:async()=>({result:JSON.stringify({edges:[],questions:['何が観察されますか？']})})})};
@@ -22,7 +24,7 @@ source=source.replace("  document.addEventListener('DOMContentLoaded'", `  windo
     setup() { ready=true; activeKey=key(); details=el('div'); refinement=el('div'); editorHost=el('div'); review=el('div'); analysis=el('div'); },
     get state(){return state;}, get review(){return review;}, get editor(){return editorHost;}, get refinement(){return refinement;},
     get selected(){return selectedId;}, get activeSession(){return activeSessionId;},
-    nodeEditor,beginRefinement,showNode,showRefinement,accept,extract,
+    nodeEditor,beginRefinement,showNode,showRefinement,accept,extract,addFromEntry,
     manual(start,end){sourceSelection={id:activeSessionId,start,end};manualCandidate();},
   };
   document.addEventListener('DOMContentLoaded'`);
@@ -32,8 +34,10 @@ function controls() {return T.editor.children[0].children[0].children.filter(v=>
 async function submit() {await T.editor.children[0].children[0].onsubmit({preventDefault(){}});}
 (async()=>{
   T.nodeEditor();controls()[0].value='元の仮説';await submit();
+  assert.equal(drawer.open,true);
   const original=T.state.nodes[0];assert.equal(original.text,'元の仮説');
   T.beginRefinement(original);const session=T.state.sessions[0];
+  assert.equal(drawer.open,false);assert.equal(processSupport.open,true);
   const memo=T.refinement.children.find(v=>v.tagName==='textarea');memo.value='条件Aなら結果Bになる。';memo.oninput();
   assert.equal(session.text,memo.value);assert(storage.size);
   T.manual(0,memo.value.length);controls()[0].value='条件Aで結果Bを予測する';await submit();
@@ -63,5 +67,14 @@ async function submit() {await T.editor.children[0].children[0].onsubmit({preven
   assert.equal(restored.sessions.length,3);assert.equal(restored.candidates[0].nodeId,candidate.nodeId);
   assert.equal(restored.sessions[0].history.find(h=>h.action==='accepted').action,'accepted');assert.equal(restored.edges[0].label,'補足する関係');
   assert.deepEqual(restored.nodes[0].position,{x:125,y:-42});assert.equal(restored.nodes[0].reviewStatus,'in_progress');
+  // A process question is a source for divergence until the learner registers it as a hypothesis.
+  const processTextarea={value:'発散元の疑問',dataset:{}};
+  const processEntry={dataset:{processNodeId:'process-source',hypothesisEntryId:'process-entry'},querySelector:()=>processTextarea};
+  const before=T.state.nodes.length;
+  T.addFromEntry(processEntry,processTextarea,false);assert.equal(T.state.nodes.length,before);
+  T.addFromEntry(processEntry,processTextarea,true);assert.equal(T.state.nodes.length,before+1);assert.equal(drawer.open,true);
+  processTextarea.value='明示的に整理した仮説を修正';
+  T.addFromEntry(processEntry,processTextarea,false);assert.equal(T.state.nodes.length,before+1);
+  assert.equal(T.state.nodes.at(-1).text,processTextarea.value);
   console.log('hypothesis-workspace: refinement, manual highlight, edit, adoption, multiple links, switching, repeated refinement and JSON restore passed');
 })().catch(e=>{console.error(e);process.exitCode=1;});

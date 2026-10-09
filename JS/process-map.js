@@ -501,6 +501,7 @@
     elements.nodeForm.hidden = true;
     elements.edgeForm.hidden = true;
     elements.selectionKind.textContent = "未選択";
+    elements.scamperBtn.disabled = true;
     updateGuidance();
   }
 
@@ -508,6 +509,7 @@
     const node = state.nodes.get(nodeId);
     if (!node) return;
     state.selection = { kind: "node", id: nodeId };
+    elements.scamperBtn.disabled = false;
     elements.emptyInspector.hidden = true;
     elements.nodeForm.hidden = false;
     elements.edgeForm.hidden = true;
@@ -530,6 +532,7 @@
     const edge = state.edges.get(edgeId);
     if (!edge) return;
     state.selection = { kind: "edge", id: edgeId };
+    elements.scamperBtn.disabled = true;
     elements.emptyInspector.hidden = true;
     elements.nodeForm.hidden = true;
     elements.edgeForm.hidden = false;
@@ -567,6 +570,7 @@
   function updateGuidance(selectedNodeId = null) {
     if (!state.nodes || !window.ProcessMapSupport) return;
     const messages = window.ProcessMapSupport.generateGuidance(state.nodes.get(), state.edges.get());
+    (window.HypothesisNetwork?.analyze().guidance || []).forEach(item => messages.push({nodeIds:[], message:`${item.observation} ${item.question}`}));
     const ordered = selectedNodeId
       ? [...messages.filter((message) => message.nodeIds.includes(selectedNodeId)), ...messages.filter((message) => !message.nodeIds.includes(selectedNodeId))]
       : messages;
@@ -611,6 +615,65 @@
       nodeType,
     });
     setStatus("ノードを追加しました。右側で内容を編集してください。", "success");
+  }
+
+  function startScamper() {
+    if (state.loading || state.selection?.kind !== "node") return;
+    const node = state.nodes.get(state.selection.id);
+    if (!node) return;
+    if (!window.HypothesisNetwork?.canSave()) {
+      setStatus("仮説データの読み込みが完了してから発散を開始してください。", "error");
+      return;
+    }
+    window.startProcessScamper({mapId:state.currentMapId, node:{...node,
+      content:elements.nodeContent.value.trim() || node.content,
+      relatedKeywords:elements.relatedKeywords.value.split(/[,、]/).map(value => value.trim()).filter(Boolean)
+    }});
+    logProcessAction("process_scamper_start", "探究プロセスマップ: SCAMPERで発散開始", {nodeId:node.id});
+  }
+
+  function addScamperIdea({text, sourceMapId, sourceNodeId, ideaNodeId, perspective, hypothesisId}) {
+    if (state.loading || !state.currentMapId || String(state.currentMapId) !== String(sourceMapId)) {
+      throw new Error("発散を開始したプロセスマップに戻ってから追加してください。");
+    }
+    const source = state.nodes.get(String(sourceNodeId));
+    if (!source) throw new Error("発散元のノードが見つかりません。新しいノードから発散を開始してください。");
+    const content = String(text || "").trim();
+    if (!content) throw new Error("発散した案を入力してください。");
+    const existing = ideaNodeId && state.nodes.get(String(ideaNodeId));
+    let node;
+    if (existing) {
+      state.nodes.update({id:existing.id,content,label:content,updatedAt:new Date().toISOString()});
+      node = state.nodes.get(existing.id);
+    } else {
+      const position = state.network.getPositions([source.id])[source.id] || state.network.getViewPosition();
+      const branches = state.edges.get().filter(edge => edge.from === source.id).length;
+      node = toVisNode({nodeId:createId(),nodeType:"suggestion",content,
+        memo:`SCAMPER: ${perspective || ""}`,relatedKeywords:source.relatedKeywords,
+        x:position.x+280,y:position.y+branches*130});
+      state.nodes.add(node);
+      state.edges.add(toVisEdge({edgeId:createId(),sourceNodeId:source.id,targetNodeId:node.id,edgeType:"suggestion_generation"}));
+    }
+    state.network.selectNodes([node.id]);
+    if (hypothesisId) linkHypothesis(node.id, sourceMapId, hypothesisId);
+    showNodeInspector(node.id);
+    markDirty();
+    logProcessAction("process_scamper_idea", "探究プロセスマップ: 発散した案を反映", {nodeId:node.id,sourceNodeId:source.id,perspective});
+    setStatus(existing ? "発散した案を更新しました。" : "発散した案と元ノードからのリンクを追加しました。", "success");
+    return node.id;
+  }
+
+  function linkHypothesis(nodeId, mapId, hypothesisId) {
+    if (String(state.currentMapId) !== String(mapId) || !state.nodes?.get(String(nodeId))) return;
+    state.nodes.update({id:String(nodeId),existingReferenceType:"hypothesis",existingReferenceId:hypothesisId});
+    markDirty();
+  }
+
+  function getScamperSource() {
+    if (state.loading || !state.currentMapId || state.selection?.kind !== "node") {
+      throw new Error("発散元にするプロセスマップのノードを選択してください。");
+    }
+    return {mapId:String(state.currentMapId),nodeId:state.selection.id};
   }
 
   function updateSelectedNode(event) {
@@ -776,6 +839,7 @@
       addNodeBtn: document.getElementById("processAddNodeBtn"),
       addEdgeBtn: document.getElementById("processAddEdgeBtn"),
       deleteSelectionBtn: document.getElementById("processDeleteSelectionBtn"),
+      scamperBtn: document.getElementById("processScamperBtn"),
       fitBtn: document.getElementById("processFitBtn"),
       readableBtn: document.getElementById("processReadableBtn"),
       reloadBtn: document.getElementById("processReloadBtn"),
@@ -818,6 +882,9 @@
       else beginLinkMode();
     });
     elements.deleteSelectionBtn.addEventListener("click", deleteSelection);
+    elements.scamperBtn.disabled = true;
+    elements.scamperBtn.addEventListener("click", startScamper);
+    window.addEventListener('hn-render', () => updateGuidance(state.selection?.kind === 'node' ? state.selection.id : null));
     elements.readableBtn?.addEventListener('click', readableProcessMap);
     window.addEventListener('resize', () => state.network?.redraw());
     window.addEventListener('app-layout-resized', () => state.network?.redraw());
@@ -844,6 +911,8 @@
     state.initialized = true;
     loadInitialMap();
   }
+
+  window.ProcessMap = {addScamperIdea, linkHypothesis, getScamperSource};
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initialize);
