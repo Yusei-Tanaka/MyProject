@@ -11,7 +11,7 @@ function setup(restore = async () => true) {
         restoreUserConceptMap:restore,normalizeKeywordSurface:label=>label.toLowerCase(),
         getCurrentThemeName:()=> 'theme',findExistingNodeByLabel:async label=>items.find(n=>n.label.toLowerCase()===label.toLowerCase()),
         getNonOverlappingNodePosition:()=>({x:items.length*150,y:0}),getNextNumericNodeId:()=>items.length+1,
-        requestAnimationFrame:fn=>fn(),setReadableKeywordView:()=>fits++,logAction(){},console};
+        requestAnimationFrame:fn=>fn(),redistributeKeywordMap:()=>fits++,logAction(){},console};
     vm.createContext(context);vm.runInContext(block,context);ready();
     return {items,add:context.window.addAnalyzedKeywordsToMap,get fits(){return fits;}};
 }

@@ -28,7 +28,7 @@ const context = {
     restoreUserConceptMap:async()=>true,normalizeKeywordSurface:label=>label.toLowerCase(),
     getCurrentThemeName:()=>text,findExistingNodeByLabel:async label=>items.find(n=>n.label===label),
     getNonOverlappingNodePosition:()=>({x:items.length*150,y:0}),getNextNumericNodeId:()=>items.length+1,
-    requestAnimationFrame:fn=>fn(),setReadableKeywordView(){},logAction(){}
+    requestAnimationFrame:fn=>fn(),redistributeKeywordMap(){},logAction(){}
 };
 vm.createContext(context);
 vm.runInContext(fs.readFileSync(require.resolve('../JS/word-analyze.js'),'utf8'),context);

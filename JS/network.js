@@ -527,6 +527,58 @@ function setRecenterMapButtonPressed(isPressed) {
   recenterMapBtn.setAttribute("aria-pressed", isPressed ? "true" : "false");
 }
 
+// Distribute node centres across the current viewport, keeping labels apart.
+function buildBalancedKeywordPositions(items, width, height, sizes) {
+  if (!items.length || width <= 0 || height <= 0) return [];
+  const maxWidth = Math.max(60, ...sizes.map(size => size.width));
+  const maxHeight = Math.max(30, ...sizes.map(size => size.height));
+  let columns = 1;
+  let bestScore = Infinity;
+  for (let candidate = 1; candidate <= items.length; candidate++) {
+    const rows = Math.ceil(items.length / candidate);
+    const cellAspect = (width / candidate) / (height / rows);
+    const score = Math.abs(Math.log(cellAspect / 2.8)) + (candidate * rows - items.length) / items.length;
+    if (score < bestScore) { bestScore = score; columns = candidate; }
+  }
+  const rows = Math.ceil(items.length / columns);
+  const stepX = Math.max(maxWidth + 48, width * 0.84 / columns);
+  const stepY = Math.max(maxHeight + 48, height * 0.76 / rows);
+  // Spread spare cells across rows instead of leaving an almost empty final row.
+  const baseCount = Math.floor(items.length / rows);
+  const extra = items.length % rows;
+  const positions = [];
+  let index = 0;
+  for (let row = 0; row < rows; row++) {
+    const count = baseCount + (row < extra ? 1 : 0);
+    for (let column = 0; column < count; column++) {
+      positions.push({ id: items[index++].id,
+        x: (column - (count - 1) / 2) * stepX,
+        y: (row - (rows - 1) / 2) * stepY });
+    }
+  }
+  return positions;
+}
+
+function redistributeKeywordMap() {
+  const items = nodes.get();
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+  if (items.length && width > 0 && height > 0) {
+    network.redraw(); // Measure labels after newly added nodes have been drawn.
+    const sizes = items.map(node => {
+      const box = network.getBoundingBox(node.id);
+      const width = box.right - box.left;
+      const height = box.bottom - box.top;
+      return { width: Number.isFinite(width) ? Math.max(60, width) : 160,
+        height: Number.isFinite(height) ? Math.max(30, height) : 40 };
+    });
+    nodes.update(buildBalancedKeywordPositions(items, width, height, sizes));
+    network.redraw(); // Fit must use the new bounds, not the previous drawing.
+    // Position updates use the existing auto-save path; links and labels stay intact.
+  }
+  recenterMap();
+}
+
 function recenterMap() {
   const allNodes = nodes.get();
   if (!allNodes || allNodes.length === 0) {
@@ -549,13 +601,17 @@ function recenterMap() {
 if (recenterMapBtn) {
   recenterMapBtn.addEventListener("click", function () {
     setRecenterMapButtonPressed(true);
-    recenterMap();
+    if (document.getElementById("rearrangeKeywordToggle")?.checked) {
+      redistributeKeywordMap();
+    } else {
+      recenterMap();
+    }
   });
 
   // main.html を開いた直後に中央表示を実行し、ボタンを押下状態にする
   window.addEventListener("load", function () {
-    recenterMapBtn.click();
-    setTimeout(setReadableKeywordView,450);
+    setRecenterMapButtonPressed(true);
+    recenterMap();
   });
 }
 
@@ -1063,7 +1119,7 @@ window.addAnalyzedKeywordsToMap = function (keywords, isCurrent = () => true) {
       added++;
     }
     if (added) {
-      if (wasEmpty) requestAnimationFrame(setReadableKeywordView);
+      if (wasEmpty) requestAnimationFrame(redistributeKeywordMap);
       logAction(`キーワードマップ: 解析キーワードを初期追加 count=${added}`);
     }
   };
