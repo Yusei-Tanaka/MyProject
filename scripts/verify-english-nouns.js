@@ -5,7 +5,7 @@ const nlp = require('../JS/vendor/compromise.js');
 const text = 'How do street trees affect thermal comfort and quality of sleep?';
 const expected = ['street trees', 'thermal comfort', 'quality of sleep'];
 const output = {textContent:'',dataset:{},removeAttribute(name){delete this[name];}};
-const button = {};
+const button = {clicks:0,click(){this.clicks++;}};
 let calls=0, payload, fail=false;
 const items=[];
 const context = {
@@ -39,8 +39,8 @@ vm.runInContext(network.slice(network.indexOf('let conceptMapRestorePromise'),ne
     assert.equal(output.dataset.analysisMode,'api');
     assert.equal(output.textContent,expected.join(', '));
     assert.deepEqual(items.map(n=>n.label),expected);
-    assert.equal(button.disabled,false);
-    await context.analyzeText(text);assert.equal(calls,1);assert.equal(items.length,3);
+    assert.equal(button.disabled,false);assert.equal(button.clicks,1);
+    await context.analyzeText(text);assert.equal(calls,1);assert.equal(items.length,3);assert.equal(button.clicks,1);
     fail=true;vm.runInContext('nounPostprocessCache.clear()',context);
     await context.analyzeText(text);assert.equal(output.dataset.analysisMode,'local');assert(output.textContent.includes('trees'));
     const punctuation='How does CO2 affect students’ sleep-quality in New York?';

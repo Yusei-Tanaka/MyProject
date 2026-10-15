@@ -654,13 +654,11 @@ document.addEventListener("DOMContentLoaded", function () {
         let outputElement = document.getElementById("output");
         let text = outputElement.innerText.trim();
 
-        //【修正】全角→半角変換 & 句読点・スペースを削除
-        text = text.replace(/[、，\s]+/g, " ");  // 句読点・スペースを統一
-        text = text.replace(/[Ａ-Ｚａ-ｚ０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0)); // 全角→半角
-
-        let keywords = text.split(" ")
-            .map(k => k.replace(/^[,、\s]+|[,、\s]+$/g, "")) // 先頭・末尾のカンマやスペースを削除
-            .filter(k => k.length > 0); // 空のキーワードを除外
+        // Preserve multiword noun phrases such as "sleep quality".
+        text = text.replace(/[Ａ-Ｚａ-ｚ０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+        let keywords = text.split(/[,、，\n]+/)
+            .map(keyword => keyword.trim())
+            .filter(Boolean);
 
         console.log("処理後のキーワード:", keywords);
 

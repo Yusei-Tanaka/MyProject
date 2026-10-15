@@ -14,6 +14,7 @@ const ENGLISH_NOUN_FALLBACK_STOPWORDS = new Set([
 ]);
 
 let analyzeDebounceTimer = null;
+let initialKeywordGenerationPending = true;
 let wordAnalysisRevision = 0;
 let nounPostprocessController = null;
 let wordTokenizerPromise = null;
@@ -173,6 +174,11 @@ window.onload = (event) => {
     const myTitleInput = document.getElementById("myTitle"); // テキスト入力欄
     const output = document.getElementById("output"); // 結果表示エリア
 
+    // A manual generation also consumes the initial automatic run.
+    document.getElementById('keywordCreationBtn')?.addEventListener('click', () => {
+        initialKeywordGenerationPending = false;
+    });
+
     // ページ読み込み時にローカルストレージからテーマを取得して処理
     const storedTitle = localStorage.getItem("searchTitle");
     if (storedTitle) {
@@ -297,6 +303,10 @@ async function analyzeText(text) {
             if (button) button.disabled = false;
             if (typeof window.addAnalyzedKeywordsToMap === 'function') {
                 await window.addAnalyzedKeywordsToMap(nouns, isCurrent);
+            }
+            if (isCurrent() && initialKeywordGenerationPending && button && !button.disabled) {
+                initialKeywordGenerationPending = false;
+                button.click();
             }
         }
     }

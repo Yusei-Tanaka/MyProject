@@ -13,7 +13,7 @@ except ImportError:
 # .envファイルの内容を読み込む
 load_dotenv()
 API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
-MODEL_NAME = "gpt-4o-mini"
+MODEL_NAME = os.getenv("OPENAI_MODEL", "").strip() or "gpt-4o-mini"
 MAX_OUTPUT_TOKENS = 4000
 
 # openai-python v1系とv0系の両方に対応
@@ -61,14 +61,16 @@ def extract_legacy_chat_text(response):
 def getgptdata(mess):
     try:
         print("送信するプロンプト:", mess)  # デバッグ用ログ
+        reasoning_model = MODEL_NAME.startswith(("gpt-5", "gpt-6", "o1", "o3", "o4"))
         if OPENAI_BACKEND == "responses_v1":
+            model_options = {"reasoning": {"effort": "low"}} if reasoning_model else {"temperature": 0.2}
             response = client.responses.create(
                 model=MODEL_NAME,
                 input=[
                     {"role": "system", "content": "You are a helpful assistant."},
                     {"role": "user", "content": mess}
                 ],
-                temperature=0.2,
+                **model_options,
                 max_output_tokens=MAX_OUTPUT_TOKENS
             )
             data = extract_response_text(response)
@@ -77,14 +79,17 @@ def getgptdata(mess):
             return data
 
         if OPENAI_BACKEND == "chat_legacy":
+            model_options = (
+                {"max_completion_tokens": MAX_OUTPUT_TOKENS, "reasoning_effort": "low"}
+                if reasoning_model else {"max_tokens": MAX_OUTPUT_TOKENS, "temperature": 0.2}
+            )
             response = openai.ChatCompletion.create(
                 model=MODEL_NAME,
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant."},
                     {"role": "user", "content": mess}
                 ],
-                temperature=0.2,
-                max_tokens=MAX_OUTPUT_TOKENS
+                **model_options
             )
             data = extract_legacy_chat_text(response)
             print("受信したデータ:", data)  # デバッグ用ログ

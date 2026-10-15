@@ -1,4 +1,7 @@
 import json
+import contextlib
+import io
+from types import SimpleNamespace
 import sys
 import unittest
 from pathlib import Path
@@ -68,6 +71,24 @@ class NounApiTest(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(model.call_count, 2)
         self.assertIn('validation_error', model.call_args.args[0])
+
+    def test_model_specific_sdk_parameters(self):
+        for model in ('gpt-6.1-sol', 'gpt-4o-mini'):
+            with self.subTest(model=model), patch.object(api, 'MODEL_NAME', model), contextlib.redirect_stdout(io.StringIO()):
+                with patch.object(api, 'OPENAI_BACKEND', 'chat_legacy'), patch.object(api.openai, 'ChatCompletion') as chat:
+                    chat.create.return_value = {'choices': [{'message': {'content': 'OK'}}]}
+                    self.assertEqual(api.getgptdata('test'), 'OK')
+                    params = chat.create.call_args.kwargs
+                    self.assertEqual(params['model'], model)
+                    self.assertEqual('max_completion_tokens' in params, model == 'gpt-6.1-sol')
+                    self.assertEqual('max_tokens' in params, model == 'gpt-4o-mini')
+                    self.assertEqual('temperature' in params, model == 'gpt-4o-mini')
+                with patch.object(api, 'OPENAI_BACKEND', 'responses_v1'), patch.object(api, 'client') as client:
+                    client.responses.create.return_value = SimpleNamespace(output_text='OK', usage=None)
+                    self.assertEqual(api.getgptdata('test'), 'OK')
+                    params = client.responses.create.call_args.kwargs
+                    self.assertIn('max_output_tokens', params)
+                    self.assertEqual('temperature' in params, model == 'gpt-4o-mini')
 
     def test_upstream_error_does_not_leak(self):
         with patch.object(api, 'API_KEY', 'test'), patch.object(api, 'getgptdata', side_effect=RuntimeError('secret')):

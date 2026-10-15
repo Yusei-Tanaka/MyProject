@@ -23,11 +23,15 @@ FLASK_API_PORT=8000
 APP_PROTOCOL=http
 APP_HOST=auto
 PHPMYADMIN_PATH=/phpmyadmin
+OPENAI_API_KEY=your-api-key
+OPENAI_MODEL=gpt-6.1-sol
 ```
 
 IPアドレスを固定で使いたい場合は `APP_HOST` に設定してください（例: `APP_HOST=10.158.102.176`）。
 PC変更などでIPが変わる場合は `.env` の `APP_HOST` だけを変更すれば、ログイン画面/管理画面/各API呼び出し先へ一括反映されます。
 `APP_HOST=auto` の場合はブラウザのアクセス先ホスト名を自動利用します。
+
+キーワード生成と形態素解析の後処理に使うモデルは `.env` の `OPENAI_MODEL` で指定します。未指定・空欄の場合は `gpt-6.1-sol` を使います。変更後は API サーバーを再起動してください。
 
 ## 3. MariaDB 初期準備
 MariaDB にログイン:
