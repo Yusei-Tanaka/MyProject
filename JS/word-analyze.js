@@ -38,14 +38,15 @@ function getWordTokenizer() {
     return wordTokenizerPromise;
 }
 
-async function postprocessJapaneseNouns(text, tokens, signal) {
-    if (nounPostprocessCache.has(text)) return nounPostprocessCache.get(text);
+async function postprocessNouns(text, tokens, signal, language) {
+    const cacheKey = `${language}:${text}`;
+    if (nounPostprocessCache.has(cacheKey)) return nounPostprocessCache.get(cacheKey);
     const config = window.APP_CONFIG || {};
     const base = config.flaskApiBaseUrl || `http://${window.location.hostname || '127.0.0.1'}:${Number(config.flaskApiPort || 8000)}`;
     const response = await fetch(`${base}/api/noun-phrases`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, tokens: tokens.map(token => ({
+        body: JSON.stringify({ text, language, tokens: tokens.map(token => ({
             surface_form: token.surface_form, pos: token.pos,
             pos_detail_1: token.pos_detail_1, pos_detail_2: token.pos_detail_2,
             pos_detail_3: token.pos_detail_3, basic_form: token.basic_form
@@ -55,6 +56,13 @@ async function postprocessJapaneseNouns(text, tokens, signal) {
     if (!response.ok) throw new Error(`Noun post-processing HTTP ${response.status}`);
     const data = await response.json();
     if (!Array.isArray(data.spans)) throw new Error('Invalid noun spans');
+    let cursor = 0;
+    const offsets = tokens.map(token => {
+        const start = text.indexOf(token.surface_form, cursor);
+        if (start < 0 || text.slice(cursor, start).trim()) throw new Error('Invalid source tokens');
+        cursor = start + token.surface_form.length;
+        return { start, end: cursor };
+    });
     let previousEnd = 0;
     const nouns = data.spans.map(span => {
         const { start, end } = span;
@@ -62,12 +70,12 @@ async function postprocessJapaneseNouns(text, tokens, signal) {
             throw new Error('Invalid noun span range');
         }
         previousEnd = end;
-        const noun = tokens.slice(start, end).map(token => token.surface_form).join('');
+        const noun = text.slice(offsets[start].start, offsets[end - 1].end);
         if (!text.includes(noun)) throw new Error('Noun is absent from source');
         return noun;
     });
     const unique = [...new Set(nouns)];
-    nounPostprocessCache.set(text, unique);
+    nounPostprocessCache.set(cacheKey, unique);
     if (nounPostprocessCache.size > 50) nounPostprocessCache.delete(nounPostprocessCache.keys().next().value);
     return unique;
 }
@@ -130,6 +138,37 @@ function extractEnglishNouns(text) {
     return collected;
 }
 
+// Keep all source words and punctuation so the API can select contiguous phrases.
+// POS tags are advisory; the full research theme supplies the context.
+function tokenizeEnglishTheme(text) {
+    const terms = [];
+    if (typeof window.nlp === 'function') {
+        let cursor = 0;
+        for (const sentence of window.nlp(text).json()) {
+            for (const term of sentence.terms || []) {
+                const start = text.indexOf(term.text, cursor);
+                if (start < 0) continue;
+                cursor = start + term.text.length;
+                terms.push({ start, end: cursor, tags: term.tags || [] });
+            }
+        }
+    }
+    return Array.from(text.matchAll(/[\p{L}\p{M}\p{N}]+(?:['’\-][\p{L}\p{M}\p{N}]+)*|[^\s]/gu), match => {
+        const term = terms.find(term => term.start <= match.index && term.end >= match.index + match[0].length);
+        const tags = term?.tags || [];
+        let pos = 'X';
+        if (!/[\p{L}\p{N}]/u.test(match[0])) pos = 'PUNCT';
+        else {
+            for (const [tag, value] of [['Pronoun','PRON'], ['QuestionWord','PRON'], ['Determiner','DET'],
+                ['Conjunction','CCONJ'], ['Preposition','ADP'], ['ProperNoun','PROPN'], ['Adjective','ADJ'],
+                ['Noun','NOUN'], ['Verb','VERB'], ['Adverb','ADV'], ['Value','NUM']]) {
+                if (tags.includes(tag)) { pos = value; break; }
+            }
+        }
+        return { surface_form: match[0], pos, pos_detail_1: tags.join('|'), basic_form: match[0] };
+    });
+}
+
 window.onload = (event) => {
     const myTitleInput = document.getElementById("myTitle"); // テキスト入力欄
     const output = document.getElementById("output"); // 結果表示エリア
@@ -165,6 +204,13 @@ window.onload = (event) => {
         }, ANALYZE_DEBOUNCE_MS);
     });
 };
+
+window.addEventListener?.('app-language-changed', () => {
+    if (analyzeDebounceTimer) clearTimeout(analyzeDebounceTimer);
+    const text = document.getElementById('myTitle')?.value || '';
+    if (text.trim()) analyzeText(text);
+    else cancelWordAnalysis();
+});
 
 // Preserve compound nouns and adjective nominalisations instead of exposing suffixes.
 function extractJapaneseNouns(tokens) {
@@ -212,36 +258,34 @@ async function analyzeText(text) {
     delete output.dataset.analysisMode;
     output.removeAttribute('title');
 
+    const english = isWordAnalyzeEnglish();
+    const language = english ? 'en' : 'ja';
+    let tokens;
+    try {
+        tokens = english ? tokenizeEnglishTheme(text) : (await getWordTokenizer()).tokenize(text);
+    } catch (error) {
+        if (isCurrent()) output.textContent = wordAnalyzeMessage("形態素解析エラー", "Morphological analysis error.");
+        console.error(error);
+        return;
+    }
+    if (!isCurrent()) return;
+    const controller = new AbortController();
+    nounPostprocessController = controller;
+    const timeout = setTimeout(() => controller.abort(), 20000);
     let nouns;
-    if (isWordAnalyzeEnglish()) {
-        nouns = extractEnglishNouns(text);
-    } else {
-        let tokens;
-        try {
-            tokens = (await getWordTokenizer()).tokenize(text);
-        } catch (error) {
-            if (isCurrent()) output.textContent = wordAnalyzeMessage("形態素解析エラー", "Morphological analysis error.");
-            console.error(error);
-            return;
-        }
+    try {
+        nouns = await postprocessNouns(text, tokens, controller.signal, language);
         if (!isCurrent()) return;
-        const controller = new AbortController();
-        nounPostprocessController = controller;
-        const timeout = setTimeout(() => controller.abort(), 20000);
-        try {
-            nouns = await postprocessJapaneseNouns(text, tokens, controller.signal);
-            if (!isCurrent()) return;
-            output.dataset.analysisMode = 'api';
-        } catch (error) {
-            if (!isCurrent()) return;
-            console.warn('Noun post-processing unavailable; using local analysis.', error);
-            nouns = extractJapaneseNouns(tokens);
-            output.dataset.analysisMode = 'local';
-            output.title = wordAnalyzeMessage('API後処理を利用できなかったため、ローカル解析結果を表示しています。', 'API post-processing was unavailable; showing local analysis.');
-        } finally {
-            clearTimeout(timeout);
-            if (nounPostprocessController === controller) nounPostprocessController = null;
-        }
+        output.dataset.analysisMode = 'api';
+    } catch (error) {
+        if (!isCurrent()) return;
+        console.warn('Noun post-processing unavailable; using local analysis.', error);
+        nouns = english ? extractEnglishNouns(text) : extractJapaneseNouns(tokens);
+        output.dataset.analysisMode = 'local';
+        output.title = wordAnalyzeMessage('API後処理を利用できなかったため、ローカル解析結果を表示しています。', 'API post-processing was unavailable; showing local analysis.');
+    } finally {
+        clearTimeout(timeout);
+        if (nounPostprocessController === controller) nounPostprocessController = null;
     }
     if (!isCurrent()) return;
     if (nouns.length === 0) {

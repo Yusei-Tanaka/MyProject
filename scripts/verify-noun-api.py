@@ -41,6 +41,34 @@ class NounApiTest(unittest.TestCase):
         with patch.object(api, 'API_KEY', ''):
             self.assertEqual(self.client.post('/api/noun-phrases', json=self.payload).status_code, 503)
 
+    def test_english_context_and_source_spacing(self):
+        payload = {'language': 'en', 'text': 'How does quality of sleep change?', 'tokens': [
+            {'surface_form': word, 'pos': pos} for word, pos in
+            [('How', 'PRON'), ('does', 'VERB'), ('quality', 'NOUN'), ('of', 'ADP'),
+             ('sleep', 'NOUN'), ('change', 'VERB'), ('?', 'PUNCT')]
+        ]}
+        with patch.object(api, 'API_KEY', 'test'), patch.object(api, 'getgptdata', return_value='{"phrases":[{"text":"quality of sleep"}]}') as model:
+            response = self.client.post('/api/noun-phrases', json=payload)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json['nouns'], ['quality of sleep'])
+        self.assertIn('"research_theme": "How does quality of sleep change?"', model.call_args.args[0])
+        text, tokens = validate_input(payload)
+        with self.assertRaises(ValueError):
+            validate_spans(text, tokens, '{"phrases":[{"token_ids":[2,3,4],"text":"qualityofsleep"}]}', 'en')
+        with self.assertRaises(ValueError):
+            validate_spans(text, tokens, '{"phrases":[{"token_ids":[3,4],"text":"of sleep"}]}', 'en')
+        payload['language'] = 'invalid'
+        self.assertEqual(self.client.post('/api/noun-phrases', json=payload).status_code, 400)
+
+    def test_retries_invalid_model_output_once(self):
+        with patch.object(api, 'API_KEY', 'test'), patch.object(api, 'getgptdata', side_effect=[
+            'invalid JSON', '{"phrases":[{"token_ids":[0,1],"text":"街路樹"}]}'
+        ]) as model:
+            response = self.client.post('/api/noun-phrases', json=self.payload)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(model.call_count, 2)
+        self.assertIn('validation_error', model.call_args.args[0])
+
     def test_upstream_error_does_not_leak(self):
         with patch.object(api, 'API_KEY', 'test'), patch.object(api, 'getgptdata', side_effect=RuntimeError('secret')):
             response = self.client.post('/api/noun-phrases', json=self.payload)

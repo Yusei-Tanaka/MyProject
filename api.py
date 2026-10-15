@@ -100,14 +100,27 @@ def getgptdata(mess):
 @app.route('/api/noun-phrases', methods=['POST'])
 def handle_noun_phrases():
     try:
-        text, tokens = validate_input(request.get_json(silent=True))
+        data = request.get_json(silent=True)
+        text, tokens = validate_input(data)
+        language = data.get('language', 'ja')
     except ValueError as error:
         return jsonify({"error": str(error)}), 400
     if not API_KEY:
         return jsonify({"error": "Noun post-processing is unavailable"}), 503
     try:
-        result = getgptdata(build_prompt(text, tokens))
-        return jsonify(validate_spans(text, tokens, result))
+        prompt = build_prompt(text, tokens, language)
+        for attempt in range(2):
+            result = getgptdata(prompt)
+            try:
+                return jsonify(validate_spans(text, tokens, result, language))
+            except (ValueError, TypeError, KeyError) as error:
+                if attempt:
+                    raise
+                # Retry only malformed model output; network/auth errors use the fallback.
+                prompt = build_prompt(text, tokens, language) + "\nCorrect the previous response. " + json.dumps({
+                    "validation_error": str(error), "previous_response": result
+                }, ensure_ascii=False)
+
     except (ValueError, TypeError, KeyError):
         return jsonify({"error": "Invalid noun post-processing response"}), 502
     except Exception:
