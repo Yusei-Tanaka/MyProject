@@ -14,6 +14,63 @@ const ENGLISH_NOUN_FALLBACK_STOPWORDS = new Set([
 ]);
 
 let analyzeDebounceTimer = null;
+let wordAnalysisRevision = 0;
+let nounPostprocessController = null;
+let wordTokenizerPromise = null;
+const nounPostprocessCache = new Map();
+
+function cancelWordAnalysis() {
+    const button = document.getElementById('keywordCreationBtn');
+    if (button) button.disabled = true;
+    wordAnalysisRevision++;
+    nounPostprocessController?.abort();
+}
+
+function getWordTokenizer() {
+    if (!wordTokenizerPromise) {
+        wordTokenizerPromise = new Promise((resolve, reject) => {
+            kuromoji.builder({ dicPath: DICT_PATH }).build((error, tokenizer) => {
+                if (error) { wordTokenizerPromise = null; reject(error); }
+                else resolve(tokenizer);
+            });
+        });
+    }
+    return wordTokenizerPromise;
+}
+
+async function postprocessJapaneseNouns(text, tokens, signal) {
+    if (nounPostprocessCache.has(text)) return nounPostprocessCache.get(text);
+    const config = window.APP_CONFIG || {};
+    const base = config.flaskApiBaseUrl || `http://${window.location.hostname || '127.0.0.1'}:${Number(config.flaskApiPort || 8000)}`;
+    const response = await fetch(`${base}/api/noun-phrases`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, tokens: tokens.map(token => ({
+            surface_form: token.surface_form, pos: token.pos,
+            pos_detail_1: token.pos_detail_1, pos_detail_2: token.pos_detail_2,
+            pos_detail_3: token.pos_detail_3, basic_form: token.basic_form
+        })) }),
+        signal
+    });
+    if (!response.ok) throw new Error(`Noun post-processing HTTP ${response.status}`);
+    const data = await response.json();
+    if (!Array.isArray(data.spans)) throw new Error('Invalid noun spans');
+    let previousEnd = 0;
+    const nouns = data.spans.map(span => {
+        const { start, end } = span;
+        if (!Number.isInteger(start) || !Number.isInteger(end) || start < previousEnd || start < 0 || end <= start || end > tokens.length) {
+            throw new Error('Invalid noun span range');
+        }
+        previousEnd = end;
+        const noun = tokens.slice(start, end).map(token => token.surface_form).join('');
+        if (!text.includes(noun)) throw new Error('Noun is absent from source');
+        return noun;
+    });
+    const unique = [...new Set(nouns)];
+    nounPostprocessCache.set(text, unique);
+    if (nounPostprocessCache.size > 50) nounPostprocessCache.delete(nounPostprocessCache.keys().next().value);
+    return unique;
+}
 let wikidataCooldownUntil = 0;
 
 function getWordAnalyzeLanguage() {
@@ -88,6 +145,7 @@ window.onload = (event) => {
     // テキスト入力欄の入力イベントを設定
     myTitleInput.addEventListener("input", () => {
         const text = myTitleInput.value; // 入力されたテキストを取得
+        cancelWordAnalysis(); // Invalidate results immediately, including the debounce interval.
 
         // テキストが空白の場合、メッセージを表示
         if (text.trim() === "") {
@@ -108,47 +166,97 @@ window.onload = (event) => {
     });
 };
 
-// テキストを形態素解析する関数
-function analyzeText(text) {
-    const output = document.getElementById("output"); // 結果表示エリア
-    output.textContent = wordAnalyzeMessage("解析中...", "Analyzing...");
-
-    if (isWordAnalyzeEnglish()) {
-        const nouns = extractEnglishNouns(text);
-
-        if (nouns.length === 0) {
-            output.textContent = wordAnalyzeMessage("名詞は見つかりませんでした。", "No nouns were found.");
-            return;
-        }
-
-        displayNounsWithWikidata(nouns, output);
-        return;
-    }
-
-    // Kuromoji.js で形態素解析を実行
-    kuromoji.builder({ dicPath: DICT_PATH }).build((err, tokenizer) => {
-        if (err) {
-            console.error(err); // エラーメッセージをコンソールに表示
-            output.textContent = wordAnalyzeMessage("形態素解析エラー", "Morphological analysis error.");
-            return;
-        }
-
-        const tokens = tokenizer.tokenize(text); // テキストを解析
-        const nouns = tokens
-            .filter((token) => token.pos === "名詞") // 名詞を抽出
-            .map((token) => token.surface_form); // 名詞の表層形を取得
-
-        // 名詞が見つからない場合
-        if (nouns.length === 0) {
-            output.textContent = wordAnalyzeMessage("名詞は見つかりませんでした。", "No nouns were found.");
+// Preserve compound nouns and adjective nominalisations instead of exposing suffixes.
+function extractJapaneseNouns(tokens) {
+    const nouns = [];
+    let compound = "";
+    let previous = null;
+    const flush = () => {
+        if (compound && !/^[0-9０-９.,，．]+$/.test(compound)) nouns.push(compound);
+        compound = "";
+    };
+    for (let index = 0; index < tokens.length; index++) {
+        const token = tokens[index];
+        const surface = token.surface_form || "";
+        const detail = token.pos_detail_1;
+        // Kuromoji may tag やすさ/にくさ as auxiliaries or particles.
+        const stem = tokens[index - 2];
+        if (surface === "さ" && ["やす", "にく"].includes(previous?.surface_form) && stem?.pos === "動詞") {
+            flush();
+            compound = stem.surface_form + previous.surface_form + surface;
+        } else if (token.pos === "名詞" && detail === "接尾") {
+            if (compound) compound += surface;
+            else if (surface === "さ" && previous?.pos === "形容詞") {
+                compound = previous.surface_form + surface;
+            }
+        } else if (token.pos === "名詞" && !["非自立", "代名詞"].includes(detail)) {
+            // Whitespace is a boundary even if the tokenizer omits it.
+            if (previous && token.word_position !== previous.word_position + previous.surface_form.length) flush();
+            compound += surface;
         } else {
-            displayNounsWithWikidata(nouns, output);
+            flush();
         }
-    });
+        previous = token;
+    }
+    flush();
+    return [...new Set(nouns)];
+}
+
+// テキストを形態素解析する関数
+async function analyzeText(text) {
+    cancelWordAnalysis();
+    const revision = wordAnalysisRevision;
+    const isCurrent = () => revision === wordAnalysisRevision;
+    const output = document.getElementById("output");
+    output.textContent = wordAnalyzeMessage("解析中...", "Analyzing...");
+    delete output.dataset.analysisMode;
+    output.removeAttribute('title');
+
+    let nouns;
+    if (isWordAnalyzeEnglish()) {
+        nouns = extractEnglishNouns(text);
+    } else {
+        let tokens;
+        try {
+            tokens = (await getWordTokenizer()).tokenize(text);
+        } catch (error) {
+            if (isCurrent()) output.textContent = wordAnalyzeMessage("形態素解析エラー", "Morphological analysis error.");
+            console.error(error);
+            return;
+        }
+        if (!isCurrent()) return;
+        const controller = new AbortController();
+        nounPostprocessController = controller;
+        const timeout = setTimeout(() => controller.abort(), 20000);
+        try {
+            nouns = await postprocessJapaneseNouns(text, tokens, controller.signal);
+            if (!isCurrent()) return;
+            output.dataset.analysisMode = 'api';
+        } catch (error) {
+            if (!isCurrent()) return;
+            console.warn('Noun post-processing unavailable; using local analysis.', error);
+            nouns = extractJapaneseNouns(tokens);
+            output.dataset.analysisMode = 'local';
+            output.title = wordAnalyzeMessage('API後処理を利用できなかったため、ローカル解析結果を表示しています。', 'API post-processing was unavailable; showing local analysis.');
+        } finally {
+            clearTimeout(timeout);
+            if (nounPostprocessController === controller) nounPostprocessController = null;
+        }
+    }
+    if (!isCurrent()) return;
+    if (nouns.length === 0) {
+        output.textContent = wordAnalyzeMessage("名詞は見つかりませんでした。", "No nouns were found.");
+    } else {
+        await displayNounsWithWikidata(nouns, output, isCurrent);
+        if (isCurrent()) {
+            const button = document.getElementById('keywordCreationBtn');
+            if (button) button.disabled = false;
+        }
+    }
 }
 
 // Wikidataに存在する名詞のみを表示
-async function displayNounsWithWikidata(nouns, output) {
+async function displayNounsWithWikidata(nouns, output, isCurrent = () => true) {
     if (WORD_ANALYZE_DISABLE_WIKIDATA_CHECKS_TEMP) {
         const uniqueNouns = [...new Set(nouns.map(noun => (noun || "").trim()).filter(Boolean))];
         output.textContent = uniqueNouns.join(", ");
@@ -159,6 +267,7 @@ async function displayNounsWithWikidata(nouns, output) {
 
     try {
         const nounsWithEntries = await filterNounsByWikidata(nouns);
+        if (!isCurrent()) return;
 
         if (nounsWithEntries.length === 0) {
             output.textContent = wordAnalyzeMessage("Wikidata に一致する名詞は見つかりませんでした。", "No Wikidata-matched nouns were found.");
@@ -170,6 +279,7 @@ async function displayNounsWithWikidata(nouns, output) {
             output.textContent += wordAnalyzeMessage(" (Wikidata混雑中のため一部は未検証)", " (Some terms are unverified due to Wikidata rate limits)");
         }
     } catch (error) {
+        if (!isCurrent()) return;
         console.error("Wikidata チェック中にエラーが発生しました", error);
         output.textContent = wordAnalyzeMessage("Wikidata 照会でエラーが発生しました。", "An error occurred while querying Wikidata.");
     }

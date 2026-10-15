@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import openai
+from noun_postprocess import validate_input, build_prompt, validate_spans
 try:
     from openai import OpenAI
 except ImportError:
@@ -95,6 +96,23 @@ def getgptdata(mess):
     except Exception as e:
         print("OpenAI APIエラー:", str(e))  # エラー内容をログに出力
         raise
+
+@app.route('/api/noun-phrases', methods=['POST'])
+def handle_noun_phrases():
+    try:
+        text, tokens = validate_input(request.get_json(silent=True))
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 400
+    if not API_KEY:
+        return jsonify({"error": "Noun post-processing is unavailable"}), 503
+    try:
+        result = getgptdata(build_prompt(text, tokens))
+        return jsonify(validate_spans(text, tokens, result))
+    except (ValueError, TypeError, KeyError):
+        return jsonify({"error": "Invalid noun post-processing response"}), 502
+    except Exception:
+        return jsonify({"error": "Noun post-processing is unavailable"}), 502
+
 
 @app.route('/api', methods=['POST'])
 def handle_prompt():
