@@ -242,13 +242,23 @@ $(function(){
 
 // Enlarge existing Golden Layout items without moving or recreating editor DOM.
 let enlargedMapItem = null;
+let enlargedMapComponentName = null;
 window.toggleWorkspaceMap = function (componentName) {
     const component = myLayout.root.getItemsByFilter(item => item.config.componentName === componentName)[0];
     if (!component) return;
-    const item = component.parent && component.parent.isStack ? component.parent : component;
+    const item = componentName === 'mainContents'
+        ? getKeywordWorkspaceRow()
+        : (component.parent && component.parent.isStack ? component.parent : component);
+    if (!item) return;
+    // Keep generation available while organising the enlarged keyword map.
+    if (componentName === 'mainContents' && !item.isMaximised) {
+        const { leftCol } = getLayoutColumns(item);
+        if (leftCol && leftCol.config.width === 0) document.getElementById('showLeftBtn')?.click();
+    }
     if (enlargedMapItem && enlargedMapItem !== item && enlargedMapItem.isMaximised) enlargedMapItem.toggleMaximise();
     item.toggleMaximise();
     enlargedMapItem = item.isMaximised ? item : null;
+    enlargedMapComponentName = enlargedMapItem ? componentName : null;
     document.querySelectorAll('[data-map-expand]').forEach(button => {
         const expanded = button.dataset.mapExpand === componentName && !!enlargedMapItem;
         button.textContent = expanded ? '元の配置に戻す' : '拡大表示';
@@ -264,7 +274,7 @@ document.addEventListener('keydown', event => {
     const drawer = document.getElementById('hypothesisWorkspaceDrawer');
     if(event.key === 'Escape' && drawer?.open) { drawer.open = false; return; }
     if (event.key === 'Escape' && enlargedMapItem?.isMaximised && !document.getElementById('hypothesisWorkspaceDrawer')?.open) {
-        const name = enlargedMapItem.contentItems[0]?.config.componentName;
+        const name = enlargedMapComponentName;
         if (name) window.toggleWorkspaceMap(name);
     }
 });

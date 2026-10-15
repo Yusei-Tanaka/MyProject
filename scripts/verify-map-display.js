@@ -4,15 +4,20 @@ const vm = require('node:vm');
 const originalEditor = {text:'保存前の精緻化記述'};
 const stack = name => ({isStack:true,isMaximised:false,contentItems:[{config:{componentName:name},editor:originalEditor}],toggleMaximise(){this.isMaximised=!this.isMaximised;}});
 const keyword=stack('mainContents'), process=stack('extraContent');
+const generation={config:{width:15},editor:{text:'生成中のキーワード'}};
+const keywordRow={isRow:true,isMaximised:false,contentItems:[generation,keyword],toggleMaximise(){this.isMaximised=!this.isMaximised;}};
 const components=[keyword,process].map(parent=>({config:parent.contentItems[0].config,parent}));
 const buttons=components.map(c=>({dataset:{mapExpand:c.config.componentName},setAttribute(k,v){this[k]=v;}}));
 const listeners={};
-const context={window:{},myLayout:{root:{getItemsByFilter:filter=>components.filter(filter)}},requestAnimationFrame:fn=>fn(),updateLayoutSize(){},
+const context={getKeywordWorkspaceRow:()=>keywordRow,getLayoutColumns:()=>({leftCol:generation,rightCol:keyword}),window:{},myLayout:{root:{getItemsByFilter:filter=>components.filter(filter)}},requestAnimationFrame:fn=>fn(),updateLayoutSize(){},
   document:{querySelectorAll:()=>buttons,addEventListener:(name,fn)=>listeners[name]=fn,getElementById:()=>({open:false})}};
 const main=fs.readFileSync(require.resolve('../JS/main.js'),'utf8');
 vm.runInNewContext(main.slice(main.indexOf('// Enlarge existing Golden Layout items')),context);
-context.window.toggleWorkspaceMap('mainContents');assert.equal(keyword.isMaximised,true);
-context.window.toggleWorkspaceMap('extraContent');assert.equal(keyword.isMaximised,false);assert.equal(process.isMaximised,true);
+context.window.toggleWorkspaceMap('mainContents');assert.equal(keywordRow.isMaximised,true);assert.equal(keyword.isMaximised,false);
+assert.strictEqual(keywordRow.contentItems[0],generation);assert.equal(buttons[0]['aria-pressed'],'true');
+listeners.keydown({key:'Escape'});assert.equal(keywordRow.isMaximised,false);
+context.window.toggleWorkspaceMap('mainContents');assert.equal(keywordRow.isMaximised,true);
+context.window.toggleWorkspaceMap('extraContent');assert.equal(keywordRow.isMaximised,false);assert.equal(process.isMaximised,true);
 assert.equal(buttons[1].textContent,'元の配置に戻す');assert.strictEqual(process.contentItems[0].editor,originalEditor);
 listeners.keydown({key:'Escape'});assert.equal(process.isMaximised,false);assert.equal(originalEditor.text,'保存前の精緻化記述');
 // Golden Layout sizes the maximised map; a second recursive resize must not shrink it back to the split layout.
