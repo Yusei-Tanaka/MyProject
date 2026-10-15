@@ -251,6 +251,9 @@ async function analyzeText(text) {
         if (isCurrent()) {
             const button = document.getElementById('keywordCreationBtn');
             if (button) button.disabled = false;
+            if (typeof window.addAnalyzedKeywordsToMap === 'function') {
+                await window.addAnalyzedKeywordsToMap(nouns, isCurrent);
+            }
         }
     }
 }

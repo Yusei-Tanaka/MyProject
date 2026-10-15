@@ -18,7 +18,8 @@ function setup(fetch) {
         assert.equal(JSON.parse(options.body).tokens[1].surface_form,'樹');
         return {ok:true,json:async()=>({spans:[{start:0,end:2}]})};
     });
-    await good.context.analyzeText('街路樹');assert.equal(good.output.textContent,'街路樹');assert.equal(good.output.dataset.analysisMode,'api');
+    const mapped=[];good.context.window.addAnalyzedKeywordsToMap=async (nouns,isCurrent)=>{if(isCurrent()) mapped.push(...nouns);};
+    await good.context.analyzeText('街路樹');assert.equal(good.output.textContent,'街路樹');assert.equal(good.output.dataset.analysisMode,'api');assert.deepEqual(mapped,['街路樹']);
     await good.context.analyzeText('街路樹');assert.equal(calls,1);
     const bad = setup(async()=>({ok:false,status:502}));
     await bad.context.analyzeText('街路樹');assert.equal(bad.output.textContent,'街路樹');assert.equal(bad.output.dataset.analysisMode,'local');

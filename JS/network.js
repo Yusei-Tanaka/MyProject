@@ -932,7 +932,7 @@ function applyConceptMapPayload(payload) {
 async function restoreUserConceptMap() {
   const userId = getCurrentUserId();
   const themeName = getCurrentThemeName();
-  if (!userId || !themeName) return;
+  if (!userId || !themeName) return true;
 
   try {
     const language = getCurrentThemeLanguage();
@@ -941,20 +941,22 @@ async function restoreUserConceptMap() {
       { cache: "no-store" }
     );
     if (!res.ok) {
-      if (res.status === 404) return;
+      if (res.status === 404) return true;
       throw new Error(`HTTP ${res.status}`);
     }
     const themeRecord = await res.json();
     const content = themeRecord?.content;
-    if (!content || typeof content !== "object") return;
+    if (!content || typeof content !== "object") return true;
 
     isRestoringConceptMap = true;
     applyConceptMapPayload(content);
     requestAnimationFrame(setReadableKeywordView);
     lastSavedConceptMapFingerprint = buildConceptMapFingerprint();
     logAction(`キーワードマップ: DBから復元しました (theme=${themeName})`);
+    return true;
   } catch (error) {
     console.error("概念マップの復元に失敗しました:", error);
+    return false;
   } finally {
     isRestoringConceptMap = false;
   }
@@ -1029,8 +1031,50 @@ network.on("dragEnd", function () {
   scheduleConceptMapSave();
 });
 
+let conceptMapRestorePromise = Promise.resolve(false);
+let initialKeywordQueue = Promise.resolve();
+const initialKeywordsAdded = new Set();
+
+// Restore first so initial keywords cannot be erased by a late database response.
+window.addAnalyzedKeywordsToMap = function (keywords, isCurrent = () => true) {
+  const task = async () => {
+    if (!await conceptMapRestorePromise || !isCurrent()) return;
+    const wasEmpty = nodes.getIds().length === 0;
+    let added = 0;
+    for (const value of keywords) {
+      if (!isCurrent()) return;
+      const label = String(value || "").trim();
+      if (!label) continue;
+      const key = `${getCurrentThemeName()}:${normalizeKeywordSurface(label)}`;
+      if (initialKeywordsAdded.has(key)) continue;
+      const existing = await findExistingNodeByLabel(label);
+      if (!isCurrent()) return;
+      initialKeywordsAdded.add(key);
+      if (existing) continue;
+      // Recheck after the asynchronous comparison in case a manual addition won the race.
+      if (nodes.get().some(node => normalizeKeywordSurface(node.label) === normalizeKeywordSurface(label))) continue;
+      const position = getNonOverlappingNodePosition();
+      nodes.add({
+        id: getNextNumericNodeId(), label, nodeType: "keyword",
+        x: position.x, y: position.y,
+        color: { background: "#FFFFFF", border: "#3498DB" },
+        borderWidth: 2, font: { color: "#34495E" }
+      });
+      added++;
+    }
+    if (added) {
+      if (wasEmpty) requestAnimationFrame(setReadableKeywordView);
+      logAction(`キーワードマップ: 解析キーワードを初期追加 count=${added}`);
+    }
+  };
+  initialKeywordQueue = initialKeywordQueue.then(task).catch(error => {
+    console.error("解析キーワードのマップ追加に失敗しました:", error);
+  });
+  return initialKeywordQueue;
+};
+
 document.addEventListener("DOMContentLoaded", () => {
-  restoreUserConceptMap();
+  conceptMapRestorePromise = restoreUserConceptMap();
 });
 
 // ここにAPI呼び出しのコードを追加
