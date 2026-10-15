@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="process-map.css?v=20261009-swap1">
+    <link rel="stylesheet" href="process-map.css?v=20261016-minimap">
     <link rel="icon" type="image/svg+xml" href="./img/favicon.svg">
     <script>
       (function () {
@@ -40,8 +40,8 @@
     <script src="JS/vendor/jquery-1.11.1.min.js"></script>
     <script src="JS/vendor/goldenlayout.min.js"></script>
     <link type="text/css" rel="stylesheet" href="JS/vendor/goldenlayout-base.css" />
-      <link rel="stylesheet" href="hypothesis-network.css?v=20261009-swap1">
-    <link rel="stylesheet" href="workspace-shell.css?v=20261009-scamper1">
+      <link rel="stylesheet" href="hypothesis-network.css?v=20261016-scamper-only">
+    <link rel="stylesheet" href="workspace-shell.css?v=20261016-process-drawer">
 </head>
   <body class="main-page">
     <div class="header">
@@ -146,27 +146,14 @@
     </div>
 
     <div id="extra-content-content" class="is-hidden">
+      <details id="processWorkspaceDrawer" class="process-workspace-drawer">
+        <summary>探究プロセス・仮説の作成と検討</summary>
       <div class="process-main-content">
     <section
       id="process-map-view"
       class="process-map-view is-active"
       aria-label="探究プロセスマップ"
     >
-      <div class="process-map-context">
-        <div class="process-map-context__summary">
-          <button id="processMapBackBtn" class="process-map-secondary-button" type="button" disabled>上位階層へ戻る</button>
-          <div>
-            <div class="process-map-eyebrow">現在のテーマ</div>
-            <h1 id="processMapTitle">探究プロセスマップ</h1>
-          </div>
-          <div class="process-map-grain">
-            <span class="process-map-eyebrow">グレインサイズ</span>
-            <strong id="processMapGrainSize">研究全体</strong>
-          </div>
-        </div>
-        <nav id="processMapBreadcrumbs" class="process-map-breadcrumbs" aria-label="現在の階層"></nav>
-      </div>
-
       <div class="process-map-workspace">
         <main class="process-map-editor" aria-label="探究プロセスマップ編集領域">
           <div class="process-map-toolbar">
@@ -186,21 +173,31 @@
             <button id="processSaveBtn" type="button">保存</button>
           </div>
           <div id="processMapStatus" class="process-map-status" role="status" aria-live="polite"></div>
+          <div class="process-map-canvas-region">
           <div id="processMapNetwork" tabindex="0" aria-label="ノードとリンクを配置するキャンバス"></div>
+          <details class="process-minimap" open>
+            <summary>プロセスマップの全体像</summary>
+            <svg id="processHierarchyMinimap" role="group" aria-label="階層ミニマップ"></svg>
+            <small>青枠が現在地です。各マップを押すと移動できます。</small>
+          </details>
+          </div>
         </main>
 
         <aside class="process-map-inspector" aria-label="選択項目の詳細">
+
           <div class="process-map-inspector__header">
             <h2>詳細</h2>
-            <span id="processSelectionKind" class="process-map-selection-kind">未選択</span>
+            <span id="processSelectionKind" class="process-map-selection-kind" hidden>未選択</span>
           </div>
 
-          <details id="processScamperSupport" class="process-thinking-support">
-            <summary>SCAMPER・仮説の発散</summary>
-            <p>ノードを選び「SCAMPERで発散」から考えを広げます。記述した案はプロセスマップへ追加し、仮説として残すものを構造化で整理できます。</p>
+          <section id="hypothesisSupportDrawer">
+          <details id="processScamperSupport" class="process-thinking-support" open>
+            <summary>SCAMPER</summary>
             <div id="processScamperHost"></div>
           </details>
 
+          </section>
+          <div id="processMetadataInspector" hidden>
           <details id="processThinkingSupport" class="process-thinking-support">
             <summary>仮説の検討・思考メモ</summary>
             <div id="processRefinementHost"></div>
@@ -278,10 +275,12 @@
               <li>マップを読み込むと、構造に応じた確認事項を表示します。</li>
             </ul>
           </section>
+          </div>
         </aside>
       </div>
     </section>
       </div>
+      </details>
     </div>
 
     <script src="JS/runtime-config.js"></script>
@@ -291,8 +290,8 @@
     <script src="JS/vendor/vis-network.min.js"></script>
     <script src="JS/network.js?v=20261009-swap1"></script>
     <script src="JS/hypothesis-network-model.js?v=20261009-swap1"></script>
-    <script src="JS/hypothesis-network.js?v=20261009-scamper1"></script>
-    <script src="JS/hypothesis.js?v=20261009-scamper1"></script>
+    <script src="JS/hypothesis-network.js?v=20261016-scamper-only"></script>
+    <script src="JS/hypothesis.js?v=20261016-shared-scamper"></script>
     <script src="JS/log.js?v=20260417-1"></script>
     <script src="JS/setFontSize.js?v=20261009-swap1"></script>
     <script src="JS/kuromoji.js"></script>
@@ -308,6 +307,6 @@
     <script src="JS/keywords_O(1).js?v=20260622-1"></script>
     <script src="JS/admin-menu.js"></script>
     <script src="JS/process-map-support.js"></script>
-    <script src="JS/process-map.js?v=20261009-scamper1"></script>
+    <script src="JS/process-map.js?v=20261016-minimap"></script>
   </body>
 </html>

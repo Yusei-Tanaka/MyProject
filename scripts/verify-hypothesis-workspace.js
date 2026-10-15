@@ -13,16 +13,17 @@ class Element {
 }
 const storage = new Map();
 const drawer = {open:false};
+const hypothesisSupport={open:false};
 const processSupport = {open:false,scrollIntoView(){}};
 const window = {HypothesisNetworkModel:M,APP_CONFIG:{},location:{hostname:'localhost'},dispatchEvent(){},addEventListener(){}};
-const sandbox = {window,document:{createElement:t=>new Element(t),querySelectorAll:()=>[],getElementById:id=>id==='hypothesisWorkspaceDrawer' ? drawer : id==='processThinkingSupport' ? processSupport : null,addEventListener(){}},
+const sandbox = {window,document:{createElement:t=>new Element(t),querySelectorAll:()=>[],getElementById:id=>id==='hypothesisWorkspaceDrawer' ? drawer : id==='hypothesisSupportDrawer' ? hypothesisSupport : id==='processThinkingSupport' ? processSupport : null,addEventListener(){}},
   localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
   scheduleHypothesisSave(){},Event:class {},AbortController,setTimeout,clearTimeout,
   fetch:async()=>({ok:true,json:async()=>({result:JSON.stringify({edges:[],questions:['何が観察されますか？']})})})};
 let source=fs.readFileSync(require.resolve('../JS/hypothesis-network.js'),'utf8');
 source=source.replace("  document.addEventListener('DOMContentLoaded'", `  window.test = {
     setup() { ready=true; activeKey=key(); details=el('div'); refinement=el('div'); editorHost=el('div'); review=el('div'); analysis=el('div'); },
-    get state(){return state;}, get review(){return review;}, get editor(){return editorHost;}, get refinement(){return refinement;},
+    get details(){return details;}, get state(){return state;}, get review(){return review;}, get editor(){return editorHost;}, get refinement(){return refinement;},
     get selected(){return selectedId;}, get activeSession(){return activeSessionId;},
     nodeEditor,beginRefinement,showNode,showRefinement,accept,extract,addFromEntry,
     manual(start,end){sourceSelection={id:activeSessionId,start,end};manualCandidate();},
@@ -36,8 +37,9 @@ async function submit() {await T.editor.children[0].children[0].onsubmit({preven
   T.nodeEditor();controls()[0].value='元の仮説';await submit();
   assert.equal(drawer.open,true);
   const original=T.state.nodes[0];assert.equal(original.text,'元の仮説');
+  original.keywordNodeIds=['7'];original.keywordLabels=['元のキーワード'];
   T.beginRefinement(original);const session=T.state.sessions[0];
-  assert.equal(drawer.open,false);assert.equal(processSupport.open,true);
+  assert.equal(drawer.open,true);assert.equal(processSupport.open,true);
   const memo=T.refinement.children.find(v=>v.tagName==='textarea');memo.value='条件Aなら結果Bになる。';memo.oninput();
   assert.equal(session.text,memo.value);assert(storage.size);
   T.manual(0,memo.value.length);controls()[0].value='条件Aで結果Bを予測する';await submit();
@@ -47,6 +49,7 @@ async function submit() {await T.editor.children[0].children[0].onsubmit({preven
   T.accept(candidate);const fields=controls();
   fields[7].options.forEach(o=>o.selected=true);fields[8].value='complement';fields[9].value='補足する関係';await submit();
   assert.equal(candidate.status,'accepted');assert.equal(T.state.edges.length,2);
+  assert.deepEqual(Array.from(T.state.nodes.find(n=>n.id===candidate.nodeId).keywordNodeIds),['7']);
   assert(T.state.edges.every(e=>e.label==='補足する関係'));assert.equal(session.history.find(h=>h.action==='accepted').action,'accepted');
   const count=T.state.nodes.length;T.accept(candidate);assert.equal(T.state.nodes.length,count);
   T.showNode(T.state.nodes.find(v=>v.id==='parallel'));assert.equal(session.text,'条件Aなら結果Bになる。');
@@ -76,5 +79,21 @@ async function submit() {await T.editor.children[0].children[0].onsubmit({preven
   processTextarea.value='明示的に整理した仮説を修正';
   T.addFromEntry(processEntry,processTextarea,false);assert.equal(T.state.nodes.length,before+1);
   assert.equal(T.state.nodes.at(-1).text,processTextarea.value);
+  let selected;
+  window.nodes={get:()=>[{id:7,label:'変更後のキーワード'}]};
+  window.setSelectedNodes=ids=>{selected=ids;};window.network={fit(){}};
+  const linkedTextarea={value:'キーワード由来の仮説',dataset:{}};
+  const linkedEntry={dataset:{hypothesisEntryId:'linked-entry',basedNodeIds:'[7]',basedKeywordLabels:'["元のキーワード"]'},querySelector:()=>linkedTextarea};
+  const linked=T.addFromEntry(linkedEntry,linkedTextarea);
+  assert.deepEqual(Array.from(linked.keywordNodeIds),['7']);assert.equal(linked.context,'');
+  const context=T.details.children.find(e=>e.className==='hn-keyword-context');
+  assert(context.children.some(e=>e.textContent==='変更後のキーワード'));
+  await context.children.find(e=>e.tagName==='button').onclick();assert.deepEqual(Array.from(selected),[7]);assert.equal(drawer.open,false);
+  T.beginRefinement(linked);assert(T.refinement.children.some(e=>e.className==='hn-keyword-context'));
+  const snapshot=M.normalize(JSON.parse(JSON.stringify(window.HypothesisNetwork.snapshot())));
+  assert.deepEqual(snapshot.nodes.find(n=>n.id===linked.id).keywordNodeIds,['7']);
+  window.nodes={get:()=>[]};T.showNode(linked);
+  const missing=T.details.children.find(e=>e.className==='hn-keyword-context');
+  assert(missing.children.some(e=>e.textContent==='元のキーワード'));assert(!missing.children.some(e=>e.tagName==='button'));
   console.log('hypothesis-workspace: refinement, manual highlight, edit, adoption, multiple links, switching, repeated refinement and JSON restore passed');
 })().catch(e=>{console.error(e);process.exitCode=1;});

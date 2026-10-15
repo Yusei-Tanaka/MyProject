@@ -54,3 +54,7 @@ const next = sandbox.merge(merged,{hypothesis:{html:'new',nodes:[{text:'new memo
 assert.equal(next.mindmap.modelJson,'edited tree'); assert.equal(next.keywordNodes[0].label,'keyword');
 assert.equal(next.hypothesis.network.edges.length,0); assert.equal(next.hypothesis.mapNodes[0].text,'旧マップ');
 console.log('hypothesis-network: model, graph, highlights, persistence and legacy merge checks passed');
+
+const migratedKeywords=M.node({text:'legacy',context:'["keyword"]'});
+assert.deepEqual(migratedKeywords.keywordLabels,['keyword']);assert.equal(migratedKeywords.context,'');
+assert.equal(M.node({text:'condition',context:'通常の条件'}).context,'通常の条件');

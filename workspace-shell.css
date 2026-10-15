@@ -101,3 +101,9 @@ body.main-page { height: 100dvh; overflow: hidden; font-family: -apple-system, B
   .main-page .process-map-workspace { grid-template-columns: minmax(0, 1fr) 240px; }
   .main-page .process-map-editor { overflow: auto; }
 }
+
+/* Collapse the entire lower workspace, including its canvas and inspector. */
+.main-page .process-workspace-drawer { position: relative; height: 100%; min-height: 0; overflow: hidden; border: 1px solid #dce4ed; border-radius: 8px; background: #fff; }
+.main-page .process-workspace-drawer > summary { box-sizing: border-box; height: 42px; padding: 10px 14px; cursor: pointer; }
+.main-page .process-workspace-drawer:not([open]) > .process-main-content { display: none; }
+.main-page .process-workspace-drawer[open] > .process-main-content { position: absolute; inset: 42px 0 0; height: auto; border: 0; border-radius: 0; }

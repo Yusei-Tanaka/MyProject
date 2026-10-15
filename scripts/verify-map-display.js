@@ -24,7 +24,7 @@ listeners.keydown({key:'Escape'});assert.equal(process.isMaximised,false);assert
 const resizedMap={width:0,height:0};
 const resizeContext={document:{getElementById:()=>({clientWidth:1400,clientHeight:700})},notifyVisualResize(){},
   myLayout:{updateSize(width,height){resizedMap.width=width;resizedMap.height=height;},root:{contentItems:[{callDownwards(){resizedMap.width*=.8;resizedMap.height*=.7;}}]}}};
-vm.runInNewContext(main.slice(main.indexOf('function updateLayoutSize()'),main.indexOf('let resizeTimer')),resizeContext);
+vm.runInNewContext(main.slice(main.indexOf('function updateLayoutSize()'),main.indexOf('function syncProcessWorkspaceLayout()')),resizeContext);
 resizeContext.updateLayoutSize();assert.equal(resizedMap.width,1400);assert.equal(resizedMap.height,700);
 // Opening/closing the hypothesis drawer notifies the existing controller without replacing editor DOM.
 const summary={textContent:'',focus(){this.focused=true;}};
@@ -46,3 +46,13 @@ assert(processTemplate.includes('id="processMapNetwork"'));assert(processTemplat
 const drawerTemplate=html.slice(html.indexOf('id="hypothesisWorkspaceDrawer"'),html.indexOf('</details>'));
 assert(drawerTemplate.includes('class="extra-content-area"'));assert(drawerTemplate.includes('id="myDiagramDiv"'));assert(!drawerTemplate.includes('id="processMapNetwork"'));
 console.log('map-display: map placement, expand, switch, Escape, restore, drawer events and editor retention passed');
+
+// The lower map yields its height when folded; opening restores the split workspace.
+const processDrawer={open:false};
+const row={isRow:true,config:{height:30}}, processItem={config:{height:70}};
+const folding={document:{getElementById:id=>id==='processWorkspaceDrawer'?processDrawer:{clientHeight:800}},
+  myLayout:{root:{contentItems:[{contentItems:[row,processItem]}]}}};
+vm.runInNewContext(main.slice(main.indexOf('function syncProcessWorkspaceLayout()'),main.indexOf('window.openProcessWorkspace')),folding);
+folding.syncProcessWorkspaceLayout();assert.equal(processItem.config.height,5.75);assert.equal(row.config.height,94.25);
+processDrawer.open=true;folding.syncProcessWorkspaceLayout();assert.equal(processItem.config.height,70);assert.equal(row.config.height,30);
+assert(html.includes('id="processWorkspaceDrawer" class="process-workspace-drawer"'));

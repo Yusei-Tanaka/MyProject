@@ -119,12 +119,35 @@ function updateLayoutSize() {
     var height = container.clientHeight;
     if (width <= 0 || height <= 0) return;
 
+    if (typeof syncProcessWorkspaceLayout === "function") syncProcessWorkspaceLayout();
     if (typeof myLayout.updateSize === "function") {
         myLayout.updateSize(width, height);
     }
 
     notifyVisualResize();
 }
+
+function syncProcessWorkspaceLayout() {
+    const drawer = document.getElementById('processWorkspaceDrawer');
+    const host = document.getElementById('golden-layout-container');
+    const column = myLayout.root.contentItems[0];
+    if (!drawer || !host?.clientHeight || !column) return;
+    const row = column.contentItems.find(item => item.isRow);
+    const process = column.contentItems.find(item => item !== row);
+    if (!row || !process) return;
+    const height = drawer.open ? 70 : Math.min(40, 100 * 46 / host.clientHeight);
+    process.config.height = height;
+    row.config.height = 100 - height;
+}
+window.openProcessWorkspace = function () {
+    const drawer = document.getElementById('processWorkspaceDrawer');
+    if (drawer) { drawer.open = true; updateLayoutSize(); }
+};
+document.addEventListener('DOMContentLoaded', () => {
+    const drawer = document.getElementById('processWorkspaceDrawer');
+    drawer?.addEventListener('toggle', updateLayoutSize);
+    updateLayoutSize();
+});
 
 let resizeTimer = null;
 window.addEventListener("resize", function () {

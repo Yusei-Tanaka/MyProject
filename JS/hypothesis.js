@@ -1,12 +1,14 @@
 // 保存済みの発散記述を、探究プロセスマップの支援欄で継続利用する。
 function ensureHypothesisContainer() {
-  var container = document.querySelector(".process-map-inspector .hypothesis-area") || document.querySelector(".hn-sidebar .hypothesis-area") || document.querySelector(".right-navi .hypothesis-area");
+  var container = document.getElementById("hypothesisWrapper")?.closest(".hypothesis-area") || document.querySelector(".process-map-inspector .hypothesis-area") || document.querySelector(".hn-sidebar .hypothesis-area") || document.querySelector(".right-navi .hypothesis-area");
   if (!container) {
     var right = document.querySelector(".right-navi") || document.body;
     container = document.createElement("div");
     container.className = "hypothesis-area";
     right.appendChild(container);
   }
+
+  container.querySelectorAll('.hypothesis-help-text').forEach(element => element.remove());
 
   // 初回セットアップ（ヘッダ・エントリラッパー）
   if (!container.querySelector("#hypothesisWrapper")) {
@@ -23,15 +25,7 @@ function ensureHypothesisContainer() {
     wrapper.className = "hypothesis-wrapper";
     container.appendChild(wrapper);
 
-    // 補助テキスト
-    var help = document.createElement("div");
-    help.className = "hypothesis-help-text";
-    help.innerText = t(
-      "hypothesis.helpText",
-      {},
-      "「仮説を追加」ボタンを押すとこの中に新しい仮説が追加されます。"
-    );
-    container.appendChild(help);
+
   }
 
   return container;
@@ -474,6 +468,10 @@ function bindScamperTagDelete(tagLabel) {
 }
 
 function rebindHypothesisEntry(entry) {
+  // Remove the retired control from previously saved entry HTML as well.
+  entry.querySelectorAll('.hypothesis-controls button').forEach(button => {
+    if (['構造化・検討へ', 'Structure and explore'].includes(button.textContent.trim())) button.remove();
+  });
   ensureHypothesisEntryId(entry);
   bindHypothesisEntrySelection(entry);
 
@@ -1044,6 +1042,7 @@ function addHypothesisEntry(nodeIds, options) {
   entry.className = "hypothesis-box";
   entry.dataset.basedNodeIds = JSON.stringify(nodeIds);
   entry.dataset.basedKeywordLabels = JSON.stringify(keywordLabels);
+  if (options.networkNodeId) entry.dataset.hypothesisNetworkNodeId = options.networkNodeId;
   if (options.processContext) {
     entry.dataset.processMapId = String(options.processContext.mapId);
     entry.dataset.processNodeId = String(options.processContext.nodeId);
@@ -1091,11 +1090,15 @@ function addHypothesisEntry(nodeIds, options) {
   wrapper.appendChild(entry);
   bindHypothesisEntrySelection(entry);
   enableScamperOnEntry(entry);
+  if (window.openScamperWorkspace) window.openScamperWorkspace();
+  else window.openProcessWorkspace?.();
+  const drawer = document.getElementById("hypothesisSupportDrawer");
+  if (drawer) drawer.open = true;
   const support = document.getElementById("processScamperSupport");
   if (support) support.open = true;
   entry.scrollIntoView({block: "nearest"});
   logHypothesisAction(`仮説: 追加 (基づくキーワード: ${keywordLabels.join("、")})`);
-  if (!options.processContext) window.HypothesisNetwork?.addFromEntry(entry, ta);
+  if (!options.processContext && !options.networkNodeId) window.HypothesisNetwork?.addFromEntry(entry, ta);
   scheduleHypothesisSave();
   return entry;
 }
@@ -1109,11 +1112,34 @@ window.startProcessScamper = function ({mapId, node}) {
     hypothesisText: node.content, keywordLabels: node.relatedKeywords,
     processContext: {mapId, nodeId: node.id}
   });
+  if (window.openScamperWorkspace) window.openScamperWorkspace();
+  else window.openProcessWorkspace?.();
+  const drawer = document.getElementById("hypothesisSupportDrawer");
+  if (drawer) drawer.open = true;
   document.getElementById("processScamperSupport").open = true;
   entry.scrollIntoView({block: "nearest"});
   const textarea = entry.querySelector(".hypothesis-text");
   updateHypothesisContextFromEntry(entry, textarea.value);
   createScamperMenu(0, 0, entry, textarea, null, entry.querySelector(".scamper-button"));
+  return entry;
+};
+
+window.startStructuringScamper = function (node) {
+  const wrapper = ensureHypothesisContainer().querySelector('#hypothesisWrapper');
+  let entry = Array.from(wrapper.querySelectorAll('.hypothesis-box')).find(box =>
+    box.dataset.hypothesisNetworkNodeId === node.id ||
+    (node.sourceConversationId && box.dataset.hypothesisEntryId === node.sourceConversationId));
+  if (!entry) entry = addHypothesisEntry(node.keywordNodeIds || [], {
+    hypothesisText: node.text, keywordLabels: node.keywordLabels,
+    entryId: node.sourceConversationId || undefined, networkNodeId: node.id
+  });
+  entry.dataset.hypothesisNetworkNodeId = node.id;
+  const textarea = entry.querySelector('textarea.hypothesis-text');
+  if (textarea.value !== node.text) { textarea.value = node.text; scheduleHypothesisSave(); }
+  window.openScamperWorkspace?.();
+  entry.scrollIntoView({block:'nearest'});
+  updateHypothesisContextFromEntry(entry, textarea.value);
+  createScamperMenu(0, 0, entry, textarea, null, entry.querySelector('.scamper-button'));
   return entry;
 };
 
@@ -1478,8 +1504,9 @@ window.handleCreateHypothesisClick = function () {
       alert(t("alerts.selectAtLeastOneNode", {}, "少なくとも1つのノードを選択してください。"));
       return;
     }
-    addHypothesisEntry(currentSelectedNodes);
+    const entry = addHypothesisEntry(currentSelectedNodes);
     clearSelectionAfterHypothesisCreate();
+    entry?.querySelector("textarea.hypothesis-text")?.focus();
   } catch (error) {
     console.error("仮説を追加ボタン処理でエラーが発生しました:", error);
     alert(t("alerts.hypothesisProcessFailed", {}, "仮説追加の処理中にエラーが発生しました。ページを再読み込みしてください。"));

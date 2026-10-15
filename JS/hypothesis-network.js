@@ -6,6 +6,7 @@
   let panel, review, status, analysis, details, canvas, sourceSelection, extractionBusy = false, itemList, activeKey;
   let selectedId = null, activeSessionId = null, sideMode = 'idle', editorHost, refinement, legacySupport;
   let initialViewSet = false;
+  let structuringScamperHost;
   const linkBusy = new Set();
   const config = window.APP_CONFIG || {};
   const key = () => JSON.stringify(['hypothesis-network-draft', localStorage.getItem('userName'), localStorage.getItem('searchTitle'), window.APP_I18N?.getLanguage() || 'ja']);
@@ -20,9 +21,34 @@
     const drawer = document.getElementById('hypothesisWorkspaceDrawer');
     if (drawer) drawer.open = true;
   }
+  function syncScamperWorkspace() {
+    const drawer = document.getElementById('hypothesisWorkspaceDrawer');
+    const target = drawer?.open ? structuringScamperHost : document.getElementById('hypothesisSupportDrawer');
+    if (target && legacySupport && legacySupport.parentElement !== target) target.append(legacySupport);
+  }
+  window.openScamperWorkspace = function () {
+    const drawer = document.getElementById('hypothesisWorkspaceDrawer');
+    if (!drawer?.open) window.openProcessWorkspace?.();
+    syncScamperWorkspace();
+    if (legacySupport) legacySupport.open = true;
+  };
+  function scamperForNode(n) {
+    if (!ready || !n) return;
+    const entry = window.startStructuringScamper?.(n);
+    if (entry && !n.sourceConversationId) { n.sourceConversationId = entry.dataset.hypothesisEntryId; persist(); }
+  }
   function openProcessSupport(id) {
+    if (id === 'processThinkingSupport') {
+      openStructuring();
+      const support = document.getElementById(id);
+      if (support) support.open = true;
+      return;
+    }
     const drawer = document.getElementById('hypothesisWorkspaceDrawer');
     if (drawer) drawer.open = false;
+    window.openProcessWorkspace?.();
+    const hypothesisSupport = document.getElementById('hypothesisSupportDrawer');
+    if (hypothesisSupport) hypothesisSupport.open = true;
     const support = document.getElementById(id);
     if (support) { support.open = true; support.scrollIntoView({block:'nearest'}); }
   }
@@ -203,7 +229,10 @@
       if (!values.text.trim()) throw new Error('本文を入力してください。');
       const currentSource = sourceList().find(s => s.id === c.sourceId);
       if (currentSource && currentSource.text !== c.sourceSnapshot) throw new Error('元文章が変わりました。候補を修正してください。');
-      const n = M.node({...c,...values,id:M.id()}); delete n.status; delete n.nodeId;
+      const parent = state.nodes.find(node => node.id === origin || node.sourceConversationId === c.sourceConversationId);
+      const keywords = source?.element ? entryKeywordContext(source.element.closest('.hypothesis-box'))
+        : {keywordNodeIds:parent?.keywordNodeIds || [], keywordLabels:parent?.keywordLabels || []};
+      const n = M.node({...c,...values,...keywords,id:M.id()}); delete n.status; delete n.nodeId;
       state.nodes.push(n); Object.assign(c,{text:n.text,hypothesisType:n.hypothesisType,status:'accepted',nodeId:n.id});
       values.targets.forEach(target => state.edges.push(M.edge({sourceNodeId:values.direction === 'out' ? target : n.id,targetNodeId:values.direction === 'out' ? n.id : target,relationType:values.relationType,label:values.label})));
       recordDecision(c,'accepted'); changed();
@@ -325,11 +354,41 @@
       button('拒否',() => { e.status = 'rejected'; changed(); },row); review.append(row);
     });
   }
+  function entryKeywordContext(entry) {
+    const read = key => { try { const value = JSON.parse(entry?.dataset[key] || '[]'); return Array.isArray(value) ? value : []; } catch (_) { return []; } };
+    return { keywordNodeIds: read('basedNodeIds').map(String), keywordLabels: read('basedKeywordLabels').map(String) };
+  }
+  function renderKeywordContext(n, parent) {
+    const section = el('section', null, 'hn-keyword-context');
+    const english = window.APP_I18N?.getLanguage() === 'en';
+    section.append(el('h4', english ? 'Related keywords' : '関連キーワード'));
+    const all = window.nodes?.get?.() || [];
+    const ids = n.keywordNodeIds || [];
+    const labels = n.keywordLabels || [];
+    const linked = ids.length ? ids.map((id, index) => {
+      const live = all.find(node => String(node.id) === String(id));
+      return { id: live?.id, label: live?.label || labels[index] || (english ? 'Deleted keyword' : '削除済みキーワード') };
+    }) : labels.map(label => ({ label, id: all.find(node => node.label === label)?.id }));
+    if (!linked.length) section.append(el('small', english ? 'No related keywords' : '関連キーワードは未設定です'));
+    else {
+      section.append(el('p', linked.map(item => item.label).join(english ? ', ' : '、')));
+      const liveIds = linked.filter(item => item.id !== undefined).map(item => item.id);
+      if (liveIds.length) button(english ? 'Show keywords on map' : 'キーワードマップで確認', () => {
+        const drawer = document.getElementById('hypothesisWorkspaceDrawer');
+        if (drawer) drawer.open = false;
+        window.setSelectedNodes?.(liveIds);
+        document.getElementById('mynetwork')?.scrollIntoView({block:'nearest'});
+        window.network?.fit({nodes:liveIds,animation:{duration:300}});
+      }, section);
+    }
+    parent.append(section);
+  }
   function showNode(n) {
     selectedId = n.id; activeSessionId = null; sideMode = 'selected';
     editorHost?.replaceChildren(); refinement.hidden = true; review.hidden = false; details.hidden = false;
     renderReview(); emphasize(n.id);
     details.replaceChildren(el('h4',M.types[n.hypothesisType]),el('p',n.text));
+    renderKeywordContext(n, details);
     details.append(el('p',`検討状態: ${n.reviewStatus === 'in_progress' ? '検討中' : '未検討'}`));
     details.append(el('p',`元の記述: ${n.sourceText || '手動追加'}`),el('p',`出典ID: ${n.sourceConversationId || 'なし'}`),
       el('p',`Subject: ${n.subject || '未解析'} / Relationship: ${n.relationship || '未解析'} / Object: ${n.object || '未解析'}`),el('p',`条件: ${n.context} / 限定: ${n.qualifier}`));
@@ -337,7 +396,8 @@
       const other = state.nodes.find(v => v.id === (e.sourceNodeId === n.id ? e.targetNodeId : e.sourceNodeId));
       button(`${e.sourceNodeId === n.id ? '→' : '←'} ${e.label}: ${other?.text || ''}`,() => showEdge(e),details);
     });
-    button('プロセスマップで検討',() => beginRefinement(n),details);
+    button('SCAMPERで発散',() => scamperForNode(n),details);
+    button('仮説を検討',() => beginRefinement(n),details);
     state.sessions.filter(v => v.nodeId === n.id).forEach((v,i) => button(`検討 ${i+1} をプロセスマップで再開`,() => {activeSessionId=v.id;sideMode='refine';showRefinement();renderReview();openProcessSupport('processThinkingSupport');},details));
     button('編集',() => nodeEditor(n),details); button('削除',() => removeNode(n),details); button('AIリンク候補を再取得',() => inferLinks(n.id),details);
   }
@@ -381,7 +441,7 @@
     analysis.append(el('p',Object.entries(M.relations).map(([k,v]) => `${v}: ${a.relationTypes[k] || 0}`).join(' / ')));
     analysis.append(el('small','役割や関係を自由に整理できます。仮説タイプに順序はありません。'));
     if (sideMode === 'idle' && details) { details.hidden = false; refinement.hidden = true; }
-    if (details && sideMode === 'idle') details.replaceChildren(el('p','仮説を選択して本文・役割・関係を整理します。ダブルクリックで編集できます。発散や検討はプロセスマップで行います。'));
+    if (details && sideMode === 'idle') details.replaceChildren(el('p','仮説を選択して本文・役割・関係を整理します。ダブルクリックで編集できます。SCAMPER欄はプロセスマップと共有しています。'));
     if (sideMode === 'selected' && !editorHost.children.length) { const n = state.nodes.find(n => n.id === selectedId); if(n) showNode(n); }
     if (sideMode === 'refine' && !editorHost.children.length) showRefinement();
   }
@@ -429,6 +489,7 @@
     const session = state.sessions.find(v => v.id === activeSessionId), n = state.nodes.find(v => v.id === selectedId);
     if(!session || !n) return;
     details.hidden = true; refinement.hidden = false; refinement.replaceChildren(el('h3','仮説を深める'),el('p',n.text));
+    renderKeywordContext(n, refinement);
     emphasize(n.id);
     button('構造化で仮説を整理',() => { showNode(n); openStructuring(); },refinement);
     const history = el('select'); history.setAttribute('aria-label','精緻化セッション');
@@ -461,8 +522,10 @@
     const legacy = document.getElementById('myDiagramDiv');
     const legacyDrawer = el('details'); legacyDrawer.append(el('summary','既存マップを参照')); legacyDrawer.append(legacy);
     const main = el('main',null,'hn-map-main'), sidebar = el('aside',null,'hn-sidebar'); panel.append(main,sidebar);
+    const secondary = el('div'); secondary.hidden = true; panel.append(secondary);
     const toolbar = el('div',null,'hn-actions'); main.append(toolbar);
     const guard = fn => () => { if (!ready || activeKey !== key()) throw new Error('保存データの読み込み中です。'); return fn(); };
+    button('SCAMPERで発散',guard(() => { const n = state.nodes.find(node => node.id === selectedId); if(!n) throw new Error('仮説を選択してください。'); scamperForNode(n); }),toolbar);
     button('仮説を追加',guard(() => nodeEditor()),toolbar); button('リンク追加',guard(() => edgeEditor()),toolbar);
     button('既存仮説を取り込む',guard(importLegacy),toolbar);
     button('全体を表示',() => network?.fit(),toolbar);
@@ -470,15 +533,19 @@
     button('パネル幅を変更',() => panel.classList.toggle('hn-wide'),toolbar);
     button('読める大きさ',readableView,toolbar);
     canvas = el('div',null,'hn-canvas'); canvas.id = 'hypothesisNetworkCanvas'; main.append(canvas);
-    itemList = el('details',null,'hn-item-list'); sidebar.append(itemList);
-    analysis = el('details',null,'hn-analysis'); sidebar.append(analysis);
-    details = el('div',null,'hn-details'); sidebar.append(details);
-    editorHost = el('div'); sidebar.append(editorHost);
+    itemList = el('details',null,'hn-item-list'); secondary.append(itemList);
+    analysis = el('details',null,'hn-analysis'); secondary.append(analysis);
+    details = el('div',null,'hn-details'); secondary.append(details);
+    editorHost = el('div',null,'hn-editor-overlay'); main.append(editorHost);
     refinement = el('section',null,'hn-support'); refinement.hidden = true;
     document.getElementById('processRefinementHost').append(refinement);
-    const support = el('section',null,'hn-support'); sidebar.append(support);
+    const support = el('section',null,'hn-support'); secondary.append(support);
     legacySupport = document.getElementById('processScamperSupport');
-    const container = document.querySelector('.hypothesis-area'); document.getElementById('processScamperHost').append(container); sidebar.append(legacyDrawer);
+    const container = document.querySelector('.hypothesis-area'); document.getElementById('processScamperHost').append(container); secondary.append(legacyDrawer);
+    structuringScamperHost = el('div'); structuringScamperHost.id = 'structuringScamperHost'; sidebar.prepend(structuringScamperHost);
+    const thinking = document.getElementById('processThinkingSupport');
+    if (thinking) secondary.append(thinking);
+    syncScamperWorkspace();
     legacySupport.addEventListener('toggle',() => { if(legacySupport.open) bindSources(); });
     const actions = el('div',null,'hn-actions'); support.append(actions);
     button('AIで仮説候補を抽出',extract,actions); button('選択した文章を候補に追加',guard(manualCandidate),actions);
@@ -509,6 +576,7 @@
     window.addEventListener('hn-render',renderHistory);
     window.addEventListener('app-layout-resized',() => network?.redraw());
     window.addEventListener('workspace-drawer-changed', event => {
+      if(event.detail.id === 'hypothesisWorkspaceDrawer') syncScamperWorkspace();
       if(event.detail.id === 'hypothesisWorkspaceDrawer' && event.detail.open) { render(); requestAnimationFrame(() => { renderGraph(); network?.redraw(); }); }
     });
     window.addEventListener('app-language-changed',() => { if (activeKey !== key()) message('言語が変更されました。対象言語の仮説を読み込むにはページを再読み込みしてください。'); });
@@ -520,8 +588,9 @@
     const sourceId = textarea === entry.querySelector('textarea.hypothesis-text') ? entry.dataset.hypothesisEntryId : (textarea.dataset.hnSourceId ||= M.id());
     let n = state.nodes.find(v => v.sourceConversationId === sourceId);
     if (!select && entry.dataset.processNodeId && !n) return;
-    if(n) {n.text=textarea.value.trim();n.updatedAt=new Date().toISOString();}
-    else {n=M.node({text:textarea.value,sourceText:textarea.value,sourceConversationId:sourceId,context:entry.dataset.basedKeywordLabels || ''});state.nodes.push(n);}
+    const keywords = entryKeywordContext(entry);
+    if(n) {Object.assign(n, keywords);n.text=textarea.value.trim();n.updatedAt=new Date().toISOString();}
+    else {n=M.node({text:textarea.value,sourceText:textarea.value,sourceConversationId:sourceId,...keywords});state.nodes.push(n);}
     changed();if(select) { showNode(n); openStructuring(); } return n;
   }
   function recordConversation(text,role) {

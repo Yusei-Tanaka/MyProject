@@ -369,3 +369,19 @@
 .process-map-drawer > summary { cursor: pointer; padding: 10px 16px; font-weight: 600; }
 .process-map-drawer .process-map-view { height: min(65vh, 650px); min-height: 420px; overflow: auto; }
 #golden-layout-container { min-height: 480px; }
+
+.process-minimap { margin: 0 0 12px; padding: 10px; border: 1px solid #dce4ed; border-radius: 8px; background: white; }
+.process-minimap > summary { font-weight: 600; }
+.process-minimap svg { display: block; width: 100%; height: auto; max-height: 220px; margin: 8px 0; }
+.process-minimap small { display: block; color: #64748b; font-size: 11px; }
+.process-minimap-link { fill: none; stroke: #b8c6d5; stroke-width: 1.5; }
+.process-minimap g { cursor: pointer; }
+.process-minimap rect { fill: #f1f5f9; stroke: #bdcbd8; }
+.process-minimap text { fill: #334155; font-size: 11px; pointer-events: none; }
+.process-minimap .is-current rect { fill: #e1f1ff; stroke: #258cce; stroke-width: 2.5; }
+.process-minimap g:focus rect, .process-minimap g:hover rect { stroke: #258cce; stroke-width: 2; }
+
+.process-map-canvas-region { position: relative; flex: 1 1 0; min-height: 0; overflow: hidden; }
+.main-page .process-map-canvas-region #processMapNetwork { width: 100%; height: 100%; }
+.process-map-canvas-region > .process-minimap { position: absolute; right: 12px; bottom: 12px; z-index: 3; box-sizing: border-box; width: min(220px, 45%); margin: 0; padding: 8px; box-shadow: 0 3px 12px rgba(30,50,70,.15); }
+.process-map-canvas-region .process-minimap svg { max-height: 140px; }

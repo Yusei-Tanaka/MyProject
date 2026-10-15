@@ -38,6 +38,7 @@
     currentMapId: null,
     map: null,
     breadcrumbs: [],
+    hierarchy: [],
     childrenByNode: new Map(),
     selection: null,
     linkSourceNodeId: null,
@@ -447,6 +448,10 @@
     state.map = bundle.map;
     state.currentMapId = String(bundle.map.mapId);
     state.breadcrumbs = Array.isArray(bundle.breadcrumbs) ? bundle.breadcrumbs : [];
+    state.hierarchy = Array.isArray(bundle.hierarchy) ? bundle.hierarchy : state.breadcrumbs.map((crumb,index,list) => ({
+      mapId:String(crumb.mapId),title:crumb.title,parentMapId:index ? String(list[index-1].mapId) : null
+    }));
+    renderHierarchyMinimap();
     state.childrenByNode = new Map(
       (Array.isArray(bundle.childMaps) ? bundle.childMaps : []).map((child) => [String(child.parentNodeId), child])
     );
@@ -459,7 +464,6 @@
     if (edges.length) state.edges.add(edges);
     state.dirty = false;
     setEditorEnabled(true);
-    updateContext();
     showEmptyInspector();
     updateGuidance();
     requestAnimationFrame(() => {
@@ -469,29 +473,49 @@
     state.loading = false;
   }
 
-  function updateContext() {
-    elements.title.textContent = state.map?.title || currentThemeName() || "探究プロセスマップ";
-    elements.grainSize.textContent = state.map?.grainSize || "研究全体";
-    elements.backBtn.disabled = state.breadcrumbs.length <= 1;
-    elements.breadcrumbs.replaceChildren();
-    state.breadcrumbs.forEach((crumb, index) => {
-      if (index > 0) {
-        const separator = document.createElement("span");
-        separator.className = "process-map-breadcrumb-separator";
-        separator.textContent = "＞";
-        separator.setAttribute("aria-hidden", "true");
-        elements.breadcrumbs.appendChild(separator);
-      }
-      const button = document.createElement("button");
-      button.type = "button";
-      button.textContent = crumb.title;
-      if (index === state.breadcrumbs.length - 1) {
-        button.setAttribute("aria-current", "page");
-        button.disabled = true;
-      } else {
-        button.addEventListener("click", () => openMap(String(crumb.mapId), "process_hierarchy_up", "パンくずから上位グレインへ移動"));
-      }
-      elements.breadcrumbs.appendChild(button);
+  function buildHierarchyOverview(hierarchy, rootId) {
+    const result = [], visited = new Set();
+    const visit = (id, depth, parent) => {
+      if (visited.has(id)) return;
+      const map = hierarchy.find(map => String(map.mapId) === id);
+      if (!map) return;
+      visited.add(id);
+      const item = {...map, mapId:id, depth, parent, row:result.length};
+      result.push(item);
+      hierarchy.filter(map => String(map.parentMapId) === id).forEach(child => visit(String(child.mapId), depth+1, item));
+    };
+    visit(String(rootId), 0, null);
+    return result;
+  }
+  function renderHierarchyMinimap() {
+    const svg = elements.minimap;
+    if (!svg) return;
+    svg.replaceChildren();
+    const root = state.breadcrumbs[0]?.mapId || state.currentMapId;
+    const items = buildHierarchyOverview(state.hierarchy, root);
+    const width = Math.max(190, ...items.map(item => 120 + item.depth * 65));
+    svg.setAttribute('viewBox', `0 0 ${width} ${Math.max(65, items.length * 35 + 15)}`);
+    const make = (tag, attributes) => {
+      const node = document.createElementNS('http://www.w3.org/2000/svg', tag);
+      Object.entries(attributes).forEach(([key,value]) => node.setAttribute(key,String(value)));
+      return node;
+    };
+    items.forEach(item => {
+      const x = 12 + item.depth * 65, y = 10 + item.row * 35;
+      if (item.parent) svg.appendChild(make('path', {d:`M ${22+item.parent.depth*65} ${22+item.parent.row*35} V ${y+12} H ${x}`,class:'process-minimap-link'}));
+      const group = make('g', {role:'button',tabindex:0,'aria-label':item.title,
+        'aria-current':item.mapId === state.currentMapId ? 'location' : 'false',
+        class:item.mapId === state.currentMapId ? 'is-current' : ''});
+      const title = make('title',{});title.textContent=item.title;group.appendChild(title);
+      group.appendChild(make('rect',{x,y,width:100,height:25,rx:5}));
+      const label = make('text',{x:x+7,y:y+17});label.textContent=String(item.title || 'マップ').slice(0,7)+(String(item.title || '').length>7?'…':'');group.appendChild(label);
+      const navigate = () => {
+        if (item.mapId === state.currentMapId || state.loading) return;
+        openMap(item.mapId,'process_minimap_navigation','ミニマップから移動').catch(error => setStatus(error.message,'error'));
+      };
+      group.addEventListener('click',navigate);
+      group.addEventListener('keydown',event => {if(event.key==='Enter'||event.key===' '){event.preventDefault();navigate();}});
+      svg.appendChild(group);
     });
   }
 
@@ -815,12 +839,6 @@
     }
   }
 
-  async function goBack() {
-    if (state.breadcrumbs.length <= 1) return;
-    const parent = state.breadcrumbs[state.breadcrumbs.length - 2];
-    await openMap(String(parent.mapId), "process_hierarchy_up", "上位グレインへ移動");
-  }
-
   function readableProcessMap() {
     if (!state.network) return;
     state.network.fit({animation:false});
@@ -830,10 +848,7 @@
   function bindElements() {
     elements = {
       processPanel: document.getElementById("process-map-view"),
-      backBtn: document.getElementById("processMapBackBtn"),
-      title: document.getElementById("processMapTitle"),
-      grainSize: document.getElementById("processMapGrainSize"),
-      breadcrumbs: document.getElementById("processMapBreadcrumbs"),
+      minimap: document.getElementById("processHierarchyMinimap"),
       nodeType: document.getElementById("processNodeType"),
       edgeType: document.getElementById("processEdgeType"),
       addNodeBtn: document.getElementById("processAddNodeBtn"),
@@ -896,7 +911,6 @@
       loadMap(state.currentMapId);
     });
     elements.saveBtn.addEventListener("click", () => saveNow(true));
-    elements.backBtn.addEventListener("click", goBack);
     elements.nodeForm.addEventListener("submit", updateSelectedNode);
     elements.deleteNodeBtn.addEventListener("click", () => {
       if (state.selection?.kind === "node") deleteNode(state.selection.id);

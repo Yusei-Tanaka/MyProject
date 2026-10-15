@@ -1232,7 +1232,18 @@ const fetchProcessMapBundle = async (executor, mapId, userId) => {
     cursor = parentRows[0] || null;
   }
 
+  const [hierarchyRows] = await executor.execute(
+    `SELECT m.map_id, m.title, h.parent_map_id
+       FROM ${PROCESS_TABLES.maps} m
+       LEFT JOIN ${PROCESS_TABLES.hierarchy} h ON h.child_map_id = m.map_id
+      WHERE m.user_id = ? AND m.theme_id = ?
+      ORDER BY m.created_at, m.map_id`,
+    [userId, mapRows[0].theme_id]
+  );
+
   return {
+    hierarchy: hierarchyRows.map(row => ({mapId: String(row.map_id), title: row.title,
+      parentMapId: row.parent_map_id == null ? null : String(row.parent_map_id)})),
     map: processMapRowToJson(mapRows[0]),
     breadcrumbs,
     nodes: nodeRows.map((row) => ({

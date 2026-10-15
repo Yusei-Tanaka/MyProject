@@ -15,10 +15,16 @@
   const str = value => typeof value === 'string' ? value : '';
   function node(value = {}) {
     const now = new Date().toISOString();
+    let legacyLabels = [];
+    try { const labels = JSON.parse(value.context); if (Array.isArray(labels) && labels.every(v => typeof v === 'string')) legacyLabels = labels; } catch (_) {}
+    const keywordLabels = Array.isArray(value.keywordLabels) ? value.keywordLabels : legacyLabels;
+    const keywordNodeIds = Array.isArray(value.keywordNodeIds) ? value.keywordNodeIds : [];
     return { ...value, id: str(value.id) || id(), text: str(value.text).trim(),
       hypothesisType: Object.hasOwn(types, value.hypothesisType) ? value.hypothesisType : 'unclassified',
       subject: str(value.subject), relationship: str(value.relationship), object: str(value.object),
-      context: str(value.context), qualifier: str(value.qualifier), sourceText: str(value.sourceText),
+      keywordNodeIds: [...new Set(keywordNodeIds.filter(v => typeof v === 'string' || typeof v === 'number').map(String))],
+      keywordLabels: keywordLabels.map(str),
+      context: legacyLabels.length ? '' : str(value.context), qualifier: str(value.qualifier), sourceText: str(value.sourceText),
       sourceConversationId: str(value.sourceConversationId),
       reviewStatus: str(value.reviewStatus) || 'unexamined',
       position: value.position && Number.isFinite(value.position.x) && Number.isFinite(value.position.y) ? {x:value.position.x,y:value.position.y} : null,
