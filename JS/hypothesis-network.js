@@ -8,8 +8,10 @@
   let initialViewSet = false;
   let structuringScamperHost;
   let emptyState, processImportBusy = false;
-  let deleteButton, undoDeleteButton;
-  const deletedNodes = [];
+  let deleteButton, undoDeleteButton, addEdgeButton, editEdgeButton, edgeType;
+  let selectedEdgeId = null, linkSourceNodeId = null;
+  const deletions = [];
+  const linkRelations = { directed: '通常の有向リンク', ...M.relations };
   const linkBusy = new Set();
   const config = window.APP_CONFIG || {};
   const key = () => JSON.stringify(['hypothesis-network-draft', localStorage.getItem('userName'), localStorage.getItem('searchTitle'), window.APP_I18N?.getLanguage() || 'ja']);
@@ -152,7 +154,7 @@
     openStructuring();
     const dialog = el('section', null, 'hn-dialog'), body = el('form');
     editorHost.replaceChildren(dialog); details.hidden = true; refinement.hidden = true; review.hidden = true;
-    dialog.close = () => { dialog.remove(); details.hidden = false; review.hidden = false; if (sideMode === 'refine') showRefinement(); else if (selectedId) {const n=state.nodes.find(n=>n.id===selectedId);if(n) showNode(n);} };
+    dialog.close = () => { dialog.remove(); details.hidden = false; review.hidden = false; if (sideMode === 'refine') showRefinement(); else if (selectedEdgeId) {const e=state.edges.find(e=>e.id===selectedEdgeId);if(e) showEdge(e);} else if (selectedId) {const n=state.nodes.find(n=>n.id===selectedId);if(n) showNode(n);} };
     body.append(el('h3', title)); const controls = {};
     Object.entries(fields).forEach(([name, spec]) => {
       const label = el('label', spec.label), input = el(spec.options ? 'select' : spec.multiline ? 'textarea' : 'input');
@@ -257,26 +259,93 @@
   }
   function edgeEditor(e = {}, candidate = null) {
     if (state.nodes.length < 2) throw new Error('リンクには2つ以上の仮説が必要です。');
+    cancelLinkMode();
     const options = Object.fromEntries(state.nodes.map((n,i) => [n.id, `${i+1}. ${n.text.slice(0,90)}`]));
     form(candidate ? 'AIリンク候補を確認して採用' : e.id ? 'リンクの編集' : 'リンクを追加', {
       sourceNodeId: { label: '元の仮説（矢印の出発点）', value: e.sourceNodeId || state.nodes[0].id, options },
       targetNodeId: { label: '接続先の仮説（矢印の到着点）', value: e.targetNodeId || state.nodes[1].id, options },
-      relationType: { label: '思考上の変化', value: e.relationType || 'unclassified', options: { ...M.relations, ...(e.relationType ? { [e.relationType]: M.relations[e.relationType] || e.relationType } : {}) } },
+      relationType: { label: '関係', value: e.relationType || 'directed', options: { ...linkRelations, ...(e.relationType ? { [e.relationType]: linkRelations[e.relationType] || e.relationType } : {}) } },
       label: {label:'自由な関係ラベル',value:e.label || ''},
       explanation: { label: '判定理由・メモ', value: e.explanation, multiline: true },
     }, values => {
-      const next = M.edge({ ...e, ...values, label: values.label || M.relations[values.relationType] || values.relationType, id: candidate ? M.id() : e.id });
+      const next = M.edge({ ...e, ...values, label: values.label || (values.relationType === 'directed' ? '' : linkRelations[values.relationType] || values.relationType), id: candidate ? M.id() : e.id });
       const error = M.validateEdge(state,next,true); if (error) throw new Error(error);
+      savePositions();
       if (e.id && !candidate) Object.assign(e,next); else state.edges.push(next);
       if (candidate) candidate.status = 'accepted';
       changed();
     });
   }
+  function beginLinkMode() {
+    if (state.nodes.length < 2) throw new Error('リンクには2つ以上の仮説が必要です。');
+    editorHost?.replaceChildren();
+    const selected = (network?.getSelectedNodes() || []).filter(id => state.nodes.some(n => n.id === id));
+    if (selected.length === 2) {
+      createEdge(selected[0], selected[1]);
+      return;
+    }
+    linkSourceNodeId = selected.length === 1 ? selected[0] : '';
+    if (addEdgeButton) { addEdgeButton.textContent = 'リンク作成を取消'; addEdgeButton.setAttribute('aria-pressed', 'true'); }
+    canvas?.classList.add('is-linking');
+    message(selected.length === 1 ? 'リンク先のノードを選択してください。' : 'リンク元のノードを選択してください。');
+  }
+  function cancelLinkMode() {
+    linkSourceNodeId = null;
+    if (addEdgeButton) { addEdgeButton.textContent = 'リンク作成'; addEdgeButton.setAttribute('aria-pressed', 'false'); }
+    canvas?.classList.remove('is-linking');
+  }
+  function createEdge(sourceNodeId, targetNodeId) {
+    const relationType = edgeType?.value || 'directed';
+    const edge = M.edge({ sourceNodeId, targetNodeId, relationType,
+      label: relationType === 'directed' ? '' : linkRelations[relationType] || relationType });
+    const error = M.validateEdge(state, edge, true);
+    if (error) { message(error); return; }
+    savePositions();
+    state.edges.push(edge);
+    changed(); showEdge(edge);
+    message('リンクを追加しました。選択して「リンク編集」で関係や理由を変更できます。');
+  }
+  function handleGraphClick(params) {
+    if (!ready || activeKey !== key()) return;
+    if (linkSourceNodeId !== null) {
+      if (params.nodes.length !== 1) return;
+      const nodeId = params.nodes[0];
+      if (linkSourceNodeId === '') {
+        linkSourceNodeId = nodeId;
+        const node = state.nodes.find(n => n.id === nodeId);
+        if (node) showNode(node);
+        message('リンク先のノードを選択してください。');
+      } else if (linkSourceNodeId === nodeId) {
+        message('リンク元と異なるノードを選択してください。');
+      } else {
+        createEdge(linkSourceNodeId, nodeId);
+        cancelLinkMode();
+      }
+      return;
+    }
+    if (params.nodes.length) { const n = state.nodes.find(n => n.id === params.nodes[0]); if (n) showNode(n); }
+    else if (params.edges.length) { const e = state.edges.find(e => e.id === params.edges[0]); if (e) showEdge(e); }
+    else { clearNodeSelection(); render(); }
+  }
+  function removeEdge(e) {
+    const index = state.edges.findIndex(edge => edge.id === e?.id);
+    if (index < 0) return;
+    savePositions(); cancelLinkMode();
+    deletions.push({ kind: 'edge', edge: clone(state.edges[index]), index });
+    state.edges.splice(index, 1);
+    clearNodeSelection(); editorHost?.replaceChildren(); changed();
+    message('リンクを削除しました。「削除を取り消す」で戻せます。');
+  }
+  function deleteSelection() {
+    if (selectedEdgeId) removeEdge(state.edges.find(e => e.id === selectedEdgeId));
+    else removeNode(state.nodes.find(n => n.id === selectedId));
+  }
   function removeNode(n) {
     if (!n || n.nodeKind === 'theme' || !state.nodes.some(v => v.id === n.id)) return;
     savePositions();
     const connected = e => e.sourceNodeId === n.id || e.targetNodeId === n.id;
-    deletedNodes.push(clone({ node: n, index: state.nodes.findIndex(v => v.id === n.id),
+    cancelLinkMode();
+    deletions.push(clone({ kind: 'node', node: n, index: state.nodes.findIndex(v => v.id === n.id),
       edges: state.edges.filter(connected), linkCandidates: state.linkCandidates.filter(connected),
       candidates: state.candidates.filter(c => c.nodeId === n.id).map(c => ({id:c.id,status:c.status,nodeId:c.nodeId})) }));
     state.nodes = state.nodes.filter(v => v.id !== n.id);
@@ -286,9 +355,18 @@
     state.candidates.filter(c => c.nodeId === n.id).forEach(c => { c.status = 'pending'; delete c.nodeId; }); changed();
     message('ノードを削除しました。「削除を取り消す」で戻せます。');
   }
-  function undoNodeDeletion() {
-    const removed = deletedNodes.pop();
+  function undoDeletion() {
+    const removed = deletions.pop();
     if (!removed) return;
+    cancelLinkMode();
+    if (removed.kind === 'edge') {
+      if (state.nodes.some(n => n.id === removed.edge.sourceNodeId) && state.nodes.some(n => n.id === removed.edge.targetNodeId) && !state.edges.some(e => e.id === removed.edge.id)) {
+        state.edges.splice(removed.index, 0, removed.edge);
+        changed(); showEdge(removed.edge);
+        message('削除したリンクを戻しました。');
+      } else updateDeleteActions();
+      return;
+    }
     state.nodes.splice(removed.index, 0, removed.node);
     const ids = new Set(state.nodes.map(n => n.id));
     for (const field of ['edges', 'linkCandidates']) {
@@ -298,16 +376,19 @@
       const current = state.candidates.find(c => c.id === previous.id);
       if (current && current.status === 'pending' && !current.nodeId) Object.assign(current, previous);
     });
-    selectedId = removed.node.id; sideMode = 'selected';
+    selectedId = removed.node.id; selectedEdgeId = null; sideMode = 'selected';
     changed();
     message('削除したノードとリンクを戻しました。');
   }
   function updateDeleteActions() {
-    if (deleteButton) deleteButton.disabled = !ready || !state.nodes.some(n => n.id === selectedId && n.nodeKind !== 'theme');
-    if (undoDeleteButton) undoDeleteButton.disabled = !ready || !deletedNodes.length;
+    const hasEdge = state.edges.some(e => e.id === selectedEdgeId);
+    if (deleteButton) deleteButton.disabled = !ready || (!hasEdge && !state.nodes.some(n => n.id === selectedId && n.nodeKind !== 'theme'));
+    if (editEdgeButton) editEdgeButton.disabled = !ready || !hasEdge;
+    if (undoDeleteButton) undoDeleteButton.disabled = !ready || !deletions.length;
+    if (addEdgeButton) addEdgeButton.disabled = !ready || state.nodes.length < 2;
   }
   function clearNodeSelection() {
-    selectedId = null; activeSessionId = null; sideMode = 'idle';
+    selectedId = null; selectedEdgeId = null; activeSessionId = null; sideMode = 'idle';
     network?.unselectAll();
     updateDeleteActions();
   }
@@ -417,7 +498,7 @@
     parent.append(section);
   }
   function showNode(n) {
-    selectedId = n.id; activeSessionId = null; sideMode = 'selected';
+    selectedId = n.id; selectedEdgeId = null; activeSessionId = null; sideMode = 'selected';
     updateDeleteActions();
     editorHost?.replaceChildren(); refinement.hidden = true; review.hidden = false; details.hidden = false;
     renderReview(); emphasize(n.id);
@@ -438,26 +519,33 @@
   }
   function showEdge(e) {
     clearNodeSelection();
+    selectedEdgeId = e.id;
+    updateDeleteActions();
+    if (graphNodes) graphNodes.update(state.nodes.map(n => ({id:n.id, opacity:1, borderWidth:1})));
+    if (graphEdges) graphEdges.update(state.edges.map(edge => ({id:edge.id, width:edge.id === e.id ? 3 : 1})));
+    network?.selectEdges([e.id]);
     activeSessionId = null; sideMode = 'edge'; editorHost?.replaceChildren(); refinement.hidden = true; details.hidden = false; review.hidden = false;
     details.replaceChildren(el('h4',e.label),el('p',`relationType: ${e.relationType}`),el('p',e.explanation || '判定理由は未入力です。'),el('p',e.aiGenerated ? `AI候補から採用 · 確信度 ${e.confidence ?? '不明'}` : '手動作成'));
     button('方向・リンク先・タイプ・理由を編集',() => edgeEditor(e),details);
-    button('リンク削除',() => { state.edges = state.edges.filter(v => v.id !== e.id); changed(); },details);
+    button('リンク削除',() => removeEdge(e),details);
+    message('リンクを選択しました。「選択を削除」で削除、「リンク編集」で方向・関係・理由を変更できます。');
   }
   function renderGraph() {
     if (!canvas || !window.vis || canvas.clientWidth === 0 || canvas.clientHeight === 0) return;
     const colors = { working: '#e8efff', explanatory: '#fff1d3', operational: '#dcf5e9' };
     const nodes = state.nodes.map((n,i) => ({ id: n.id, label: `${n.nodeKind === 'theme' ? '探究テーマ' : M.types[n.hypothesisType]}\n${n.text.length > 100 ? n.text.slice(0,100)+'…' : n.text}`, ...(n.position ? {x:n.position.x,y:n.position.y} : {x:(i%4)*300,y:Math.floor(i/4)*180}), color: n.nodeKind === 'theme' ? '#d7eafb' : colors[n.hypothesisType] || '#eef1f4', shape: 'box', margin: 12, borderWidth: 1, opacity: 1, widthConstraint: { maximum: 240 } }));
-    const edges = state.edges.map(e => ({ id: e.id, from: e.sourceNodeId, to: e.targetNodeId, label: e.label, arrows: 'to', smooth: { type:'curvedCW', roundness:0.12 }, font: { size: 11, align: 'middle' } }));
+    const edges = state.edges.map(e => ({ id: e.id, from: e.sourceNodeId, to: e.targetNodeId, label: e.label, arrows: 'to', width: e.id === selectedEdgeId ? 3 : 1, color: { color:'#8494a7', highlight:'#e67e22', hover:'#3498db' }, smooth: { type:'curvedCW', roundness:0.12 }, font: { size: 11, align: 'middle' } }));
     if (!network) {
       graphNodes = new vis.DataSet(nodes); graphEdges = new vis.DataSet(edges);
-      network = new vis.Network(canvas,{ nodes:graphNodes, edges:graphEdges }, { physics: false, interaction: { hover: true }, nodes: { font:{ size:15 } } });
-      network.on('doubleClick',params => { const n = state.nodes.find(n => n.id === params.nodes[0]); if(n && n.nodeKind !== 'theme') nodeEditor(n); });
-      network.on('dragEnd', params => { if (!params.nodes.length) return; savePositions(); persist(); });
-      network.on('click',params => {
-        if (params.nodes.length) { const n = state.nodes.find(n => n.id === params.nodes[0]); if (n) showNode(n); }
-        else if (params.edges.length) { const e = state.edges.find(e => e.id === params.edges[0]); if (e) showEdge(e); }
-        else { clearNodeSelection(); render(); }
+      network = new vis.Network(canvas,{ nodes:graphNodes, edges:graphEdges }, { physics: false, interaction: { hover: true, multiselect: true }, nodes: { font:{ size:15 } } });
+      network.on('doubleClick',params => {
+        if (linkSourceNodeId !== null || !ready || activeKey !== key()) return;
+        const n = state.nodes.find(n => n.id === params.nodes[0]);
+        if(n && n.nodeKind !== 'theme') nodeEditor(n);
+        else if (!params.nodes.length) { const e = state.edges.find(e => e.id === params.edges[0]); if (e) edgeEditor(e); }
       });
+      network.on('dragEnd', params => { if (!params.nodes.length) return; savePositions(); persist(); });
+      network.on('click',handleGraphClick);
     } else {
       graphEdges.remove(graphEdges.getIds().filter(id => !edges.some(e => e.id === id)));
       graphNodes.remove(graphNodes.getIds().filter(id => !nodes.some(n => n.id === id)));
@@ -511,7 +599,8 @@
       if (!ready || activeKey !== targetKey || key() !== targetKey) throw new Error('テーマまたは言語が変わりました。対象の画面で取り込み直してください。');
       const imported = M.mergeProcessHypotheses(state, bundles, themeName);
       state = imported.graph;
-      deletedNodes.length = 0;
+      deletions.length = 0;
+      cancelLinkMode(); clearNodeSelection();
       arrangeNodes(false);
       changed();
       message('プロセスマップの説明仮説・作業仮説と接続を反映しました。');
@@ -561,7 +650,7 @@
   }
   function beginRefinement(n) {
     if(!ready) return;
-    selectedId = n.id; sideMode = 'refine';
+    selectedId = n.id; selectedEdgeId = null; sideMode = 'refine';
     const session = {id:M.id(),nodeId:n.id,text:'',questions:[],history:[],createdAt:new Date().toISOString(),hypothesisSnapshot:n.text};
     state.sessions.push(session); activeSessionId = session.id; n.reviewStatus = 'in_progress';
     editorHost.replaceChildren(); details.hidden = true; changed(); openProcessSupport('processThinkingSupport');
@@ -607,11 +696,21 @@
     const toolbar = el('div',null,'hn-actions'); main.append(toolbar);
     const guard = fn => () => { if (!ready || activeKey !== key()) throw new Error('保存データの読み込み中です。'); return fn(); };
     button('SCAMPERで発散',guard(() => { const n = state.nodes.find(node => node.id === selectedId && node.nodeKind !== 'theme'); if(!n) throw new Error('仮説を選択してください。'); scamperForNode(n); }),toolbar);
-    button('仮説を追加',guard(() => nodeEditor()),toolbar); button('リンク追加',guard(() => edgeEditor()),toolbar);
-    deleteButton = button('選択ノードを削除',guard(() => removeNode(state.nodes.find(n => n.id === selectedId))),toolbar);
+    button('仮説を追加',guard(() => { cancelLinkMode(); nodeEditor(); }),toolbar);
+    const relationLabel = el('label', '関係'); edgeType = el('select'); edgeType.id = 'hypothesisEdgeType';
+    relationLabel.htmlFor = edgeType.id;
+    Object.entries(linkRelations).forEach(([value, text]) => { const option = el('option', text); option.value = value; edgeType.append(option); });
+    edgeType.value = 'directed'; toolbar.append(relationLabel, edgeType);
+    addEdgeButton = button('リンク作成',guard(() => {
+      if (linkSourceNodeId !== null) { cancelLinkMode(); message('リンク作成を取り消しました。'); }
+      else beginLinkMode();
+    }),toolbar);
+    addEdgeButton.setAttribute('aria-pressed', 'false');
+    deleteButton = button('選択を削除',guard(deleteSelection),toolbar);
     deleteButton.className = 'hn-delete-node';
-    deleteButton.title = 'マップ上のノードを選択して削除します';
-    undoDeleteButton = button('削除を取り消す',guard(undoNodeDeletion),toolbar);
+    deleteButton.title = 'マップ上のノードまたはリンクを選択して削除します';
+    editEdgeButton = button('リンク編集',guard(() => { const e = state.edges.find(e => e.id === selectedEdgeId); if (e) edgeEditor(e); }),toolbar);
+    undoDeleteButton = button('削除を取り消す',guard(undoDeletion),toolbar);
     updateDeleteActions();
     button('プロセスの仮説を取り込む',guard(importProcessHypotheses),toolbar);
     button('全体を表示',() => network?.fit(),toolbar);

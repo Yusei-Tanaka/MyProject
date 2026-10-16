@@ -475,47 +475,111 @@
 
   function buildHierarchyOverview(hierarchy, rootId) {
     const result = [], visited = new Set();
+    const maps = new Map(hierarchy.map(map => [String(map.mapId), map]));
+    const children = new Map();
+    hierarchy.forEach(map => {
+      if (map.parentMapId == null) return;
+      const parentId = String(map.parentMapId);
+      if (!children.has(parentId)) children.set(parentId, []);
+      children.get(parentId).push(String(map.mapId));
+    });
     const visit = (id, depth, parent) => {
       if (visited.has(id)) return;
-      const map = hierarchy.find(map => String(map.mapId) === id);
+      const map = maps.get(id);
       if (!map) return;
       visited.add(id);
-      const item = {...map, mapId:id, depth, parent, row:result.length};
+      const item = { ...map, mapId: id, depth, parent };
       result.push(item);
-      hierarchy.filter(map => String(map.parentMapId) === id).forEach(child => visit(String(child.mapId), depth+1, item));
+      (children.get(id) || []).forEach(childId => visit(childId, depth + 1, item));
     };
     visit(String(rootId), 0, null);
     return result;
   }
+
   function renderHierarchyMinimap() {
-    const svg = elements.minimap;
-    if (!svg) return;
-    svg.replaceChildren();
+    const viewport = elements.minimap;
+    if (!viewport) return;
+    const restoreFocus = viewport.contains(document.activeElement);
+    viewport.replaceChildren();
     const root = state.breadcrumbs[0]?.mapId || state.currentMapId;
     const items = buildHierarchyOverview(state.hierarchy, root);
-    const width = Math.max(190, ...items.map(item => 120 + item.depth * 65));
-    svg.setAttribute('viewBox', `0 0 ${width} ${Math.max(65, items.length * 35 + 15)}`);
-    const make = (tag, attributes) => {
-      const node = document.createElementNS('http://www.w3.org/2000/svg', tag);
-      Object.entries(attributes).forEach(([key,value]) => node.setAttribute(key,String(value)));
+    if (elements.minimapCount) elements.minimapCount.textContent = `${items.length}`;
+    const make = (tag, className, text) => {
+      const node = document.createElement(tag);
+      node.className = className;
+      if (text) node.textContent = text;
       return node;
     };
+    if (!items.length) {
+      viewport.appendChild(make('p', 'process-minimap__empty', 'まだマップがありません。'));
+      return;
+    }
+
+    const currentId = String(state.currentMapId);
+    const current = items.find(item => item.mapId === currentId);
+    const currentPath = new Set();
+    for (let item = current; item; item = item.parent) currentPath.add(item.mapId);
+    const tree = make('ol', 'process-minimap__tree');
+    // Keep text readable even in deep hierarchies; scroll instead of scaling it down.
+    tree.style.minWidth = `${200 + Math.max(...items.map(item => item.depth)) * 16}px`;
+    const rows = new Map(), childLists = new Map(), buttons = [];
+    let currentButton = null, navigating = false;
     items.forEach(item => {
-      const x = 12 + item.depth * 65, y = 10 + item.row * 35;
-      if (item.parent) svg.appendChild(make('path', {d:`M ${22+item.parent.depth*65} ${22+item.parent.row*35} V ${y+12} H ${x}`,class:'process-minimap-link'}));
-      const group = make('g', {role:'button',tabindex:0,'aria-label':item.title,
-        'aria-current':item.mapId === state.currentMapId ? 'location' : 'false',
-        class:item.mapId === state.currentMapId ? 'is-current' : ''});
-      const title = make('title',{});title.textContent=item.title;group.appendChild(title);
-      group.appendChild(make('rect',{x,y,width:100,height:25,rx:5}));
-      const label = make('text',{x:x+7,y:y+17});label.textContent=String(item.title || 'マップ').slice(0,7)+(String(item.title || '').length>7?'…':'');group.appendChild(label);
-      const navigate = () => {
-        if (item.mapId === state.currentMapId || state.loading) return;
-        openMap(item.mapId,'process_minimap_navigation','ミニマップから移動').catch(error => setStatus(error.message,'error'));
-      };
-      group.addEventListener('click',navigate);
-      group.addEventListener('keydown',event => {if(event.key==='Enter'||event.key===' '){event.preventDefault();navigate();}});
-      svg.appendChild(group);
+      const isCurrent = item.mapId === currentId;
+      const row = make('li', currentPath.has(item.mapId) ? 'is-on-path' : '');
+      const button = make('button', `process-minimap__map${isCurrent ? ' is-current' : ''}`);
+      button.type = 'button';
+      button.title = String(item.title || 'マップ');
+      const icon = make('span', 'process-minimap__icon');
+      icon.setAttribute('aria-hidden', 'true');
+      button.appendChild(icon);
+      button.appendChild(make('span', 'process-minimap__label', button.title));
+      if (isCurrent) {
+        button.setAttribute('aria-current', 'location');
+        button.appendChild(make('span', 'process-minimap__badge', '現在地'));
+        currentButton = button;
+      }
+      button.addEventListener('click', async () => {
+        if (item.mapId === String(state.currentMapId) || state.loading || navigating) return;
+        navigating = true;
+        try {
+          await openMap(item.mapId, 'process_minimap_navigation', 'ミニマップから移動');
+        } catch (error) {
+          setStatus(error.message, 'error');
+        } finally {
+          navigating = false;
+        }
+      });
+      buttons.push(button);
+      row.appendChild(button);
+      rows.set(item.mapId, row);
+      if (item.parent) {
+        let list = childLists.get(item.parent.mapId);
+        if (!list) {
+          list = make('ol', 'process-minimap__branch');
+          rows.get(item.parent.mapId).appendChild(list);
+          childLists.set(item.parent.mapId, list);
+        }
+        list.appendChild(row);
+      } else {
+        tree.appendChild(row);
+      }
+      button.addEventListener('keydown', event => {
+        const index = buttons.indexOf(button);
+        const next = { ArrowDown: index + 1, ArrowUp: index - 1, Home: 0, End: buttons.length - 1 }[event.key];
+        if (next === undefined) return;
+        event.preventDefault();
+        buttons[Math.max(0, Math.min(buttons.length - 1, next))].focus();
+      });
+    });
+    viewport.appendChild(tree);
+    requestAnimationFrame(() => {
+      if (!currentButton || !viewport.contains(currentButton)) return;
+      if (restoreFocus) currentButton.focus({ preventScroll: true });
+      const bounds = viewport.getBoundingClientRect();
+      const location = currentButton.getBoundingClientRect();
+      if (location.top < bounds.top) viewport.scrollTop += location.top - bounds.top - 4;
+      else if (location.bottom > bounds.bottom) viewport.scrollTop += location.bottom - bounds.bottom + 4;
     });
   }
 
@@ -849,6 +913,7 @@
     elements = {
       processPanel: document.getElementById("process-map-view"),
       minimap: document.getElementById("processHierarchyMinimap"),
+      minimapCount: document.getElementById("processHierarchyCount"),
       nodeType: document.getElementById("processNodeType"),
       edgeType: document.getElementById("processEdgeType"),
       addNodeBtn: document.getElementById("processAddNodeBtn"),

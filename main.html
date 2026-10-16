@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="process-map.css?v=20261016-minimap">
+    <link rel="stylesheet" href="process-map.css?v=20261016-minimap-hidden">
     <link rel="icon" type="image/svg+xml" href="./img/favicon.svg">
     <script>
       (function () {
@@ -40,7 +40,7 @@
     <script src="JS/vendor/jquery-1.11.1.min.js"></script>
     <script src="JS/vendor/goldenlayout.min.js"></script>
     <link type="text/css" rel="stylesheet" href="JS/vendor/goldenlayout-base.css" />
-      <link rel="stylesheet" href="hypothesis-network.css?v=20261016-node-delete">
+      <link rel="stylesheet" href="hypothesis-network.css?v=20261016-link-edit">
     <link rel="stylesheet" href="workspace-shell.css?v=20261016-process-drawer">
 </head>
   <body class="main-page">
@@ -175,10 +175,10 @@
           <div id="processMapStatus" class="process-map-status" role="status" aria-live="polite"></div>
           <div class="process-map-canvas-region">
           <div id="processMapNetwork" tabindex="0" aria-label="ノードとリンクを配置するキャンバス"></div>
-          <details class="process-minimap" open>
-            <summary>プロセスマップの全体像</summary>
-            <svg id="processHierarchyMinimap" role="group" aria-label="階層ミニマップ"></svg>
-            <small>青枠が現在地です。各マップを押すと移動できます。</small>
+          <details class="process-minimap" hidden>
+            <summary>マップの階層<span id="processHierarchyCount" class="process-minimap__count"></span></summary>
+            <nav id="processHierarchyMinimap" class="process-minimap__viewport" aria-label="プロセスマップの階層"></nav>
+            <small><span class="process-minimap__legend" aria-hidden="true"></span>現在地 · マップを選ぶと移動</small>
           </details>
           </div>
         </main>
@@ -290,7 +290,7 @@
     <script src="JS/vendor/vis-network.min.js"></script>
     <script src="JS/network.js?v=20261009-swap1"></script>
     <script src="JS/hypothesis-network-model.js?v=20261016-process-structure"></script>
-    <script src="JS/hypothesis-network.js?v=20261016-node-delete"></script>
+    <script src="JS/hypothesis-network.js?v=20261016-link-edit"></script>
     <script src="JS/hypothesis.js?v=20261016-node-delete"></script>
     <script src="JS/log.js?v=20260417-1"></script>
     <script src="JS/setFontSize.js?v=20261009-swap1"></script>
@@ -307,6 +307,6 @@
     <script src="JS/keywords_O(1).js?v=20260622-1"></script>
     <script src="JS/admin-menu.js"></script>
     <script src="JS/process-map-support.js"></script>
-    <script src="JS/process-map.js?v=20261016-minimap"></script>
+    <script src="JS/process-map.js?v=20261016-hierarchy-nav"></script>
   </body>
 </html>

@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const M = require('../JS/hypothesis-network-model');
 class Element {
-  constructor(tag) { this.tagName=tag; this.children=[]; this.dataset={}; this.value=''; this.hidden=false; this.options=[]; }
+  constructor(tag) { this.tagName=tag; this.children=[]; this.dataset={}; this.value=''; this.hidden=false; this.options=[]; this.classList={add(){},remove(){}}; }
   append(...items) { for(const item of items) { if(item.parentElement) item.remove(); item.parentElement=this; this.children.push(item); } if(this.tagName==='select') this.options=this.children; }
   replaceChildren(...items) { this.children.forEach(c=>c.parentElement=null); this.children=[]; this.append(...items); }
   remove() { if(this.parentElement) this.parentElement.children=this.parentElement.children.filter(c=>c!==this); this.parentElement=null; }
@@ -22,12 +22,15 @@ const sandbox = {window,document:{createElement:t=>new Element(t),querySelectorA
   fetch:async()=>({ok:true,json:async()=>({result:JSON.stringify({edges:[],questions:['何が観察されますか？']})})})};
 let source=fs.readFileSync(require.resolve('../JS/hypothesis-network.js'),'utf8');
 source=source.replace("  document.addEventListener('DOMContentLoaded'", `  window.test = {
-    setup() { ready=true; activeKey=key(); details=el('div'); refinement=el('div'); editorHost=el('div'); review=el('div'); analysis=el('div'); deleteButton=el('button'); undoDeleteButton=el('button'); updateDeleteActions(); },
+    setup() { ready=true; activeKey=key(); details=el('div'); refinement=el('div'); editorHost=el('div'); review=el('div'); analysis=el('div'); deleteButton=el('button'); undoDeleteButton=el('button'); addEdgeButton=el('button'); editEdgeButton=el('button'); edgeType=el('select'); edgeType.value='directed'; updateDeleteActions(); },
     get details(){return details;}, get state(){return state;}, get review(){return review;}, get editor(){return editorHost;}, get refinement(){return refinement;},
     get selected(){return selectedId;}, get activeSession(){return activeSessionId;},
-    get deleteButton(){return deleteButton;}, get undoDeleteButton(){return undoDeleteButton;},
-    nodeEditor,beginRefinement,showNode,showEdge,clearNodeSelection,removeNode,undoNodeDeletion,showRefinement,accept,extract,addFromEntry,
-    resetRestore(){ready=false;state=M.normalize();deletedNodes.length=0;localStorage.removeItem(key());},
+    get deleteButton(){return deleteButton;}, get undoDeleteButton(){return undoDeleteButton;}, get editEdgeButton(){return editEdgeButton;},
+    get linkSource(){return linkSourceNodeId;}, get selectedEdge(){return selectedEdgeId;}, get edgeType(){return edgeType;}, get network(){return network;},
+    mountGraph(){canvas=el('div');canvas.clientWidth=800;canvas.clientHeight=600;renderGraph();},
+    nodeEditor,edgeEditor,beginRefinement,showNode,showEdge,clearNodeSelection,removeNode,undoDeletion,showRefinement,accept,extract,addFromEntry,
+    beginLinkMode,cancelLinkMode,handleGraphClick,deleteSelection,
+    resetRestore(){ready=false;state=M.normalize();deletions.length=0;localStorage.removeItem(key());},
     manual(start,end){sourceSelection={id:activeSessionId,start,end};manualCandidate();},
   };
   document.addEventListener('DOMContentLoaded'`);
@@ -87,14 +90,62 @@ async function submit() {await T.editor.children[0].children[0].onsubmit({preven
   assert.equal(JSON.stringify(T.state.sessions),priorSessions);
   const deletionDraft=JSON.parse(storage.get([...storage.keys()].find(k=>k.includes('hypothesis-network-draft'))));
   assert(!deletionDraft.nodes.some(n=>n.id===adopted.id));
-  T.undoNodeDeletion();
+  T.undoDeletion();
   assert.equal(T.state.nodes.length,priorCount);assert.equal(JSON.stringify(T.state.edges),priorEdges);
   assert.equal(JSON.stringify(T.state.linkCandidates),priorCandidateLinks);
   assert.equal(candidate.status,'accepted');assert.equal(candidate.nodeId,adopted.id);
   assert.deepEqual(JSON.parse(JSON.stringify(T.state.nodes.find(n=>n.id===adopted.id).position)),{x:310,y:240});
   assert.equal(T.undoDeleteButton.disabled,true);assert.equal(T.deleteButton.disabled,false);
-  T.showEdge(T.state.edges[0]);assert.equal(T.selected,null);assert.equal(T.deleteButton.disabled,true);
+  T.showEdge(T.state.edges[0]);assert.equal(T.selected,null);assert.equal(T.deleteButton.disabled,false);assert.equal(T.editEdgeButton.disabled,false);
   T.showNode(original);T.clearNodeSelection();assert.equal(T.deleteButton.disabled,true);
+  // Use the actual graph click handler: the process map's source/target workflow.
+  class DataSet {
+    constructor(items){this.items=new Map();this.update(items);}
+    update(items){items.forEach(item=>this.items.set(item.id,{...this.items.get(item.id),...item}));}
+    getIds(){return [...this.items.keys()];}
+    remove(ids){ids.forEach(id=>this.items.delete(id));}
+  }
+  class Network {
+    constructor(element,data,options){this.data=data;this.options=options;this.events={};this.selected=[];}
+    on(name,handler){this.events[name]=handler;}
+    unselectAll(){this.selected=[];this.edgeSelection=[];}
+    getSelectedNodes(){return this.selected;}
+    selectNodes(ids){this.selected=ids;}
+    selectEdges(ids){this.selected=[];this.edgeSelection=ids;}
+    getPositions(){return Object.fromEntries([...this.data.nodes.items].map(([id,n])=>[id,{x:n.x,y:n.y}]));}
+    setSize(){} redraw(){} fit(){} getScale(){return 1;}
+  }
+  sandbox.vis=window.vis={DataSet,Network};sandbox.requestAnimationFrame=fn=>fn();
+  T.mountGraph();assert.equal(T.network.options.interaction.multiselect,true);
+  const click=nodes=>T.network.events.click({nodes,edges:[]});
+  const beforeLinks=T.state.edges.length;
+  T.beginLinkMode();assert.equal(T.linkSource,'');
+  click([original.id]);assert.equal(T.linkSource,original.id);
+  click([original.id]);assert.equal(T.state.edges.length,beforeLinks); // No self-link.
+  click(['parallel']);assert.equal(T.linkSource,null);assert.equal(T.state.edges.length,beforeLinks+1);
+  const manualEdge=T.state.edges.at(-1);
+  assert.equal(manualEdge.sourceNodeId,original.id);assert.equal(manualEdge.targetNodeId,'parallel');
+  assert.equal(manualEdge.label,'');assert.equal(T.selectedEdge,manualEdge.id);
+  T.network.selectNodes([original.id]);T.beginLinkMode();click(['parallel']);
+  assert.equal(T.state.edges.length,beforeLinks+1); // The same link is rejected.
+  T.network.events.click({nodes:[],edges:[manualEdge.id]});
+  assert.equal(T.selectedEdge,manualEdge.id);assert.equal(T.deleteButton.disabled,false);
+  T.edgeEditor(manualEdge);controls()[2].value='complement';controls()[3].value='確かめる関係';controls()[4].value='理由のメモ';await submit();
+  assert.equal(manualEdge.label,'確かめる関係');assert.equal(manualEdge.explanation,'理由のメモ');
+  assert.equal(T.selectedEdge,manualEdge.id);
+  const nodeCount=T.state.nodes.length;
+  T.deleteSelection();assert.equal(T.state.edges.length,beforeLinks);assert.equal(T.state.nodes.length,nodeCount);
+  assert(!window.HypothesisNetwork.snapshot().edges.some(e=>e.id===manualEdge.id));
+  T.undoDeletion();assert.equal(T.state.edges.length,beforeLinks+1);assert.equal(T.state.edges.at(-1).label,'確かめる関係');
+  T.deleteSelection(); // Leave only the original edges.
+  T.network.selectNodes([original.id]);T.beginLinkMode();assert.equal(T.linkSource,original.id);
+  T.cancelLinkMode();click(['parallel']);assert.equal(T.state.edges.length,beforeLinks);
+  T.edgeType.value='alternative';T.network.selectNodes(['parallel',original.id]);T.beginLinkMode();
+  const reverse=T.state.edges.at(-1);assert.equal(reverse.sourceNodeId,'parallel');assert.equal(reverse.targetNodeId,original.id);
+  assert.equal(reverse.relationType,'alternative');T.deleteSelection();T.edgeType.value='directed';
+  // Node deletion and its connected links still undo after a link-only deletion.
+  T.showNode(original);T.deleteSelection();assert(!T.state.nodes.some(n=>n.id===original.id));
+  T.undoDeletion();assert(T.state.nodes.some(n=>n.id===original.id));
   // A process question is a source for divergence until the learner registers it as a hypothesis.
   const processTextarea={value:'発散元の疑問',dataset:{}};
   const processEntry={dataset:{processNodeId:'process-source',hypothesisEntryId:'process-entry'},querySelector:()=>processTextarea};
@@ -152,5 +203,5 @@ async function submit() {await T.editor.children[0].children[0].onsubmit({preven
   // Loading an empty structure never brings in legacy-map text automatically.
   T.resetRestore();window.getMindmapNodes=()=>[{key:'1',text:'プロセスにない旧マップの記述'}];
   window.HypothesisNetwork.restore({nodes:[]});assert.equal(T.state.nodes.length,0);
-  console.log('hypothesis-workspace: selection deletion/undo, persistence, source restrictions, process hierarchy and scope checks passed');
+  console.log('hypothesis-workspace: process-style link creation, selection deletion/undo, persistence, source restrictions, process hierarchy and scope checks passed');
 })().catch(e=>{console.error(e);process.exitCode=1;});
