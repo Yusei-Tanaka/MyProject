@@ -1098,7 +1098,7 @@ function addHypothesisEntry(nodeIds, options) {
   if (support) support.open = true;
   entry.scrollIntoView({block: "nearest"});
   logHypothesisAction(`仮説: 追加 (基づくキーワード: ${keywordLabels.join("、")})`);
-  if (!options.processContext && !options.networkNodeId) window.HypothesisNetwork?.addFromEntry(entry, ta);
+  if (!options.processContext && !options.networkNodeId) window.HypothesisNetwork?.addFromEntry(entry, ta, false);
   scheduleHypothesisSave();
   return entry;
 }

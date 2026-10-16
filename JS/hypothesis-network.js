@@ -7,6 +7,9 @@
   let selectedId = null, activeSessionId = null, sideMode = 'idle', editorHost, refinement, legacySupport;
   let initialViewSet = false;
   let structuringScamperHost;
+  let emptyState, processImportBusy = false;
+  let deleteButton, undoDeleteButton;
+  const deletedNodes = [];
   const linkBusy = new Set();
   const config = window.APP_CONFIG || {};
   const key = () => JSON.stringify(['hypothesis-network-draft', localStorage.getItem('userName'), localStorage.getItem('searchTitle'), window.APP_I18N?.getLanguage() || 'ja']);
@@ -66,7 +69,6 @@
     state = M.normalize(draft && (!value || String(draft.updatedAt) > String(value.updatedAt || '')) ? draft : value);
     dirty = !!draft && JSON.stringify(state) === JSON.stringify(M.normalize(draft)); ready = true;
     render(); bindSources();
-    if (!state.nodes.length && (window.getMindmapNodes?.().some(v => String(v.key) !== '0' && v.text?.trim()) || document.querySelector('#hypothesisWrapper textarea.hypothesis-text')?.value.trim())) importLegacy();
     if (dirty) { message('保存前の下書きを復元しました。DBに再保存します。'); scheduleHypothesisSave(); }
     else message('候補の採用・修正は学習者が決定します。');
   }
@@ -271,12 +273,43 @@
     });
   }
   function removeNode(n) {
-    if (!window.confirm('この仮説と接続するリンクを削除しますか？')) return;
+    if (!n || n.nodeKind === 'theme' || !state.nodes.some(v => v.id === n.id)) return;
+    savePositions();
+    const connected = e => e.sourceNodeId === n.id || e.targetNodeId === n.id;
+    deletedNodes.push(clone({ node: n, index: state.nodes.findIndex(v => v.id === n.id),
+      edges: state.edges.filter(connected), linkCandidates: state.linkCandidates.filter(connected),
+      candidates: state.candidates.filter(c => c.nodeId === n.id).map(c => ({id:c.id,status:c.status,nodeId:c.nodeId})) }));
     state.nodes = state.nodes.filter(v => v.id !== n.id);
-    state.edges = state.edges.filter(e => e.sourceNodeId !== n.id && e.targetNodeId !== n.id);
-    state.linkCandidates = state.linkCandidates.filter(e => e.sourceNodeId !== n.id && e.targetNodeId !== n.id);
-    if (selectedId === n.id) { selectedId = null; activeSessionId = null; sideMode = 'idle'; }
+    state.edges = state.edges.filter(e => !connected(e));
+    state.linkCandidates = state.linkCandidates.filter(e => !connected(e));
+    if (selectedId === n.id) clearNodeSelection();
     state.candidates.filter(c => c.nodeId === n.id).forEach(c => { c.status = 'pending'; delete c.nodeId; }); changed();
+    message('ノードを削除しました。「削除を取り消す」で戻せます。');
+  }
+  function undoNodeDeletion() {
+    const removed = deletedNodes.pop();
+    if (!removed) return;
+    state.nodes.splice(removed.index, 0, removed.node);
+    const ids = new Set(state.nodes.map(n => n.id));
+    for (const field of ['edges', 'linkCandidates']) {
+      state[field].push(...removed[field].filter(e => ids.has(e.sourceNodeId) && ids.has(e.targetNodeId) && !state[field].some(v => v.id === e.id)));
+    }
+    removed.candidates.forEach(previous => {
+      const current = state.candidates.find(c => c.id === previous.id);
+      if (current && current.status === 'pending' && !current.nodeId) Object.assign(current, previous);
+    });
+    selectedId = removed.node.id; sideMode = 'selected';
+    changed();
+    message('削除したノードとリンクを戻しました。');
+  }
+  function updateDeleteActions() {
+    if (deleteButton) deleteButton.disabled = !ready || !state.nodes.some(n => n.id === selectedId && n.nodeKind !== 'theme');
+    if (undoDeleteButton) undoDeleteButton.disabled = !ready || !deletedNodes.length;
+  }
+  function clearNodeSelection() {
+    selectedId = null; activeSessionId = null; sideMode = 'idle';
+    network?.unselectAll();
+    updateDeleteActions();
   }
   async function ai(instruction, input) {
     const host = config.host || window.location.hostname || '127.0.0.1';
@@ -385,9 +418,11 @@
   }
   function showNode(n) {
     selectedId = n.id; activeSessionId = null; sideMode = 'selected';
+    updateDeleteActions();
     editorHost?.replaceChildren(); refinement.hidden = true; review.hidden = false; details.hidden = false;
     renderReview(); emphasize(n.id);
-    details.replaceChildren(el('h4',M.types[n.hypothesisType]),el('p',n.text));
+    details.replaceChildren(el('h4',n.nodeKind === 'theme' ? '探究テーマ' : M.types[n.hypothesisType]),el('p',n.text));
+    if (n.nodeKind === 'theme') return;
     renderKeywordContext(n, details);
     details.append(el('p',`検討状態: ${n.reviewStatus === 'in_progress' ? '検討中' : '未検討'}`));
     details.append(el('p',`元の記述: ${n.sourceText || '手動追加'}`),el('p',`出典ID: ${n.sourceConversationId || 'なし'}`),
@@ -402,6 +437,7 @@
     button('編集',() => nodeEditor(n),details); button('削除',() => removeNode(n),details); button('AIリンク候補を再取得',() => inferLinks(n.id),details);
   }
   function showEdge(e) {
+    clearNodeSelection();
     activeSessionId = null; sideMode = 'edge'; editorHost?.replaceChildren(); refinement.hidden = true; details.hidden = false; review.hidden = false;
     details.replaceChildren(el('h4',e.label),el('p',`relationType: ${e.relationType}`),el('p',e.explanation || '判定理由は未入力です。'),el('p',e.aiGenerated ? `AI候補から採用 · 確信度 ${e.confidence ?? '不明'}` : '手動作成'));
     button('方向・リンク先・タイプ・理由を編集',() => edgeEditor(e),details);
@@ -410,16 +446,17 @@
   function renderGraph() {
     if (!canvas || !window.vis || canvas.clientWidth === 0 || canvas.clientHeight === 0) return;
     const colors = { working: '#e8efff', explanatory: '#fff1d3', operational: '#dcf5e9' };
-    const nodes = state.nodes.map((n,i) => ({ id: n.id, label: `${M.types[n.hypothesisType]}\n${n.text.length > 100 ? n.text.slice(0,100)+'…' : n.text}`, ...(n.position ? {x:n.position.x,y:n.position.y} : {x:(i%4)*300,y:Math.floor(i/4)*180}), color: colors[n.hypothesisType] || '#eef1f4', shape: 'box', margin: 12, widthConstraint: { maximum: 240 } }));
+    const nodes = state.nodes.map((n,i) => ({ id: n.id, label: `${n.nodeKind === 'theme' ? '探究テーマ' : M.types[n.hypothesisType]}\n${n.text.length > 100 ? n.text.slice(0,100)+'…' : n.text}`, ...(n.position ? {x:n.position.x,y:n.position.y} : {x:(i%4)*300,y:Math.floor(i/4)*180}), color: n.nodeKind === 'theme' ? '#d7eafb' : colors[n.hypothesisType] || '#eef1f4', shape: 'box', margin: 12, borderWidth: 1, opacity: 1, widthConstraint: { maximum: 240 } }));
     const edges = state.edges.map(e => ({ id: e.id, from: e.sourceNodeId, to: e.targetNodeId, label: e.label, arrows: 'to', smooth: { type:'curvedCW', roundness:0.12 }, font: { size: 11, align: 'middle' } }));
     if (!network) {
       graphNodes = new vis.DataSet(nodes); graphEdges = new vis.DataSet(edges);
       network = new vis.Network(canvas,{ nodes:graphNodes, edges:graphEdges }, { physics: false, interaction: { hover: true }, nodes: { font:{ size:15 } } });
-      network.on('doubleClick',params => { const n = state.nodes.find(n => n.id === params.nodes[0]); if(n) nodeEditor(n); });
+      network.on('doubleClick',params => { const n = state.nodes.find(n => n.id === params.nodes[0]); if(n && n.nodeKind !== 'theme') nodeEditor(n); });
       network.on('dragEnd', params => { if (!params.nodes.length) return; savePositions(); persist(); });
       network.on('click',params => {
         if (params.nodes.length) { const n = state.nodes.find(n => n.id === params.nodes[0]); if (n) showNode(n); }
         else if (params.edges.length) { const e = state.edges.find(e => e.id === params.edges[0]); if (e) showEdge(e); }
+        else { clearNodeSelection(); render(); }
       });
     } else {
       graphEdges.remove(graphEdges.getIds().filter(id => !edges.some(e => e.id === id)));
@@ -429,7 +466,9 @@
     if(state.nodes.length && !initialViewSet) {initialViewSet = true; requestAnimationFrame(readableView);}
   }
   function render() {
+    updateDeleteActions();
     renderReview(); bindSources(); renderGraph();
+    if (emptyState) emptyState.hidden = state.nodes.length > 0;
     if (itemList) {
       itemList.replaceChildren(el('summary', `仮説・リンク一覧（仮説 ${state.nodes.length}、リンク ${state.edges.length}）`));
       state.nodes.forEach((n,i) => button(`${i+1}. ${M.types[n.hypothesisType]}: ${n.text}`,() => showNode(n),itemList));
@@ -445,20 +484,40 @@
     if (sideMode === 'selected' && !editorHost.children.length) { const n = state.nodes.find(n => n.id === selectedId); if(n) showNode(n); }
     if (sideMode === 'refine' && !editorHost.children.length) showRefinement();
   }
-  function importLegacy() {
-    const raw = window.getMindmapNodes?.() || [];
-    const map = new Map();
-    raw.filter(v => String(v.key) !== '0' && v.text?.trim()).forEach(v => {
-      const existing = state.nodes.find(n => n.legacyKey === String(v.key) || (v.hypothesisEntryId && n.sourceConversationId === String(v.hypothesisEntryId)));
-      const n = existing || M.node({ text: v.text, sourceText: v.text, legacyKey: String(v.key), sourceConversationId:String(v.hypothesisEntryId || '') });
-      if (!existing) state.nodes.push(n); else n.legacyKey = String(v.key); map.set(String(v.key),n.id);
-    });
-    document.querySelectorAll('#hypothesisWrapper textarea.hypothesis-text').forEach(ta => { const entry = ta.closest('.hypothesis-box'), entryId = entry?.dataset.hypothesisEntryId; if(!entry?.dataset.processNodeId && ta.value.trim() && !state.nodes.some(n => n.sourceConversationId === entryId)) state.nodes.push(M.node({text:ta.value,sourceConversationId:entryId,sourceText:ta.value})); });
-    // Legacy parenthood is imported for review, never asserted as a semantic relation.
-    raw.forEach(v => {
-      const from = map.get(String(v.parent)), to = map.get(String(v.key));
-      if (from && to && !state.linkCandidates.some(e => e.sourceNodeId === from && e.targetNodeId === to)) state.linkCandidates.push({ ...M.edge({ sourceNodeId:from, targetNodeId:to, explanation:'旧マップの親子関係です。意味と方向を確認・変更してください。' }),status:'pending' });
-    }); changed();
+  async function importProcessHypotheses() {
+    if (!ready || activeKey !== key()) throw new Error('保存データの読み込み中です。');
+    if (processImportBusy) return;
+    const targetKey = key();
+    const userId = localStorage.getItem('userName') || '';
+    const themeName = localStorage.getItem('searchTitle') || '';
+    const language = window.APP_I18N?.getLanguage() || 'ja';
+    const host = config.host || window.location.hostname || '127.0.0.1';
+    const base = config.apiBaseUrl || `${config.protocol || 'http'}://${host}:${Number(config.apiPort || 3000)}`;
+    const read = async path => {
+      const response = await fetch(`${base}${path}`, { cache: 'no-store' });
+      if (!response.ok) {
+        if (response.status === 404) throw new Error('このテーマのプロセスマップが見つかりません。');
+        throw new Error(`プロセスの仮説を読み込めませんでした（HTTP ${response.status}）。`);
+      }
+      return response.json();
+    };
+    processImportBusy = true;
+    message('下位グレインを含むプロセスの仮説を読み込んでいます…');
+    try {
+      const root = await read(`/process-maps/root?userId=${encodeURIComponent(userId)}&themeName=${encodeURIComponent(themeName)}&language=${encodeURIComponent(language)}`);
+      const mapIds = [...new Set([root.map.mapId, ...(root.hierarchy || []).map(map => map.mapId)].map(String))];
+      const bundles = await Promise.all(mapIds.map(id => id === String(root.map.mapId)
+        ? root : read(`/process-maps/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId)}`)));
+      if (!ready || activeKey !== targetKey || key() !== targetKey) throw new Error('テーマまたは言語が変わりました。対象の画面で取り込み直してください。');
+      const imported = M.mergeProcessHypotheses(state, bundles, themeName);
+      state = imported.graph;
+      deletedNodes.length = 0;
+      arrangeNodes(false);
+      changed();
+      message('プロセスマップの説明仮説・作業仮説と接続を反映しました。');
+      requestAnimationFrame(() => network?.fit({ animation: false }));
+      return imported.added;
+    } finally { processImportBusy = false; }
   }
   function readableView() {
     if(!network) return;
@@ -466,6 +525,28 @@
     network.redraw();
     network.fit({animation:false});
     if(network.getScale() < 0.9) network.moveTo({scale:0.9,animation:false});
+  }
+  function arrangeNodes(overwrite = true) {
+    const root = state.nodes.find(n => n.nodeKind === 'theme');
+    if (!root) {
+      state.nodes.forEach((n,i) => { if (overwrite || !n.position) n.position = {x:(i%4)*300,y:Math.floor(i/4)*180}; });
+      return;
+    }
+    const ranks = new Map([[root.id,0]]), queue = [root.id];
+    for (let i=0; i<queue.length; i++) {
+      state.edges.filter(e => e.sourceNodeId === queue[i]).forEach(e => {
+        if (!ranks.has(e.targetNodeId)) { ranks.set(e.targetNodeId,ranks.get(queue[i])+1); queue.push(e.targetNodeId); }
+      });
+    }
+    const columns = new Map();
+    state.nodes.forEach(n => {
+      const rank = ranks.get(n.id) ?? 1;
+      if (!columns.has(rank)) columns.set(rank,[]);
+      columns.get(rank).push(n);
+    });
+    columns.forEach((nodes,rank) => nodes.forEach((n,i) => {
+      if (overwrite || !n.position) n.position = {x:rank*390,y:(i-(nodes.length-1)/2)*210};
+    }));
   }
   function savePositions() {
     const positions = network?.getPositions() || {};
@@ -525,13 +606,20 @@
     const secondary = el('div'); secondary.hidden = true; panel.append(secondary);
     const toolbar = el('div',null,'hn-actions'); main.append(toolbar);
     const guard = fn => () => { if (!ready || activeKey !== key()) throw new Error('保存データの読み込み中です。'); return fn(); };
-    button('SCAMPERで発散',guard(() => { const n = state.nodes.find(node => node.id === selectedId); if(!n) throw new Error('仮説を選択してください。'); scamperForNode(n); }),toolbar);
+    button('SCAMPERで発散',guard(() => { const n = state.nodes.find(node => node.id === selectedId && node.nodeKind !== 'theme'); if(!n) throw new Error('仮説を選択してください。'); scamperForNode(n); }),toolbar);
     button('仮説を追加',guard(() => nodeEditor()),toolbar); button('リンク追加',guard(() => edgeEditor()),toolbar);
-    button('既存仮説を取り込む',guard(importLegacy),toolbar);
+    deleteButton = button('選択ノードを削除',guard(() => removeNode(state.nodes.find(n => n.id === selectedId))),toolbar);
+    deleteButton.className = 'hn-delete-node';
+    deleteButton.title = 'マップ上のノードを選択して削除します';
+    undoDeleteButton = button('削除を取り消す',guard(undoNodeDeletion),toolbar);
+    updateDeleteActions();
+    button('プロセスの仮説を取り込む',guard(importProcessHypotheses),toolbar);
     button('全体を表示',() => network?.fit(),toolbar);
-    button('自動配置',() => { state.nodes.forEach((n,i) => n.position = {x:(i%4)*300,y:Math.floor(i/4)*180}); changed(); network?.fit(); },toolbar);
+    button('自動配置',() => { arrangeNodes(); changed(); network?.fit(); },toolbar);
     button('パネル幅を変更',() => panel.classList.toggle('hn-wide'),toolbar);
     button('読める大きさ',readableView,toolbar);
+    status = el('p','保存データを読み込み中…','hn-status'); status.setAttribute('role','status'); main.append(status);
+    emptyState = el('p','「プロセスの仮説を取り込む」で、説明仮説・作業仮説と元の接続を追加できます。下位グレインも対象です。','hn-empty-state'); main.append(emptyState);
     canvas = el('div',null,'hn-canvas'); canvas.id = 'hypothesisNetworkCanvas'; main.append(canvas);
     itemList = el('details',null,'hn-item-list'); secondary.append(itemList);
     analysis = el('details',null,'hn-analysis'); secondary.append(analysis);
@@ -550,7 +638,6 @@
     const actions = el('div',null,'hn-actions'); support.append(actions);
     button('AIで仮説候補を抽出',extract,actions); button('選択した文章を候補に追加',guard(manualCandidate),actions);
     button('DB保存を再試行',guard(() => { persist(); }),actions);
-    status = el('p','保存データを読み込み中…','hn-status'); status.setAttribute('role','status'); support.append(status);
     review = el('div',null,'hn-review'); support.append(review);
     support.addEventListener('mouseup', event => {
       const preview = event.target.closest('.hn-source-preview[data-source-id]');
@@ -587,7 +674,7 @@
     if(!ready || !textarea?.value.trim()) return;
     const sourceId = textarea === entry.querySelector('textarea.hypothesis-text') ? entry.dataset.hypothesisEntryId : (textarea.dataset.hnSourceId ||= M.id());
     let n = state.nodes.find(v => v.sourceConversationId === sourceId);
-    if (!select && entry.dataset.processNodeId && !n) return;
+    if (!select && !n) return;
     const keywords = entryKeywordContext(entry);
     if(n) {Object.assign(n, keywords);n.text=textarea.value.trim();n.updatedAt=new Date().toISOString();}
     else {n=M.node({text:textarea.value,sourceText:textarea.value,sourceConversationId:sourceId,...keywords});state.nodes.push(n);}
@@ -602,6 +689,6 @@
   window.HypothesisNetwork = { canSave: () => ready && activeKey === key(), hasDraft: () => dirty, snapshot: () => ready ? clone(state) : undefined, restore, saved,
     saveFailed: () => message('DB保存に失敗しました。下書きはこのブラウザに保持しています。「DB保存を再試行」を利用してください。'),
     restoreFailed: () => { restore(); message('DBからの読込に失敗しました。未読込のデータを上書きしないよう、ページを再読込してください。'); ready = false; },
-    addFromEntry, recordConversation, analyze: () => M.analyze(state) };
+    addFromEntry, importProcessHypotheses, recordConversation, analyze: () => M.analyze(state) };
   document.addEventListener('DOMContentLoaded',() => { ensureHypothesisContainer(); init(); });
 })();

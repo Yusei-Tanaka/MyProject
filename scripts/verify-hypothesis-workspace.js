@@ -22,10 +22,12 @@ const sandbox = {window,document:{createElement:t=>new Element(t),querySelectorA
   fetch:async()=>({ok:true,json:async()=>({result:JSON.stringify({edges:[],questions:['何が観察されますか？']})})})};
 let source=fs.readFileSync(require.resolve('../JS/hypothesis-network.js'),'utf8');
 source=source.replace("  document.addEventListener('DOMContentLoaded'", `  window.test = {
-    setup() { ready=true; activeKey=key(); details=el('div'); refinement=el('div'); editorHost=el('div'); review=el('div'); analysis=el('div'); },
+    setup() { ready=true; activeKey=key(); details=el('div'); refinement=el('div'); editorHost=el('div'); review=el('div'); analysis=el('div'); deleteButton=el('button'); undoDeleteButton=el('button'); updateDeleteActions(); },
     get details(){return details;}, get state(){return state;}, get review(){return review;}, get editor(){return editorHost;}, get refinement(){return refinement;},
     get selected(){return selectedId;}, get activeSession(){return activeSessionId;},
-    nodeEditor,beginRefinement,showNode,showRefinement,accept,extract,addFromEntry,
+    get deleteButton(){return deleteButton;}, get undoDeleteButton(){return undoDeleteButton;},
+    nodeEditor,beginRefinement,showNode,showEdge,clearNodeSelection,removeNode,undoNodeDeletion,showRefinement,accept,extract,addFromEntry,
+    resetRestore(){ready=false;state=M.normalize();deletedNodes.length=0;localStorage.removeItem(key());},
     manual(start,end){sourceSelection={id:activeSessionId,start,end};manualCandidate();},
   };
   document.addEventListener('DOMContentLoaded'`);
@@ -70,11 +72,36 @@ async function submit() {await T.editor.children[0].children[0].onsubmit({preven
   assert.equal(restored.sessions.length,3);assert.equal(restored.candidates[0].nodeId,candidate.nodeId);
   assert.equal(restored.sessions[0].history.find(h=>h.action==='accepted').action,'accepted');assert.equal(restored.edges[0].label,'補足する関係');
   assert.deepEqual(restored.nodes[0].position,{x:125,y:-42});assert.equal(restored.nodes[0].reviewStatus,'in_progress');
+  // A visible selection action deletes only the selected node and its connected links.
+  const adopted = T.state.nodes.find(n=>n.id===candidate.nodeId);
+  adopted.position={x:310,y:240};
+  T.state.linkCandidates.push({...M.edge({sourceNodeId:original.id,targetNodeId:adopted.id}),status:'pending'});
+  const priorEdges=JSON.stringify(T.state.edges), priorCandidateLinks=JSON.stringify(T.state.linkCandidates);
+  const priorSessions=JSON.stringify(T.state.sessions), priorCount=T.state.nodes.length;
+  T.showNode(adopted);assert.equal(T.deleteButton.disabled,false);
+  T.removeNode(adopted);
+  assert.equal(T.state.nodes.length,priorCount-1);assert.equal(T.deleteButton.disabled,true);assert.equal(T.undoDeleteButton.disabled,false);
+  assert(!T.state.edges.some(e=>[e.sourceNodeId,e.targetNodeId].includes(adopted.id)));
+  assert(!T.state.linkCandidates.some(e=>[e.sourceNodeId,e.targetNodeId].includes(adopted.id)));
+  assert.equal(candidate.status,'pending');assert.equal(candidate.nodeId,undefined);
+  assert.equal(JSON.stringify(T.state.sessions),priorSessions);
+  const deletionDraft=JSON.parse(storage.get([...storage.keys()].find(k=>k.includes('hypothesis-network-draft'))));
+  assert(!deletionDraft.nodes.some(n=>n.id===adopted.id));
+  T.undoNodeDeletion();
+  assert.equal(T.state.nodes.length,priorCount);assert.equal(JSON.stringify(T.state.edges),priorEdges);
+  assert.equal(JSON.stringify(T.state.linkCandidates),priorCandidateLinks);
+  assert.equal(candidate.status,'accepted');assert.equal(candidate.nodeId,adopted.id);
+  assert.deepEqual(JSON.parse(JSON.stringify(T.state.nodes.find(n=>n.id===adopted.id).position)),{x:310,y:240});
+  assert.equal(T.undoDeleteButton.disabled,true);assert.equal(T.deleteButton.disabled,false);
+  T.showEdge(T.state.edges[0]);assert.equal(T.selected,null);assert.equal(T.deleteButton.disabled,true);
+  T.showNode(original);T.clearNodeSelection();assert.equal(T.deleteButton.disabled,true);
   // A process question is a source for divergence until the learner registers it as a hypothesis.
   const processTextarea={value:'発散元の疑問',dataset:{}};
   const processEntry={dataset:{processNodeId:'process-source',hypothesisEntryId:'process-entry'},querySelector:()=>processTextarea};
   const before=T.state.nodes.length;
   T.addFromEntry(processEntry,processTextarea,false);assert.equal(T.state.nodes.length,before);
+  const unrelatedEntry={dataset:{hypothesisEntryId:'unrelated'},querySelector:()=>processTextarea};
+  T.addFromEntry(unrelatedEntry,processTextarea,false);assert.equal(T.state.nodes.length,before);
   T.addFromEntry(processEntry,processTextarea,true);assert.equal(T.state.nodes.length,before+1);assert.equal(drawer.open,true);
   processTextarea.value='明示的に整理した仮説を修正';
   T.addFromEntry(processEntry,processTextarea,false);assert.equal(T.state.nodes.length,before+1);
@@ -95,5 +122,35 @@ async function submit() {await T.editor.children[0].children[0].onsubmit({preven
   window.nodes={get:()=>[]};T.showNode(linked);
   const missing=T.details.children.find(e=>e.className==='hn-keyword-context');
   assert(missing.children.some(e=>e.textContent==='元のキーワード'));assert(!missing.children.some(e=>e.tagName==='button'));
-  console.log('hypothesis-workspace: refinement, manual highlight, edit, adoption, multiple links, switching, repeated refinement and JSON restore passed');
+  // The production controller reads all child grains and preserves the active scope.
+  sandbox.requestAnimationFrame = fn => fn();
+  storage.set('userName', 'project'); storage.set('searchTitle', '暑さ'); T.setup();
+  const rootBundle = { map: { mapId: 13, title: '研究全体' }, hierarchy: [{ mapId: 13 }, { mapId: 18 }],
+    nodes: [{ nodeId: 'process-h', nodeType: 'explanatory_hypothesis', content: '日射が遮られて涼しい', relatedKeywords: ['日陰'] }] };
+  const childBundle = { map: { mapId: 18, title: '小位の検討' },
+    nodes: [{ nodeId: 'process-w', nodeType: 'working_hypothesis', content: '順番を変えても木陰が涼しい' }] };
+  const requests = [];
+  sandbox.fetch = async url => { requests.push(url); return { ok: true, json: async () => url.includes('/root?') ? rootBundle : childBundle }; };
+  assert.equal(await window.HypothesisNetwork.importProcessHypotheses(), 2);
+  assert(requests.some(url => url.includes('/process-maps/18?userId=project')));
+  assert(requests[0].includes('language=ja'));
+  assert.equal(await window.HypothesisNetwork.importProcessHypotheses(), 0);
+  const importedSnapshot = JSON.stringify(T.state);
+  sandbox.fetch = async url => url.includes('/root?') ? { ok: true, json: async () => rootBundle } : { ok: false, status: 500 };
+  await assert.rejects(window.HypothesisNetwork.importProcessHypotheses(), /HTTP 500/);
+  assert.equal(JSON.stringify(T.state), importedSnapshot);
+  sandbox.fetch = async url => ({ ok: true, json: async () => {
+    if (url.includes('/root?')) { storage.set('searchTitle', '別のテーマ'); return rootBundle; }
+    return childBundle;
+  } });
+  await assert.rejects(window.HypothesisNetwork.importProcessHypotheses(), /テーマまたは言語/);
+  assert.equal(JSON.stringify(T.state), importedSnapshot);
+  storage.set('searchTitle', '暑さ');
+  const themeNode=T.state.nodes.find(n=>n.nodeKind==='theme');
+  T.showNode(themeNode);assert.equal(T.deleteButton.disabled,true);
+  const themeCount=T.state.nodes.length;T.removeNode(themeNode);assert.equal(T.state.nodes.length,themeCount);
+  // Loading an empty structure never brings in legacy-map text automatically.
+  T.resetRestore();window.getMindmapNodes=()=>[{key:'1',text:'プロセスにない旧マップの記述'}];
+  window.HypothesisNetwork.restore({nodes:[]});assert.equal(T.state.nodes.length,0);
+  console.log('hypothesis-workspace: selection deletion/undo, persistence, source restrictions, process hierarchy and scope checks passed');
 })().catch(e=>{console.error(e);process.exitCode=1;});

@@ -2,6 +2,8 @@
 .hn-panel[hidden], #myDiagramDiv[hidden] { display: none !important; }
 .hn-actions { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; }
 .hn-actions button, .hn-review-row button, .hn-details button, .hn-support button { cursor: pointer; padding: 5px 9px; margin: 3px; border: 1px solid #bcc9d7; border-radius: 5px; background: #f4f7fa; color: #263344; }
+.hn-actions button.hn-delete-node { color: #a52424; border-color: #d9aaaa; background: #fff3f3; }
+.hn-actions button:disabled { opacity: .45; cursor: default; }
 .hn-canvas { height: 390px; min-height: 250px; border: 1px solid #cdd7e2; background: #fafcff; }
 .hn-details, .hn-analysis, .hn-support { padding: 10px; border-top: 1px solid #cdd7e2; }
 .hn-details p, .hn-review-row p { white-space: pre-wrap; overflow-wrap: anywhere; margin: 5px 0; }
@@ -11,6 +13,7 @@
 .hn-confirmed { background: #cceedd; color: #263344; cursor: pointer; }
 .hn-stale, .hn-error { color: #a33219; }
 .hn-status { font-size: 12px; }
+.hn-empty-state { margin: 0; padding: 10px 12px; color: #51647b; background: #f3f8fc; border-radius: 6px; }
 .hn-review-row { padding: 8px; border: 1px solid #d9e1e9; border-radius: 6px; margin: 7px 0; }
 .hn-dialog { width: min(540px, 88vw); max-height: 85vh; overflow: auto; border: 1px solid #bcc9d7; border-radius: 10px; padding: 18px; background: #fff; color: #263344; }
 .hn-dialog::backdrop { background: #10203055; }

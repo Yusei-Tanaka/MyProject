@@ -34,7 +34,7 @@
     const relationType = str(value.relationType) || 'unclassified';
     return { ...value, id: str(value.id) || id(), sourceNodeId: str(value.sourceNodeId),
       targetNodeId: str(value.targetNodeId), relationType,
-      label: str(value.label) || (Object.hasOwn(relations, relationType) ? relations[relationType] : relationType),
+      label: typeof value.label === 'string' ? value.label : (Object.hasOwn(relations, relationType) ? relations[relationType] : relationType),
       aiGenerated: value.aiGenerated === true,
       confidence: Number.isFinite(value.confidence) ? Math.max(0, Math.min(1, value.confidence)) : null,
       explanation: str(value.explanation), createdAt: str(value.createdAt) || new Date().toISOString() };
@@ -104,5 +104,126 @@
     return points.slice(0,-1).map((start,i) => ({ text: text.slice(start,points[i+1]), start, end: points[i+1],
       candidates: valid.filter(c => c.start < points[i+1] && c.end > start).map(c => c.id) }));
   }
-  return { types, relations, id, node, edge, normalize, validateEdge, analyze, candidate, segments };
+  function mergeProcessHypotheses(graph, bundles, themeName = '') {
+    const result = normalize(graph);
+    const roles = { explanatory_hypothesis: 'explanatory', working_hypothesis: 'working', operational_hypothesis: 'working' };
+    // Discard only untouched idea nodes from the earlier process importer.
+    result.nodes = result.nodes.filter(n => !(n.hypothesisType === 'idea' && n.processSources?.length && n.text === n.sourceText));
+    const sourceKey = source => JSON.stringify([String(source.mapId), String(source.nodeId)]);
+    const textKey = value => JSON.stringify([value.hypothesisType, value.text.replace(/\s+/g, ' ').trim()]);
+    const bySource = new Map(), byText = new Map(), selectedSources = new Map(), rawNodes = new Map(), outgoing = new Map();
+    const rootBundle = bundles.find(b => b?.map?.isRoot) || bundles[0];
+    const title = str(themeName).trim() || str(rootBundle?.map?.title).trim();
+    let themeNode = result.nodes.find(n => n.nodeKind === 'theme');
+    if (title) {
+      if (!themeNode) { themeNode = node({id:'research-theme', nodeKind:'theme', text:title}); result.nodes.unshift(themeNode); }
+      else themeNode.text = title;
+    }
+    result.nodes.forEach(n => {
+      byText.set(textKey(n), n);
+      (n.processSources || []).forEach(source => bySource.set(sourceKey(source), n));
+    });
+    let added = 0;
+    for (const bundle of bundles) {
+      const map = bundle?.map;
+      if (map?.mapId == null) continue;
+      for (const processNode of bundle.nodes || []) {
+        const rawKey = sourceKey({mapId:map.mapId,nodeId:processNode.nodeId});
+        rawNodes.set(rawKey, {...processNode, mapId:String(map.mapId)});
+        const role = roles[processNode.nodeType];
+        const text = str(processNode.content).trim();
+        if (!role || !text || !processNode.nodeId) continue;
+        const source = { mapId: String(map.mapId), nodeId: String(processNode.nodeId),
+          title: str(map.title), grainSize: str(map.grainSize), sourceText: text };
+        const incoming = node({ text, sourceText: text, hypothesisType: role,
+          keywordLabels: processNode.relatedKeywords || [], processSources: [source] });
+        const existing = bySource.get(sourceKey(source)) || byText.get(textKey(incoming));
+        if (existing) {
+          // Re-importing must retain edits made in the structured workspace.
+          existing.processSources = (existing.processSources || []).filter(s => sourceKey(s) !== sourceKey(source));
+          existing.processSources.push(source);
+          existing.keywordLabels = [...new Set([...existing.keywordLabels, ...incoming.keywordLabels])];
+          bySource.set(sourceKey(source), existing);
+          selectedSources.set(rawKey, existing);
+        } else {
+          result.nodes.push(incoming);
+          bySource.set(sourceKey(source), incoming);
+          byText.set(textKey(incoming), incoming);
+          selectedSources.set(rawKey, incoming);
+          added++;
+        }
+      }
+    }
+    const connect = (from, to, original) => {
+      if (!rawNodes.has(from) || !rawNodes.has(to)) return;
+      if (!outgoing.has(from)) outgoing.set(from, []);
+      outgoing.get(from).push({to, original});
+    };
+    const entries = bundle => {
+      const targets = new Set((bundle.edges || []).map(e => String(e.targetNodeId)));
+      const roots = (bundle.nodes || []).filter(n => !targets.has(String(n.nodeId)));
+      return roots.length ? roots : [(bundle.nodes || []).find(n => n.nodeType === 'problem_question') || bundle.nodes?.[0]].filter(Boolean);
+    };
+    for (const bundle of bundles) {
+      if (bundle?.map?.mapId == null) continue;
+      const mapId = String(bundle.map.mapId);
+      for (const original of bundle.edges || []) {
+        connect(sourceKey({mapId,nodeId:original.sourceNodeId}), sourceKey({mapId,nodeId:original.targetNodeId}), {...original,mapId});
+      }
+      for (const child of bundle.childMaps || []) {
+        const childBundle = bundles.find(b => String(b?.map?.mapId) === String(child.childMapId));
+        if (!childBundle) continue;
+        for (const entry of entries(childBundle)) {
+          connect(sourceKey({mapId,nodeId:child.parentNodeId}), sourceKey({mapId:child.childMapId,nodeId:entry.nodeId}),
+            {mapId,parentNodeId:child.parentNodeId,childMapId:String(child.childMapId),edgeType:'hierarchy'});
+        }
+      }
+    }
+    const ids = new Set(result.nodes.map(n => n.id));
+    result.edges = result.edges.filter(e => ids.has(e.sourceNodeId) && ids.has(e.targetNodeId));
+    result.edges.forEach(e => { if (e.processPaths) e.processPaths = [...e.processPaths]; });
+    const labels = {directed:'',suggestion_generation:'suggestion生成',selection_retention:'選択・保持',explanation:'説明化',
+      reasoning:'reasoning',operationalization:'操作化',verification:'検証',support:'支持',rejection:'棄却',revision:'修正',hierarchy:'下位'};
+    const pathKey = path => JSON.stringify([path.nodes.map(n => [n.mapId,n.nodeId]),path.edges.map(e => [e.mapId,e.edgeId || [e.parentNodeId,e.childMapId]])]);
+    const existingPaths = new Map();
+    result.edges.forEach(e => (e.processPaths || []).forEach(path => existingPaths.set(pathKey(path), e)));
+    const projected = new Map();
+    function walk(from, rawKey, pathNodes, pathEdges, visited) {
+      if (visited.has(rawKey)) return;
+      const raw = rawNodes.get(rawKey);
+      if (!raw) return;
+      const nextNodes = [...pathNodes, {mapId:raw.mapId,nodeId:raw.nodeId,nodeType:raw.nodeType,content:raw.content}];
+      const target = selectedSources.get(rawKey);
+      if (target && target.id !== from.id) {
+        const last = [...pathEdges].reverse().find(e => e.edgeType !== 'hierarchy') || pathEdges.at(-1);
+        if (!last && from.nodeKind !== 'theme') return;
+        const path = {nodes:nextNodes,edges:pathEdges};
+        const signature = pathKey(path), relationType = last?.edgeType || 'theme';
+        const pair = JSON.stringify([from.id,target.id,relationType]);
+        let link = existingPaths.get(signature) || projected.get(pair);
+        if (!link) {
+          link = edge({sourceNodeId:from.id,targetNodeId:target.id,relationType,
+            label:last?.label || labels[relationType] || relationType,
+            explanation:nextNodes.filter(n => n.nodeType === 'reasoning').map(n => n.content).join('\n'),processPaths:[]});
+          // A normal process link has no caption.
+          if ((relationType === 'directed' || relationType === 'theme') && !last?.label) link.label = '';
+          result.edges.push(link);
+        }
+        if (!link.processPaths.some(p => pathKey(p) === signature)) link.processPaths.push(path);
+        projected.set(pair, link); existingPaths.set(signature, link);
+        return;
+      }
+      const nextVisited = new Set(visited); nextVisited.add(rawKey);
+      for (const hop of outgoing.get(rawKey) || []) walk(from,hop.to,nextNodes,[...pathEdges,hop.original],nextVisited);
+    }
+    for (const [rawKey, from] of selectedSources) {
+      const raw = rawNodes.get(rawKey);
+      for (const hop of outgoing.get(rawKey) || []) walk(from,hop.to,[{mapId:raw.mapId,nodeId:raw.nodeId,nodeType:raw.nodeType,content:raw.content}], [hop.original], new Set([rawKey]));
+    }
+    if (themeNode && rootBundle) for (const entry of entries(rootBundle)) {
+      walk(themeNode,sourceKey({mapId:rootBundle.map.mapId,nodeId:entry.nodeId}),[],[],new Set());
+    }
+    return { graph: result, added };
+  }
+  return { types, relations, id, node, edge, normalize, validateEdge, analyze, candidate, segments, mergeProcessHypotheses };
 });
